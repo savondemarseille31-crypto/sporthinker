@@ -25,11 +25,16 @@ export default function CdmPage() {
         </div>
 
         {/* Raccourcis */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
           <Link href="/cdm/groupes" className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-emerald-500 transition-colors text-center">
             <div className="text-3xl mb-2">🗂️</div>
             <p className="font-semibold">Groupes</p>
             <p className="text-xs text-gray-500 mt-1">12 groupes · 48 équipes</p>
+          </Link>
+          <Link href="/cdm/equipes" className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-emerald-500 transition-colors text-center">
+            <div className="text-3xl mb-2">🌍</div>
+            <p className="font-semibold">Équipes</p>
+            <p className="text-xs text-gray-500 mt-1">Profils & forces/faiblesses</p>
           </Link>
           <Link href="/cdm/calendrier" className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-emerald-500 transition-colors text-center">
             <div className="text-3xl mb-2">📅</div>
