@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Logo from '@/components/Logo'
+import Header from '@/components/Header'
 import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 import { CDM_GROUPS } from '@/lib/cdm-groups'
 
@@ -8,14 +8,7 @@ export default function CdmPage() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-      <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <Link href="/"><Logo /></Link>
-        <nav className="flex gap-6 text-sm text-gray-400">
-          <Link href="/cdm" className="text-emerald-400 font-semibold">🌍 CdM 2026</Link>
-          <Link href="/nba" className="hover:text-emerald-400 transition-colors">🏀 NBA</Link>
-          <Link href="/paris" className="hover:text-emerald-400 transition-colors">💰 Mes Paris</Link>
-        </nav>
-      </header>
+      <Header />
 
       <div className="px-6 py-8 max-w-6xl mx-auto">
         {/* Titre */}

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Logo from '@/components/Logo'
+import Header from '@/components/Header'
 import {
   calcEV, calcKelly, calcMiseKelly, devig, isValueBet,
   savePari, getBankroll, type Bankroll, type TypePari
@@ -82,14 +82,7 @@ export default function CalculateurPage() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-      <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <Link href="/"><Logo /></Link>
-        <nav className="flex gap-6 text-sm text-gray-400">
-          <Link href="/cdm" className="hover:text-emerald-400 transition-colors">🌍 CdM 2026</Link>
-          <Link href="/nba" className="hover:text-emerald-400 transition-colors">🏀 NBA</Link>
-          <Link href="/paris" className="text-emerald-400 font-semibold">💰 Mes Paris</Link>
-        </nav>
-      </header>
+      <Header />
 
       <div className="px-6 py-8 max-w-2xl mx-auto">
         <Link href="/paris" className="text-gray-500 text-sm hover:text-emerald-400 transition-colors">← Retour Paris</Link>
