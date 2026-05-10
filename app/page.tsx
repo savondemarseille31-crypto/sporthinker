@@ -26,10 +26,10 @@ export default function Home() {
           <h2 className="text-xl font-bold mb-2">Coupe du Monde 2026</h2>
           <p className="text-gray-400 text-sm">48 équipes, groupes, matchs, stats joueurs et ValueBets</p>
         </Link>
-        <Link href="/nba" className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-emerald-500 transition-colors">
-          <div className="text-4xl mb-4">🏀</div>
-          <h2 className="text-xl font-bold mb-2">NBA</h2>
-          <p className="text-gray-400 text-sm">Stats équipes, profils joueurs et analyse des matchs</p>
+        <Link href="/mlb" className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-emerald-500 transition-colors">
+          <div className="text-4xl mb-4">⚾</div>
+          <h2 className="text-xl font-bold mb-2">MLB</h2>
+          <p className="text-gray-400 text-sm">Matchups du jour, classements, stats lanceurs et frappeurs en temps réel</p>
         </Link>
         <Link href="/paris" className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-emerald-500 transition-colors">
           <div className="text-4xl mb-4">💰</div>
