@@ -110,24 +110,16 @@ export default async function JoueursMLBPage() {
           </section>
         </div>
 
-        {/* Glossaire */}
-        <div className="mt-8 bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <h3 className="text-sm font-bold text-emerald-400 mb-3">📖 Glossaire stats MLB</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs text-gray-400">
-            {[
-              { stat: 'ERA', desc: 'Moyenne de points mérités sur 9 manches — plus bas = meilleur' },
-              { stat: 'WHIP', desc: 'Buts sur balles + coups sûrs par manche — &lt;1.00 = excellent' },
-              { stat: 'AVG', desc: 'Moyenne au bâton — &gt;.300 = frappeur d\'élite' },
-              { stat: 'OPS', desc: 'OBP + SLG — mesure globale offensive, &gt;.900 = excellent' },
-              { stat: 'HR', desc: 'Home Runs — coups de circuit' },
-              { stat: 'RBI', desc: 'Points produits — indicateur d\'impact offensif' },
-            ].map(g => (
-              <div key={g.stat} className="bg-gray-800 rounded-xl p-2.5">
-                <p className="font-bold text-white mb-0.5">{g.stat}</p>
-                <p>{g.desc}</p>
-              </div>
-            ))}
+        {/* Lien guide */}
+        <div className="mt-8 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div>
+            <p className="font-bold text-emerald-400 mb-1">📖 Tu débutes sur le MLB ?</p>
+            <p className="text-sm text-gray-400">Consulte notre guide complet : ERA, WHIP, OPS, types de paris et stratégies expliqués pour les parieurs débutants.</p>
           </div>
+          <Link href="/mlb/guide"
+            className="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-4 py-2.5 rounded-xl transition-colors text-sm">
+            Lire le guide →
+          </Link>
         </div>
       </div>
     </main>

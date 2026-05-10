@@ -36,7 +36,7 @@ export default async function MLBPage() {
             { href: '/mlb/calendrier', icon: '📅', label: 'Calendrier', sub: `${games.length} matchs aujourd'hui` },
             { href: '/mlb/classements', icon: '🏆', label: 'Classements', sub: '6 divisions · 30 équipes' },
             { href: '/mlb/joueurs', icon: '👤', label: 'Joueurs', sub: 'Top lanceurs & frappeurs' },
-            { href: '/paris/calculateur', icon: '💰', label: 'ValueBet', sub: 'Calculer une value bet' },
+            { href: '/mlb/guide', icon: '📖', label: 'Guide paris', sub: 'ERA, WHIP, OPS expliqués' },
           ].map(r => (
             <Link key={r.href} href={r.href}
               className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-emerald-500 transition-colors text-center">
