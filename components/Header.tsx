@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Logo from './Logo'
 
 type DropdownItem = { href: string; label: string }
@@ -17,21 +17,33 @@ function NavDropdown({
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const cancelClose = useCallback(() => {
+    if (closeTimer.current) clearTimeout(closeTimer.current)
+  }, [])
+
+  const scheduleClose = useCallback(() => {
+    closeTimer.current = setTimeout(() => setOpen(false), 150)
+  }, [])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
     document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      if (closeTimer.current) clearTimeout(closeTimer.current)
+    }
   }, [])
 
   return (
     <div
       ref={ref}
       className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={() => { cancelClose(); setOpen(true) }}
+      onMouseLeave={scheduleClose}
     >
       <button
         onClick={() => setOpen(o => !o)}
@@ -43,17 +55,23 @@ function NavDropdown({
         <span className={`text-[10px] transition-transform duration-150 ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-2 bg-gray-900 border border-gray-800 rounded-xl py-1 min-w-[160px] z-50 shadow-2xl">
-          {items.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-gray-800/80 transition-colors"
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div
+          className="absolute top-full left-0 pt-2 z-50"
+          onMouseEnter={cancelClose}
+          onMouseLeave={scheduleClose}
+        >
+          <div className="bg-gray-900 border border-gray-800 rounded-xl py-1.5 min-w-[180px] shadow-2xl">
+            {items.map(item => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors rounded-lg mx-1"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>
