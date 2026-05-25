@@ -1,7 +1,11 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { getPlayerById, ALL_CDM_PLAYERS } from '@/lib/cdm-players'
+import { getBlendedStats } from '@/lib/cdm-blend-fetch'
+import { generateSignalsFromBlended } from '@/lib/cdm-player-signals'
 import { notFound } from 'next/navigation'
+
+export const revalidate = 3600 // 1h — stats blend sélection + WC
 
 export async function generateStaticParams() {
   return ALL_CDM_PLAYERS.map(p => ({ id: String(p.id) }))
@@ -11,6 +15,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const { id } = await params
   const player = getPlayerById(Number(id))
   if (!player) notFound()
+
+  // Blend stats : club (statique) + sélection (API) + WC (API, live dès le 11 juin)
+  const { blended, selStats, wcStats } = await getBlendedStats(player)
 
   const getFormeColor = (f: string) => {
     if (f === 'V') return 'bg-emerald-500'
@@ -169,11 +176,193 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           )
         })()}
 
+        {/* ── STATS PARIS (blendées) ── */}
+        {(() => {
+          const signals = generateSignalsFromBlended(player, blended)
+          const hasData = player.poste !== 'Gardien'
+
+          const chipColor = (force: string) =>
+            force === 'fort'   ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+            : force === 'modéré' ? 'bg-yellow-500/20  text-yellow-400  border-yellow-500/30'
+            : 'bg-gray-700/50 text-gray-400 border-gray-600'
+
+          const buteurSig  = signals.find(s => s.marché === 'buteur')
+          const cadreSig   = signals.find(s => s.marché === 'tirs-cadrés')
+          const cartonSig  = signals.find(s => s.marché === 'carton-jaune')
+          const passeurSig = signals.find(s => s.marché === 'passeur')
+
+          const sourceColor = (c: typeof blended.confiance) =>
+            c === 'haute' ? 'text-emerald-400' : c === 'moyenne' ? 'text-yellow-400' : 'text-gray-500'
+
+          return (
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-bold text-emerald-400">🎰 Stats par match — Marchés disponibles</h2>
+              </div>
+
+              {/* Source badge */}
+              <div className="mb-4 flex items-center gap-2">
+                <span className={`text-xs font-medium ${sourceColor(blended.confiance)}`}>
+                  ● {blended.confiance === 'haute' ? 'Haute confiance' : blended.confiance === 'moyenne' ? 'Confiance moyenne' : 'Petit échantillon'}
+                </span>
+                <span className="text-xs text-gray-600">·</span>
+                <span className="text-xs text-gray-500">{blended.sourceLabel}</span>
+                {selStats && (
+                  <span className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full ml-1">
+                    + stats sélection
+                  </span>
+                )}
+                {wcStats && (
+                  <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                    + stats WC live
+                  </span>
+                )}
+              </div>
+
+              {!hasData ? (
+                <p className="text-gray-500 text-sm">Stats marchés non applicables aux gardiens.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  {/* BUTEUR */}
+                  <div className="bg-gray-800/60 rounded-xl p-4 border border-gray-700">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-semibold text-white">⚽ Buteur / xG</p>
+                      {buteurSig && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${chipColor(buteurSig.force)}`}>
+                          {buteurSig.force}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">xG/match</span>
+                        <span className="font-bold text-emerald-400">{blended.xGParMatch.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Tirs/match</span>
+                        <span className="font-bold text-white">{blended.tirsParMatch.toFixed(1)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Cadrés/match</span>
+                        <span className="font-bold text-white">{blended.tirsCadrésParMatch.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Buts club saison</span>
+                        <span className="font-bold text-white">{player.buts}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CARTONS */}
+                  <div className="bg-gray-800/60 rounded-xl p-4 border border-gray-700">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-semibold text-white">🟨 Carton jaune</p>
+                      {cartonSig && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${chipColor(cartonSig.force)}`}>
+                          {cartonSig.force}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Fréquence</span>
+                        <span className="font-bold text-white">
+                          {blended.cartonsJaunesParMatch > 0
+                            ? `${(blended.cartonsJaunesParMatch * 100).toFixed(0)}% des matchs`
+                            : '—'}
+                        </span>
+                      </div>
+                      {blended.cartonsJaunesParMatch > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">1 tous les…</span>
+                          <span className="font-bold text-yellow-400">
+                            ~{Math.round(1 / blended.cartonsJaunesParMatch)} matchs
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Matchs analysés</span>
+                        <span className="font-bold text-white">{blended.matchsJoues}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PASSEUR */}
+                  <div className="bg-gray-800/60 rounded-xl p-4 border border-gray-700">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-semibold text-white">🎯 Passeur décisif</p>
+                      {passeurSig && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${chipColor(passeurSig.force)}`}>
+                          {passeurSig.force}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">xA/match</span>
+                        <span className="font-bold text-emerald-400">{blended.xAParMatch.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Passes clés/match</span>
+                        <span className="font-bold text-white">{blended.passesClésParMatch.toFixed(1)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Passes déc. club</span>
+                        <span className="font-bold text-white">{player.passes}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TIRS CADRÉS */}
+                  <div className="bg-gray-800/60 rounded-xl p-4 border border-gray-700">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-semibold text-white">🎯 Tirs cadrés</p>
+                      {cadreSig && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${chipColor(cadreSig.force)}`}>
+                          {cadreSig.force}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Cadrés/match</span>
+                        <span className="font-bold text-emerald-400">{blended.tirsCadrésParMatch.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">% précision</span>
+                        <span className={`font-bold ${
+                          blended.tirsParMatch > 0 && (blended.tirsCadrésParMatch / blended.tirsParMatch) >= 0.40
+                            ? 'text-emerald-400'
+                            : (blended.tirsCadrésParMatch / blended.tirsParMatch) >= 0.30
+                            ? 'text-yellow-400'
+                            : 'text-gray-300'
+                        }`}>
+                          {blended.tirsParMatch > 0
+                            ? `${Math.round((blended.tirsCadrésParMatch / blended.tirsParMatch) * 100)}%`
+                            : '—'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Tirs/match</span>
+                        <span className="font-bold text-white">{blended.tirsParMatch.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
+        {/* ── CONSEIL PARIS ── */}
         <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6">
           <h2 className="text-lg font-bold mb-3 text-emerald-400">💰 Conseil Paris SporThinker</h2>
           <div className="space-y-2 text-sm text-gray-300">
             <p>• <strong>Buteur du match :</strong> {player.buts > player.xG ? 'Excellent finisseur, cote souvent sous-évaluée' : 'Peut être en manque de réalisme, surveiller les occasions créées'}</p>
-            <p>• <strong>Passeur décisif :</strong> {player.xA > 10 ? 'Très impliqué dans le jeu collectif, pari passeur pertinent' : 'Moins axé sur la création, privilégier le pari buteur'}</p>
+            <p>• <strong>Tirs cadrés :</strong> {player.tirsCadres != null && player.matchsJoues > 0 ? `${(player.tirsCadres / player.matchsJoues).toFixed(1)} cadrés/match en moyenne — ${(player.tirsCadres / player.matchsJoues) >= 2 ? 'marché "tirs cadrés" intéressant' : 'volume insuffisant pour ce marché'}` : 'Données insuffisantes'}</p>
+            <p>• <strong>Carton jaune :</strong> {player.cartonsJaunes != null ? (player.cartonsJaunes >= 6 ? `⚠️ ${player.cartonsJaunes} cartons cette saison — profil à risque, marché carton pertinent` : player.cartonsJaunes >= 3 ? `${player.cartonsJaunes} cartons — risque modéré` : 'Peu de cartons, marché carton déconseillé') : 'Données insuffisantes'}</p>
             <p>• <strong>Forme :</strong> {player.forme.filter(f => f === 'V').length >= 3 ? '🔥 En grande forme, profil de match à suivre' : '⚠️ Forme irrégulière, risque plus élevé'}</p>
           </div>
         </div>

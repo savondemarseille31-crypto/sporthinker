@@ -145,6 +145,19 @@ export async function getStandings(): Promise<MLBDivisionStanding[]> {
   } catch { return [] }
 }
 
+export async function getPitcherSeasonStats(pitcherId: number): Promise<Record<string, string | number> | null> {
+  try {
+    const year = new Date().getFullYear()
+    const res = await fetch(
+      `${BASE}/people/${pitcherId}/stats?stats=season&group=pitching&season=${year}`,
+      { next: { revalidate: 3600 } }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.stats?.[0]?.splits?.[0]?.stat ?? null
+  } catch { return null }
+}
+
 export async function getPitcherStats(playerId: number): Promise<Record<string, string | number>> {
   try {
     const year = new Date().getFullYear()
@@ -156,6 +169,98 @@ export async function getPitcherStats(playerId: number): Promise<Record<string, 
     const data = await res.json()
     return data.stats?.[0]?.splits?.[0]?.stat ?? {}
   } catch { return {} }
+}
+
+export async function getGameByPk(gamePk: number): Promise<MLBGame | null> {
+  try {
+    const res = await fetch(
+      `${BASE}/schedule?gamePk=${gamePk}&hydrate=probablePitcher,team,linescore`,
+      { cache: 'no-store' }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.dates?.[0]?.games?.[0] ?? null
+  } catch { return null }
+}
+
+export type MLBRecentGame = {
+  date: string
+  homeTeam: string
+  awayTeam: string
+  homeScore: number
+  awayScore: number
+  isHome: boolean   // from the perspective of the requested team
+  won: boolean
+  total: number
+}
+
+export async function getTeamRecentGames(teamId: number, limit = 10): Promise<MLBRecentGame[]> {
+  try {
+    const year = new Date().getFullYear()
+    const today = new Date().toISOString().split('T')[0]
+    const seasonStart = `${year}-03-01`
+    const res = await fetch(
+      `${BASE}/schedule?teamId=${teamId}&sportId=1&startDate=${seasonStart}&endDate=${today}&hydrate=linescore,team`,
+      { next: { revalidate: 1800 } }
+    )
+    if (!res.ok) return []
+    const data = await res.json()
+    const games: MLBRecentGame[] = []
+    for (const date of (data.dates ?? []).reverse()) {
+      for (const g of (date.games ?? [])) {
+        if (g.status?.abstractGameState !== 'Final') continue
+        const home = g.teams?.home
+        const away = g.teams?.away
+        if (!home || !away) continue
+        const isHome = home.team?.id === teamId
+        const myScore = isHome ? (home.score ?? 0) : (away.score ?? 0)
+        const oppScore = isHome ? (away.score ?? 0) : (home.score ?? 0)
+        games.push({
+          date: g.officialDate ?? date.date,
+          homeTeam: home.team?.abbreviation ?? '?',
+          awayTeam: away.team?.abbreviation ?? '?',
+          homeScore: home.score ?? 0,
+          awayScore: away.score ?? 0,
+          isHome,
+          won: myScore > oppScore,
+          total: (home.score ?? 0) + (away.score ?? 0),
+        })
+        if (games.length >= limit) break
+      }
+      if (games.length >= limit) break
+    }
+    return games
+  } catch { return [] }
+}
+
+export type MLBTeamHittingStats = {
+  runsPerGame: number
+  avg: string
+  ops: string
+  homeRuns: number
+  gamesPlayed: number
+}
+
+export async function getTeamHittingStats(teamId: number): Promise<MLBTeamHittingStats | null> {
+  try {
+    const year = new Date().getFullYear()
+    const res = await fetch(
+      `${BASE}/teams/${teamId}/stats?stats=season&group=hitting&season=${year}`,
+      { next: { revalidate: 3600 } }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    const stat = data.stats?.[0]?.splits?.[0]?.stat
+    if (!stat) return null
+    const gp = Number(stat.gamesPlayed ?? 1)
+    return {
+      runsPerGame: gp > 0 ? Number(stat.runs ?? 0) / gp : 0,
+      avg: stat.avg ?? '.000',
+      ops: stat.ops ?? '.000',
+      homeRuns: Number(stat.homeRuns ?? 0),
+      gamesPlayed: gp,
+    }
+  } catch { return null }
 }
 
 export async function getTopPitchers(limit = 20): Promise<MLBPlayerSplit[]> {
@@ -191,7 +296,7 @@ export async function getTopHitters(limit = 20): Promise<MLBPlayerSplit[]> {
 export function formatGameTime(gameDate: string, tbd: boolean): string {
   if (tbd) return 'Heure TBD'
   const d = new Date(gameDate)
-  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/New_York' }) + ' ET'
+  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' })
 }
 
 export function getL10(records?: MLBTeamRecord['records']): string {

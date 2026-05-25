@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
-import { getSchedule, getStandings, getL10, MLB_TEAMS, formatGameTime } from '@/lib/mlb-api'
+import { getSchedule, getStandings, getL10, MLB_TEAMS, formatGameTime, type MLBGame } from '@/lib/mlb-api'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 120 // 2 min — programme + scores du jour
 
 export default async function MLBPage() {
   const [games, standings] = await Promise.all([getSchedule(), getStandings()])
@@ -114,7 +114,7 @@ export default async function MLBPage() {
 }
 
 // ---- Composant carte match ----
-function GameCard({ game }: { game: import('@/lib/mlb-api').MLBGame }) {
+function GameCard({ game }: { game: MLBGame }) {
   const { home, away } = game.teams
   const homeInfo = MLB_TEAMS[home.team.id]
   const awayInfo = MLB_TEAMS[away.team.id]
@@ -144,8 +144,8 @@ function GameCard({ game }: { game: import('@/lib/mlb-api').MLBGame }) {
       {/* Teams */}
       <div className="space-y-2 mb-3">
         {[
-          { data: away, info: awayInfo, label: 'Ext.' },
           { data: home, info: homeInfo, label: 'Dom.' },
+          { data: away, info: awayInfo, label: 'Ext.' },
         ].map(({ data, info, label }) => (
           <div key={data.team.id} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -184,6 +184,14 @@ function GameCard({ game }: { game: import('@/lib/mlb-api').MLBGame }) {
           </div>
         </div>
       )}
+
+      {/* Lien analyse */}
+      <Link
+        href={`/mlb/matchup/${game.gamePk}`}
+        className="mt-3 block text-center text-xs text-gray-500 hover:text-emerald-400 transition-colors border border-gray-800 hover:border-emerald-500/50 rounded-lg py-1.5"
+      >
+        Analyser ce match →
+      </Link>
     </div>
   )
 }

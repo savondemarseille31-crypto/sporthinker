@@ -2,7 +2,7 @@ import Header from '@/components/Header'
 import Link from 'next/link'
 import { getStandings, getL10, getHomeRecord, getAwayRecord, MLB_TEAMS } from '@/lib/mlb-api'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 1800 // 30 min — classements MLB
 
 export default async function ClassementsPage() {
   const standings = await getStandings()
@@ -65,7 +65,7 @@ export default async function ClassementsPage() {
                               </div>
                               <span className="col-span-1 text-center font-bold text-emerald-400">{tr.wins}</span>
                               <span className="col-span-1 text-center text-red-400">{tr.losses}</span>
-                              <span className="col-span-1 text-center text-gray-300">.{tr.pct.replace('0.', '').replace('.', '')}</span>
+                              <span className="col-span-1 text-center text-gray-300">.{(tr.pct ?? '').replace('0.', '').replace('.', '')}</span>
                               <span className="col-span-1 text-center text-gray-500">
                                 {tr.gamesBack === '-' ? '—' : tr.gamesBack}
                               </span>

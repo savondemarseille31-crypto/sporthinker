@@ -39,10 +39,10 @@ export default function CdmPage() {
             <p className="font-semibold">Joueurs</p>
             <p className="text-xs text-gray-500 mt-1">Stats & profils xG/xA</p>
           </Link>
-          <Link href="/paris" className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-emerald-500 transition-colors text-center">
-            <div className="text-3xl mb-2">💰</div>
-            <p className="font-semibold">ValueBets</p>
-            <p className="text-xs text-gray-500 mt-1">Calculateur de value</p>
+          <Link href="/cdm/signaux" className="bg-gray-900 border border-emerald-500/40 rounded-2xl p-5 hover:border-emerald-500 transition-colors text-center">
+            <div className="text-3xl mb-2">⚡</div>
+            <p className="font-semibold text-emerald-400">Signaux</p>
+            <p className="text-xs text-gray-500 mt-1">Props joueurs & matchs</p>
           </Link>
         </div>
 

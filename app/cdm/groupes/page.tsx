@@ -5,18 +5,30 @@ import Header from '@/components/Header'
 import { CDM_GROUPS } from '@/lib/cdm-groups'
 
 const DRAPEAUX: Record<string, string> = {
-  'Mexico': '🇲🇽', 'Ecuador': '🇪🇨', 'Jamaica': '🇯🇲', 'Venezuela': '🇻🇪',
-  'USA': '🇺🇸', 'Panama': '🇵🇦', 'Bolivia': '🇧🇴', 'New Zealand': '🇳🇿',
-  'Canada': '🇨🇦', 'Honduras': '🇭🇳', 'Chile': '🇨🇱', 'Australia': '🇦🇺',
-  'France': '🇫🇷', 'Morocco': '🇲🇦', 'Senegal': '🇸🇳', 'Uzbekistan': '🇺🇿',
-  'Germany': '🇩🇪', 'Colombia': '🇨🇴', 'Uruguay': '🇺🇾', 'Japan': '🇯🇵',
-  'Portugal': '🇵🇹', 'Argentina': '🇦🇷', 'South Africa': '🇿🇦', 'South Korea': '🇰🇷',
-  'Spain': '🇪🇸', 'Brazil': '🇧🇷', 'Nigeria': '🇳🇬', 'Saudi Arabia': '🇸🇦',
-  'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Netherlands': '🇳🇱', 'DR Congo': '🇨🇩', 'Qatar': '🇶🇦',
-  'Belgium': '🇧🇪', 'Egypt': '🇪🇬', 'Peru': '🇵🇪', 'Costa Rica': '🇨🇷',
-  'Croatia': '🇭🇷', 'Cameroon': '🇨🇲', 'Iran': '🇮🇷',
-  'Italy': '🇮🇹', 'Tunisia': '🇹🇳', 'Cuba': '🇨🇺', 'Indonesia': '🇮🇩',
-  'Switzerland': '🇨🇭', 'Serbia': '🇷🇸', 'Algeria': '🇩🇿', 'Paraguay': '🇵🇾',
+  // Groupe A
+  'Mexico': '🇲🇽', 'South Korea': '🇰🇷', 'South Africa': '🇿🇦', 'Czechia': '🇨🇿',
+  // Groupe B
+  'Canada': '🇨🇦', 'Switzerland': '🇨🇭', 'Qatar': '🇶🇦', 'Bosnia-Herzegovina': '🇧🇦',
+  // Groupe C
+  'Brazil': '🇧🇷', 'Morocco': '🇲🇦', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Haiti': '🇭🇹',
+  // Groupe D
+  'USA': '🇺🇸', 'Paraguay': '🇵🇾', 'Australia': '🇦🇺', 'Turkey': '🇹🇷',
+  // Groupe E
+  'Germany': '🇩🇪', 'Ecuador': '🇪🇨', 'Ivory Coast': '🇨🇮', 'Curaçao': '🇨🇼',
+  // Groupe F
+  'Netherlands': '🇳🇱', 'Japan': '🇯🇵', 'Tunisia': '🇹🇳', 'Sweden': '🇸🇪',
+  // Groupe G
+  'Belgium': '🇧🇪', 'Iran': '🇮🇷', 'Egypt': '🇪🇬', 'New Zealand': '🇳🇿',
+  // Groupe H
+  'Spain': '🇪🇸', 'Uruguay': '🇺🇾', 'Saudi Arabia': '🇸🇦', 'Cape Verde': '🇨🇻',
+  // Groupe I
+  'France': '🇫🇷', 'Senegal': '🇸🇳', 'Norway': '🇳🇴', 'Iraq': '🇮🇶',
+  // Groupe J
+  'Argentina': '🇦🇷', 'Austria': '🇦🇹', 'Algeria': '🇩🇿', 'Jordan': '🇯🇴',
+  // Groupe K
+  'Portugal': '🇵🇹', 'Colombia': '🇨🇴', 'Uzbekistan': '🇺🇿', 'DR Congo': '🇨🇩',
+  // Groupe L
+  'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Croatia': '🇭🇷', 'Panama': '🇵🇦', 'Ghana': '🇬🇭',
 }
 
 export default function GroupesPage() {

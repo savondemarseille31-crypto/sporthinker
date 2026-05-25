@@ -1,16 +1,16 @@
 export const CDM_GROUPS = {
-  A: { teams: ['Mexico', 'Ecuador', 'Jamaica', 'Venezuela'], host: 'Mexico' },
-  B: { teams: ['USA', 'Panama', 'Bolivia', 'New Zealand'], host: 'USA' },
-  C: { teams: ['Canada', 'Honduras', 'Chile', 'Australia'], host: 'Canada' },
-  D: { teams: ['France', 'Morocco', 'Senegal', 'Uzbekistan'], host: null },
-  E: { teams: ['Germany', 'Colombia', 'Uruguay', 'Japan'], host: null },
-  F: { teams: ['Portugal', 'Argentina', 'South Africa', 'South Korea'], host: null },
-  G: { teams: ['Spain', 'Brazil', 'Nigeria', 'Saudi Arabia'], host: null },
-  H: { teams: ['England', 'Netherlands', 'DR Congo', 'Qatar'], host: null },
-  I: { teams: ['Belgium', 'Egypt', 'Peru', 'Costa Rica'], host: null },
-  J: { teams: ['Croatia', 'Mexico', 'Cameroon', 'Iran'], host: null },
-  K: { teams: ['Italy', 'Tunisia', 'Cuba', 'Indonesia'], host: null },
-  L: { teams: ['Switzerland', 'Serbia', 'Algeria', 'Paraguay'], host: null },
+  A: { teams: ['Mexico', 'South Korea', 'South Africa', 'Czechia'],          host: 'Mexico' },
+  B: { teams: ['Canada', 'Switzerland', 'Qatar', 'Bosnia-Herzegovina'],      host: 'Canada' },
+  C: { teams: ['Brazil', 'Morocco', 'Scotland', 'Haiti'],                    host: null },
+  D: { teams: ['USA', 'Paraguay', 'Australia', 'Turkey'],                    host: 'USA' },
+  E: { teams: ['Germany', 'Ecuador', 'Ivory Coast', 'Curaçao'],              host: null },
+  F: { teams: ['Netherlands', 'Japan', 'Tunisia', 'Sweden'],                 host: null },
+  G: { teams: ['Belgium', 'Iran', 'Egypt', 'New Zealand'],                   host: null },
+  H: { teams: ['Spain', 'Uruguay', 'Saudi Arabia', 'Cape Verde'],            host: null },
+  I: { teams: ['France', 'Senegal', 'Norway', 'Iraq'],                       host: null },
+  J: { teams: ['Argentina', 'Austria', 'Algeria', 'Jordan'],                 host: null },
+  K: { teams: ['Portugal', 'Colombia', 'Uzbekistan', 'DR Congo'],            host: null },
+  L: { teams: ['England', 'Croatia', 'Panama', 'Ghana'],                     host: null },
 }
 
 export const GROUPES_LABELS = Object.keys(CDM_GROUPS)

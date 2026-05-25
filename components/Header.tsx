@@ -98,7 +98,8 @@ export default function Header() {
           label="⚾ Baseball"
           isActive={path.startsWith('/mlb')}
           items={[
-            { href: '/mlb', label: '⚾ MLB' },
+            { href: '/mlb',    label: '⚾ MLB'          },
+            { href: '/mlb/v2', label: '🧪 MLB v2 TEST'  },
           ]}
         />
         <NavDropdown

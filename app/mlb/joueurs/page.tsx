@@ -2,7 +2,7 @@ import Header from '@/components/Header'
 import Link from 'next/link'
 import { getTopPitchers, getTopHitters, MLB_TEAMS } from '@/lib/mlb-api'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // 1h — stats saison lanceurs/frappeurs
 
 export default async function JoueursMLBPage() {
   const [pitchers, hitters] = await Promise.all([getTopPitchers(20), getTopHitters(20)])
