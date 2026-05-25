@@ -2,27 +2,29 @@
 
 import { useState } from 'react'
 
-type Sport = 'tous' | 'mlb' | 'cdm' | 'nba' | 'tennis'
+type Sport = 'tous' | 'mlb' | 'cdm' | 'nba' | 'tennis' | 'mls'
 
 export default function SignauxFilter({
   counts,
-  mlb, cdm, nba, tennis,
+  mlb, cdm, nba, tennis, mls,
 }: {
-  counts: { mlb: number; cdm: number; nba: number; tennis: number }
-  mlb: React.ReactNode
-  cdm: React.ReactNode
-  nba: React.ReactNode
+  counts: { mlb: number; cdm: number; nba: number; tennis: number; mls: number }
+  mlb:    React.ReactNode
+  cdm:    React.ReactNode
+  nba:    React.ReactNode
   tennis: React.ReactNode
+  mls:    React.ReactNode
 }) {
   const [active, setActive] = useState<Sport>('tous')
-  const total = counts.mlb + counts.cdm + counts.nba + counts.tennis
+  const total = counts.mlb + counts.cdm + counts.nba + counts.tennis + counts.mls
 
   const tabs: { key: Sport; emoji: string; label: string; count: number }[] = [
-    { key: 'tous',   emoji: '⚡', label: 'Tous',    count: total        },
-    { key: 'tennis', emoji: '🎾', label: 'Tennis',  count: counts.tennis },
-    { key: 'mlb',    emoji: '⚾', label: 'MLB',     count: counts.mlb   },
-    { key: 'cdm',    emoji: '🌍', label: 'CdM',     count: counts.cdm   },
-    { key: 'nba',    emoji: '🏀', label: 'NBA',     count: counts.nba   },
+    { key: 'tous',   emoji: '⚡', label: 'Tous',    count: total          },
+    { key: 'tennis', emoji: '🎾', label: 'Tennis',  count: counts.tennis  },
+    { key: 'mlb',    emoji: '⚾', label: 'MLB',     count: counts.mlb     },
+    { key: 'mls',    emoji: '⚽', label: 'MLS',     count: counts.mls     },
+    { key: 'cdm',    emoji: '🌍', label: 'CdM',     count: counts.cdm     },
+    { key: 'nba',    emoji: '🏀', label: 'NBA',     count: counts.nba     },
   ]
 
   const show = (sport: Sport) => active === 'tous' || active === sport
@@ -53,10 +55,17 @@ export default function SignauxFilter({
         ))}
       </div>
 
-      {show('tennis') && tennis}
-      {show('mlb')    && mlb}
-      {show('cdm')    && cdm}
-      {show('nba')    && nba}
+      {(
+        [
+          { key: 'tennis', content: tennis },
+          { key: 'mlb',    content: mlb    },
+          { key: 'mls',    content: mls    },
+          { key: 'cdm',    content: cdm    },
+          { key: 'nba',    content: nba    },
+        ] as { key: Sport; content: React.ReactNode }[]
+      ).map(({ key, content }) =>
+        show(key) ? <div key={key}>{content}</div> : null
+      )}
     </>
   )
 }

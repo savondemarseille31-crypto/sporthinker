@@ -8,6 +8,7 @@ import { generateNBASignalsForToday } from '@/lib/nba-signals'
 import { generateFootballSignalsForToday } from '@/lib/football-signals'
 import { LEAGUES } from '@/lib/api-football'
 import { generateTennisSignalsForToday } from '@/lib/tennis-signals'
+import { generateMLSSignalsForToday } from '@/lib/mls-signals'
 
 export const revalidate = 300 // 5 min — signaux MLB + CdM + Tennis
 
@@ -36,7 +37,8 @@ function sportBadge(sport: Signal['sport']) {
     case 'MLB':    return { label: '⚾ MLB',       className: 'text-blue-300' }
     case 'NBA':    return { label: '🏀 NBA Playoffs', className: 'text-orange-300' }
     case 'CdM':    return { label: '🌍 CdM 2026',  className: 'text-emerald-300' }
-    case 'Tennis':     return { label: '🎾 Tennis',      className: 'text-orange-300' }
+    case 'Tennis':  return { label: '🎾 Tennis',    className: 'text-orange-300'  }
+    case 'MLS':     return { label: '⚽ MLS',       className: 'text-green-300'   }
   }
 }
 
@@ -190,13 +192,14 @@ function enrichSignalWithOdds(signal: Signal, espnOdds: ESPNCdMOdds[]): Signal {
 // ---- Page ----
 export default async function SignauxPage() {
   // 1. Fetch everything in parallel
-  const [games, standings, espnCdMOdds, nbaSignals, liveFootballSignals, tennisSignals] = await Promise.all([
+  const [games, standings, espnCdMOdds, nbaSignals, liveFootballSignals, tennisSignals, mlsSignals] = await Promise.all([
     getSchedule(),
     getStandings(),
     getCdMUpcomingWithOdds(14),
     generateNBASignalsForToday().catch(() => [] as Signal[]),
     generateFootballSignalsForToday(LEAGUES.WORLD_CUP, 2026).catch(() => [] as Signal[]),
     generateTennisSignalsForToday().catch(() => [] as Signal[]),
+    generateMLSSignalsForToday().catch(() => [] as Signal[]),
   ])
 
   const previewGames = games.filter(g => g.status.abstractGameState === 'Preview')
@@ -236,7 +239,7 @@ export default async function SignauxPage() {
   const forceOrder: Record<SignalForce, number> = { fort: 0, modéré: 1, 'à surveiller': 2 }
   const sortByForce = (arr: Signal[]) => [...arr].sort((a, b) => forceOrder[a.force] - forceOrder[b.force])
 
-  const allSignals = sortByForce([...mlbSignals, ...nbaSignals, ...cdmSignals, ...tennisSignals])
+  const allSignals = sortByForce([...mlbSignals, ...mlsSignals, ...nbaSignals, ...cdmSignals, ...tennisSignals])
 
   const fortsCount      = allSignals.filter(s => s.force === 'fort').length
   const moderésCount    = allSignals.filter(s => s.force === 'modéré').length
@@ -319,6 +322,7 @@ export default async function SignauxPage() {
             cdm:    cdmSignals.length,
             nba:    nbaSignals.length,
             tennis: tennisSignals.length,
+            mls:    mlsSignals.length,
           }}
           tennis={(
             <section className="mb-10">
@@ -402,6 +406,33 @@ export default async function SignauxPage() {
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
                   <p className="text-gray-500 text-sm">Aucun signal CdM détecté sur les 14 prochains jours.</p>
+                </div>
+              )}
+            </section>
+          )}
+          mls={(
+            <section className="mb-10">
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-xl font-bold text-green-300">⚽ MLS — Signaux du jour</h2>
+                {mlsSignals.length > 0
+                  ? <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full">{mlsSignals.length} signal{mlsSignals.length > 1 ? 's' : ''}</span>
+                  : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
+                }
+                <Link href="/mls" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
+                  Voir les matchs →
+                </Link>
+              </div>
+              {mlsSignals.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {sortByForce(mlsSignals).map(s => <SignalCard key={s.id} signal={s} />)}
+                </div>
+              ) : (
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+                  <p className="text-gray-500 text-sm mb-1">Pas de signal MLS aujourd&apos;hui</p>
+                  <p className="text-gray-600 text-xs">Les signaux apparaissent quand un écart de win rate contextuel (domicile/extérieur) ou un total de buts hors norme est détecté.</p>
+                  <Link href="/mls" className="inline-block mt-3 text-sm text-green-400 hover:text-green-300 transition-colors">
+                    Analyser les matchs MLS →
+                  </Link>
                 </div>
               )}
             </section>
