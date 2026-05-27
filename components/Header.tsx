@@ -127,6 +127,7 @@ export default function Header() {
             { href: '/nba', label: '🏀 NBA Playoffs' },
           ]}
         />
+        {navItem('/selections', '🎯 Sélections')}
         {navItem('/paris', '💰 Mes Paris')}
       </nav>
     </header>
