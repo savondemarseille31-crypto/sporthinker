@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import Header from '@/components/Header'
 import SelectionsFilter from '@/components/SelectionsFilter'
 import { getValueBets, type ValueBet, type NiveauEdge } from '@/lib/value-bets'
@@ -30,32 +29,25 @@ function niveauConfig(n: NiveauEdge) {
   }
 }
 
-function sportBadge(sport: string) {
-  if (sport === 'ATP') return 'text-blue-400'
-  if (sport === 'WTA') return 'text-pink-400'
-  return 'text-gray-400'
-}
-
 // ── ValueBetCard ──────────────────────────────────────────────────────────────
 
 function ValueBetCard({ bet }: { bet: ValueBet }) {
   const cfg      = niveauConfig(bet.niveau)
-  const edgePct  = (bet.edge   * 100).toFixed(1)
-  const pModPct  = (bet.pModel * 100).toFixed(1)
+  const edgePct  = (bet.edge    * 100).toFixed(1)
+  const pModPct  = (bet.pModel  * 100).toFixed(1)
   const pMktPct  = (bet.pMarche * 100).toFixed(1)
   const barWidth = Math.min(100, (bet.edge / 0.15) * 100).toFixed(0)
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4 hover:border-gray-700 transition-colors">
 
-      {/* En-tête */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cfg.badge}`}>
             <span className={`inline-block w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1 align-middle`} />
             {cfg.label}
           </span>
-          <span className={`text-xs px-2 py-0.5 rounded-full bg-gray-800 font-semibold ${sportBadge(bet.sport)}`}>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 font-semibold text-blue-400">
             🎾 {bet.sport} · {bet.surface}
           </span>
         </div>
@@ -65,7 +57,6 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
         </div>
       </div>
 
-      {/* Match + sélection */}
       <div>
         <p className="text-sm font-semibold text-white mb-1">{bet.match}</p>
         <div className="mt-2 bg-gray-800 rounded-xl px-4 py-3">
@@ -75,7 +66,6 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
         </div>
       </div>
 
-      {/* Comparaison probabilités */}
       <div className="grid grid-cols-3 gap-2">
         <div className="text-center bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
           <p className="text-lg font-bold text-emerald-400">{pModPct}%</p>
@@ -91,7 +81,6 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
         </div>
       </div>
 
-      {/* Barre d'avantage */}
       <div>
         <div className="flex justify-between text-xs text-gray-600 mb-1">
           <span>Avantage estimé</span>
@@ -102,65 +91,70 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
         </div>
       </div>
 
-      {/* Raisonnement */}
       <p className="text-sm text-gray-400 leading-relaxed">{bet.raisonnement}</p>
     </div>
   )
 }
 
-// ── Sections par niveau ───────────────────────────────────────────────────────
+// ── Section par niveau ────────────────────────────────────────────────────────
 
-function BetSection({
-  title, badge, bets, color,
-}: {
-  title: string
-  badge: string
-  bets: ValueBet[]
-  color: string
-}) {
-  if (!bets.length) return null
-  return (
-    <section>
+function BetsByLevel({ bets }: { bets: ValueBet[] }) {
+  if (!bets.length) return (
+    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center">
+      <p className="text-gray-500 text-sm">Aucune sélection détectée pour ce sport actuellement.</p>
+    </div>
+  )
+
+  const excellent   = bets.filter(b => b.niveau === 'excellent')
+  const bon         = bets.filter(b => b.niveau === 'bon')
+  const interessant = bets.filter(b => b.niveau === 'interessant')
+
+  const Section = ({ title, badge, color, items }: {
+    title: string; badge: string; color: string; items: ValueBet[]
+  }) => items.length === 0 ? null : (
+    <section className="mb-8">
       <div className="flex items-center gap-3 mb-4">
         <h2 className={`text-lg font-bold ${color}`}>{title}</h2>
         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${badge}`}>
-          {bets.length} sélection{bets.length > 1 ? 's' : ''}
+          {items.length} sélection{items.length > 1 ? 's' : ''}
         </span>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {bets.map(b => <ValueBetCard key={b.id} bet={b} />)}
+        {items.map(b => <ValueBetCard key={b.id} bet={b} />)}
       </div>
     </section>
+  )
+
+  return (
+    <>
+      <Section title="⚡ Avantage excellent" color="text-emerald-300"
+        badge="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" items={excellent} />
+      <Section title="✅ Bon avantage" color="text-blue-300"
+        badge="bg-blue-500/20 text-blue-300 border border-blue-500/30" items={bon} />
+      <Section title="🔍 Intéressant" color="text-yellow-300"
+        badge="bg-yellow-500/20 text-yellow-300 border border-yellow-500/30" items={interessant} />
+    </>
   )
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-type Sport = 'tout' | 'atp' | 'wta'
-
-export default async function SelectionsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ sport?: string }>
-}) {
-  const { sport: sportParam } = await searchParams
-  const activeSport: Sport = (sportParam === 'atp' || sportParam === 'wta') ? sportParam : 'tout'
-
+export default async function SelectionsPage() {
   const allBets = await getValueBets()
 
-  const counts: Record<Sport, number> = {
-    tout: allBets.length,
-    atp:  allBets.filter(b => b.sport === 'ATP').length,
-    wta:  allBets.filter(b => b.sport === 'WTA').length,
+  const tennisBets = allBets.filter(b => b.sport === 'ATP' || b.sport === 'WTA')
+  const mlbBets    = allBets.filter(b => b.sport === 'MLB')
+  const nbaBets    = allBets.filter(b => b.sport === 'NBA')
+
+  const counts = {
+    tennis: tennisBets.length,
+    mlb:    mlbBets.length,
+    nba:    nbaBets.length,
   }
 
-  const bets = activeSport === 'tout'
-    ? allBets
-    : allBets.filter(b => b.sport === activeSport.toUpperCase())
-
-  const excellent   = bets.filter(b => b.niveau === 'excellent')
-  const bon         = bets.filter(b => b.niveau === 'bon')
-  const interessant = bets.filter(b => b.niveau === 'interessant')
+  const excellent   = allBets.filter(b => b.niveau === 'excellent').length
+  const bon         = allBets.filter(b => b.niveau === 'bon').length
+  const interessant = allBets.filter(b => b.niveau === 'interessant').length
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -168,7 +162,6 @@ export default async function SelectionsPage({
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
 
-        {/* Titre */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-4xl font-bold">🎯 Sélections</h1>
@@ -181,60 +174,37 @@ export default async function SelectionsPage({
           </p>
         </div>
 
-        {/* KPI */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-400">{excellent.length}</p>
+            <p className="text-2xl font-bold text-emerald-400">{excellent}</p>
             <p className="text-xs text-gray-500 mt-1">⚡ Excellent (&gt;8%)</p>
           </div>
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-blue-400">{bon.length}</p>
+            <p className="text-2xl font-bold text-blue-400">{bon}</p>
             <p className="text-xs text-gray-500 mt-1">✅ Bon (5-8%)</p>
           </div>
           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-yellow-400">{interessant.length}</p>
+            <p className="text-2xl font-bold text-yellow-400">{interessant}</p>
             <p className="text-xs text-gray-500 mt-1">🔍 Intéressant (3-5%)</p>
           </div>
         </div>
 
-        {/* Filtre sport */}
-        <div className="mb-8">
-          <Suspense fallback={null}>
-            <SelectionsFilter counts={counts} current={activeSport} />
-          </Suspense>
-        </div>
-
-        {/* Contenu */}
-        {bets.length === 0 ? (
-          <div className="text-center py-20 text-gray-600">
+        {allBets.length === 0 && counts.tennis === 0 && counts.mlb === 0 && counts.nba === 0 ? (
+          <div className="text-center py-20">
             <p className="text-5xl mb-4">🎯</p>
             <p className="text-xl font-semibold mb-2 text-gray-400">Aucune sélection détectée</p>
             <p className="text-sm text-gray-600 max-w-sm mx-auto">
-              Le modèle n&apos;identifie pas d&apos;avantage suffisant sur les matchs disponibles.
+              Le modèle n&apos;identifie pas d&apos;avantage suffisant actuellement.
               Données mises à jour toutes les heures.
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-10">
-            <BetSection
-              title="⚡ Avantage excellent"
-              badge="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-              color="text-emerald-300"
-              bets={excellent}
-            />
-            <BetSection
-              title="✅ Bon avantage"
-              badge="bg-blue-500/20 text-blue-300 border border-blue-500/30"
-              color="text-blue-300"
-              bets={bon}
-            />
-            <BetSection
-              title="🔍 Intéressant"
-              badge="bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
-              color="text-yellow-300"
-              bets={interessant}
-            />
-          </div>
+          <SelectionsFilter
+            counts={counts}
+            tennis={<BetsByLevel bets={tennisBets} />}
+            mlb={<BetsByLevel bets={mlbBets} />}
+            nba={<BetsByLevel bets={nbaBets} />}
+          />
         )}
 
       </div>
