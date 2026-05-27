@@ -1,13 +1,15 @@
+import { Suspense } from 'react'
 import Header from '@/components/Header'
+import SelectionsFilter from '@/components/SelectionsFilter'
 import { getValueBets, type ValueBet, type NiveauEdge } from '@/lib/value-bets'
 
-export const revalidate = 3600  // 1h — The Odds API quota mensuel limité
+export const revalidate = 3600
 
 // ── Config visuelle ───────────────────────────────────────────────────────────
 
 function niveauConfig(n: NiveauEdge) {
   switch (n) {
-    case 'excellent':  return {
+    case 'excellent': return {
       dot:   'bg-emerald-400',
       badge: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
       bar:   'bg-emerald-400',
@@ -37,11 +39,10 @@ function sportBadge(sport: string) {
 // ── ValueBetCard ──────────────────────────────────────────────────────────────
 
 function ValueBetCard({ bet }: { bet: ValueBet }) {
-  const cfg     = niveauConfig(bet.niveau)
-  const edgePct = (bet.edge * 100).toFixed(1)
-  const pModPct = (bet.pModel * 100).toFixed(1)
-  const pMktPct = (bet.pMarche * 100).toFixed(1)
-  // Barre d'avantage : la largeur max représente 15% d'edge → 100%
+  const cfg      = niveauConfig(bet.niveau)
+  const edgePct  = (bet.edge   * 100).toFixed(1)
+  const pModPct  = (bet.pModel * 100).toFixed(1)
+  const pMktPct  = (bet.pMarche * 100).toFixed(1)
   const barWidth = Math.min(100, (bet.edge / 0.15) * 100).toFixed(0)
 
   return (
@@ -64,9 +65,9 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
         </div>
       </div>
 
-      {/* Match + pari */}
+      {/* Match + sélection */}
       <div>
-        <p className="text-sm text-gray-400 mb-1 font-semibold text-white">{bet.match}</p>
+        <p className="text-sm font-semibold text-white mb-1">{bet.match}</p>
         <div className="mt-2 bg-gray-800 rounded-xl px-4 py-3">
           <p className="text-xs text-gray-500 mb-0.5">Sélection</p>
           <p className="text-base font-bold text-emerald-300">{bet.pari}</p>
@@ -97,10 +98,7 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
           <span>+{edgePct} pts</span>
         </div>
         <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full ${cfg.bar} transition-all`}
-            style={{ width: `${barWidth}%` }}
-          />
+          <div className={`h-full rounded-full ${cfg.bar}`} style={{ width: `${barWidth}%` }} />
         </div>
       </div>
 
@@ -110,10 +108,55 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
   )
 }
 
+// ── Sections par niveau ───────────────────────────────────────────────────────
+
+function BetSection({
+  title, badge, bets, color,
+}: {
+  title: string
+  badge: string
+  bets: ValueBet[]
+  color: string
+}) {
+  if (!bets.length) return null
+  return (
+    <section>
+      <div className="flex items-center gap-3 mb-4">
+        <h2 className={`text-lg font-bold ${color}`}>{title}</h2>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${badge}`}>
+          {bets.length} sélection{bets.length > 1 ? 's' : ''}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {bets.map(b => <ValueBetCard key={b.id} bet={b} />)}
+      </div>
+    </section>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default async function SelectionsPage() {
-  const bets = await getValueBets()
+type Sport = 'tout' | 'atp' | 'wta'
+
+export default async function SelectionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sport?: string }>
+}) {
+  const { sport: sportParam } = await searchParams
+  const activeSport: Sport = (sportParam === 'atp' || sportParam === 'wta') ? sportParam : 'tout'
+
+  const allBets = await getValueBets()
+
+  const counts: Record<Sport, number> = {
+    tout: allBets.length,
+    atp:  allBets.filter(b => b.sport === 'ATP').length,
+    wta:  allBets.filter(b => b.sport === 'WTA').length,
+  }
+
+  const bets = activeSport === 'tout'
+    ? allBets
+    : allBets.filter(b => b.sport === activeSport.toUpperCase())
 
   const excellent   = bets.filter(b => b.niveau === 'excellent')
   const bon         = bets.filter(b => b.niveau === 'bon')
@@ -126,7 +169,7 @@ export default async function SelectionsPage() {
       <div className="px-6 py-8 max-w-5xl mx-auto">
 
         {/* Titre */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-4xl font-bold">🎯 Sélections</h1>
             <span className="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded-full font-semibold border border-gray-700">
@@ -135,12 +178,11 @@ export default async function SelectionsPage() {
           </div>
           <p className="text-gray-400 text-sm">
             Paris où notre modèle identifie un avantage statistique par rapport au marché.
-            Les cotes sont collectées automatiquement sur les meilleurs bookmakers de référence.
           </p>
         </div>
 
         {/* KPI */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
             <p className="text-2xl font-bold text-emerald-400">{excellent.length}</p>
             <p className="text-xs text-gray-500 mt-1">⚡ Excellent (&gt;8%)</p>
@@ -155,60 +197,43 @@ export default async function SelectionsPage() {
           </div>
         </div>
 
+        {/* Filtre sport */}
+        <div className="mb-8">
+          <Suspense fallback={null}>
+            <SelectionsFilter counts={counts} current={activeSport} />
+          </Suspense>
+        </div>
+
+        {/* Contenu */}
         {bets.length === 0 ? (
           <div className="text-center py-20 text-gray-600">
             <p className="text-5xl mb-4">🎯</p>
             <p className="text-xl font-semibold mb-2 text-gray-400">Aucune sélection détectée</p>
             <p className="text-sm text-gray-600 max-w-sm mx-auto">
-              Le modèle n&apos;identifie pas d&apos;avantage suffisant sur les matchs disponibles actuellement.
-              Les données sont mises à jour toutes les heures.
+              Le modèle n&apos;identifie pas d&apos;avantage suffisant sur les matchs disponibles.
+              Données mises à jour toutes les heures.
             </p>
           </div>
         ) : (
           <div className="flex flex-col gap-10">
-
-            {excellent.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-lg font-bold text-emerald-300">⚡ Avantage excellent</h2>
-                  <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                    &gt;8% d&apos;avantage
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {excellent.map(b => <ValueBetCard key={b.id} bet={b} />)}
-                </div>
-              </section>
-            )}
-
-            {bon.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-lg font-bold text-blue-300">✅ Bon avantage</h2>
-                  <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
-                    5-8% d&apos;avantage
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {bon.map(b => <ValueBetCard key={b.id} bet={b} />)}
-                </div>
-              </section>
-            )}
-
-            {interessant.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-lg font-bold text-yellow-300">🔍 Intéressant</h2>
-                  <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full border border-yellow-500/30">
-                    3-5% d&apos;avantage
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {interessant.map(b => <ValueBetCard key={b.id} bet={b} />)}
-                </div>
-              </section>
-            )}
-
+            <BetSection
+              title="⚡ Avantage excellent"
+              badge="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+              color="text-emerald-300"
+              bets={excellent}
+            />
+            <BetSection
+              title="✅ Bon avantage"
+              badge="bg-blue-500/20 text-blue-300 border border-blue-500/30"
+              color="text-blue-300"
+              bets={bon}
+            />
+            <BetSection
+              title="🔍 Intéressant"
+              badge="bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
+              color="text-yellow-300"
+              bets={interessant}
+            />
           </div>
         )}
 
