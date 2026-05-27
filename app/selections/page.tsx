@@ -1,5 +1,6 @@
 import Header from '@/components/Header'
 import SelectionsFilter from '@/components/SelectionsFilter'
+import TrackButton from '@/components/TrackButton'
 import { getValueBets, type ValueBet, type NiveauEdge } from '@/lib/value-bets'
 
 export const revalidate = 3600
@@ -94,6 +95,21 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
       </div>
 
       <p className="text-sm text-gray-400 leading-relaxed">{bet.raisonnement}</p>
+
+      <TrackButton
+        id={bet.id}
+        match={bet.match}
+        pari={bet.pari}
+        sport={bet.sport}
+        surface={bet.surface}
+        date={bet.date}
+        heure={bet.heure}
+        coteRef={bet.coteRef}
+        pModel={bet.pModel}
+        pMarche={bet.pMarche}
+        edge={bet.edge}
+        niveau={bet.niveau}
+      />
     </div>
   )
 }

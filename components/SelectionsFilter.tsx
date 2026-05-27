@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
+import SelectionsTracker from './SelectionsTracker'
 
-type Sport = 'tous' | 'tennis' | 'mlb' | 'nba'
+type Tab = 'tous' | 'tennis' | 'mlb' | 'nba' | 'suivi'
 
 export default function SelectionsFilter({
   counts,
@@ -14,17 +15,18 @@ export default function SelectionsFilter({
   mlb:    React.ReactNode
   nba:    React.ReactNode
 }) {
-  const [active, setActive] = useState<Sport>('tous')
+  const [active, setActive] = useState<Tab>('tous')
   const total = counts.tennis + counts.mlb + counts.nba
 
-  const tabs: { key: Sport; emoji: string; label: string; count: number }[] = [
+  const tabs: { key: Tab; emoji: string; label: string; count?: number }[] = [
     { key: 'tous',   emoji: '⚡', label: 'Tous',   count: total         },
     { key: 'tennis', emoji: '🎾', label: 'Tennis', count: counts.tennis },
     { key: 'mlb',    emoji: '⚾', label: 'MLB',    count: counts.mlb    },
     { key: 'nba',    emoji: '🏀', label: 'NBA',    count: counts.nba    },
+    { key: 'suivi',  emoji: '📊', label: 'Suivi'                        },
   ]
 
-  const show = (sport: Sport) => active === 'tous' || active === sport
+  const show = (sport: Tab) => active === 'tous' || active === sport
 
   return (
     <>
@@ -41,7 +43,7 @@ export default function SelectionsFilter({
           >
             <span>{t.emoji}</span>
             <span>{t.label}</span>
-            {t.count > 0 && (
+            {t.count !== undefined && t.count > 0 && (
               <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                 active === t.key ? 'bg-black/20 text-black' : 'bg-gray-700 text-gray-300'
               }`}>
@@ -52,14 +54,14 @@ export default function SelectionsFilter({
         ))}
       </div>
 
-      {(
-        [
-          { key: 'tennis' as Sport, content: tennis },
-          { key: 'mlb'    as Sport, content: mlb    },
-          { key: 'nba'    as Sport, content: nba    },
-        ]
-      ).map(({ key, content }) =>
-        show(key) ? <div key={key}>{content}</div> : null
+      {active === 'suivi' ? (
+        <SelectionsTracker />
+      ) : (
+        <>
+          {show('tennis') && <div key="tennis">{tennis}</div>}
+          {show('mlb')    && <div key="mlb">{mlb}</div>}
+          {show('nba')    && <div key="nba">{nba}</div>}
+        </>
       )}
     </>
   )
