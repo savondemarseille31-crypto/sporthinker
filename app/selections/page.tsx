@@ -1,9 +1,9 @@
 import Header from '@/components/Header'
 import SelectionsFilter from '@/components/SelectionsFilter'
-import TrackButton from '@/components/TrackButton'
 import { getValueBets, type ValueBet, type NiveauEdge } from '@/lib/value-bets'
+import { upsertBets, getTrackedBets, validateCompletedBets, computeStats } from '@/lib/selections-db'
 
-export const revalidate = 3600
+export const revalidate = 3600  // re-render toutes les heures max
 
 // ── Config visuelle ───────────────────────────────────────────────────────────
 
@@ -95,21 +95,6 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
       </div>
 
       <p className="text-sm text-gray-400 leading-relaxed">{bet.raisonnement}</p>
-
-      <TrackButton
-        id={bet.id}
-        match={bet.match}
-        pari={bet.pari}
-        sport={bet.sport}
-        surface={bet.surface}
-        date={bet.date}
-        heure={bet.heure}
-        coteRef={bet.coteRef}
-        pModel={bet.pModel}
-        pMarche={bet.pMarche}
-        edge={bet.edge}
-        niveau={bet.niveau}
-      />
     </div>
   )
 }
@@ -127,21 +112,24 @@ function BetsByLevel({ bets }: { bets: ValueBet[] }) {
   const bon         = bets.filter(b => b.niveau === 'bon')
   const interessant = bets.filter(b => b.niveau === 'interessant')
 
-  const Section = ({ title, badge, color, items }: {
+  function Section({ title, badge, color, items }: {
     title: string; badge: string; color: string; items: ValueBet[]
-  }) => items.length === 0 ? null : (
-    <section className="mb-8">
-      <div className="flex items-center gap-3 mb-4">
-        <h2 className={`text-lg font-bold ${color}`}>{title}</h2>
-        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${badge}`}>
-          {items.length} sélection{items.length > 1 ? 's' : ''}
-        </span>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {items.map(b => <ValueBetCard key={b.id} bet={b} />)}
-      </div>
-    </section>
-  )
+  }) {
+    if (!items.length) return null
+    return (
+      <section className="mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <h2 className={`text-lg font-bold ${color}`}>{title}</h2>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${badge}`}>
+            {items.length} sélection{items.length > 1 ? 's' : ''}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {items.map(b => <ValueBetCard key={b.id} bet={b} />)}
+        </div>
+      </section>
+    )
+  }
 
   return (
     <>
@@ -158,17 +146,23 @@ function BetsByLevel({ bets }: { bets: ValueBet[] }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function SelectionsPage() {
-  const allBets = await getValueBets()
+  // Fetch value bets + validate completed bets en parallèle
+  const [allBets, , trackedBets] = await Promise.all([
+    getValueBets(),
+    validateCompletedBets(),  // met à jour Supabase si matchs terminés (cache 8h sur scores)
+    getTrackedBets(),
+  ])
+
+  // Auto-ajouter les nouvelles sélections dans Supabase
+  await upsertBets(allBets)
+
+  const trackedStats = computeStats(trackedBets)
 
   const tennisBets = allBets.filter(b => b.sport === 'ATP' || b.sport === 'WTA')
   const mlbBets    = allBets.filter(b => b.sport === 'MLB')
   const nbaBets    = allBets.filter(b => b.sport === 'NBA')
 
-  const counts = {
-    tennis: tennisBets.length,
-    mlb:    mlbBets.length,
-    nba:    nbaBets.length,
-  }
+  const counts = { tennis: tennisBets.length, mlb: mlbBets.length, nba: nbaBets.length }
 
   const excellent   = allBets.filter(b => b.niveau === 'excellent').length
   const bon         = allBets.filter(b => b.niveau === 'bon').length
@@ -188,7 +182,7 @@ export default async function SelectionsPage() {
             </span>
           </div>
           <p className="text-gray-400 text-sm">
-            Paris où notre modèle identifie un avantage statistique par rapport au marché.
+            Paris à valeur détectés automatiquement · suivi et validation automatiques
           </p>
         </div>
 
@@ -207,23 +201,14 @@ export default async function SelectionsPage() {
           </div>
         </div>
 
-        {allBets.length === 0 && counts.tennis === 0 && counts.mlb === 0 && counts.nba === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-5xl mb-4">🎯</p>
-            <p className="text-xl font-semibold mb-2 text-gray-400">Aucune sélection détectée</p>
-            <p className="text-sm text-gray-600 max-w-sm mx-auto">
-              Le modèle n&apos;identifie pas d&apos;avantage suffisant actuellement.
-              Données mises à jour toutes les heures.
-            </p>
-          </div>
-        ) : (
-          <SelectionsFilter
-            counts={counts}
-            tennis={<BetsByLevel bets={tennisBets} />}
-            mlb={<BetsByLevel bets={mlbBets} />}
-            nba={<BetsByLevel bets={nbaBets} />}
-          />
-        )}
+        <SelectionsFilter
+          counts={counts}
+          trackedBets={trackedBets}
+          trackedStats={trackedStats}
+          tennis={<BetsByLevel bets={tennisBets} />}
+          mlb={<BetsByLevel bets={mlbBets} />}
+          nba={<BetsByLevel bets={nbaBets} />}
+        />
 
       </div>
     </main>

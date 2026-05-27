@@ -11,6 +11,8 @@ export type NiveauEdge = 'excellent' | 'bon' | 'interessant'
 
 export type ValueBet = {
   id: string
+  eventId: string         // The Odds API event ID (pour score lookup)
+  betOnPlayer: string     // nom exact du joueur misé (pour validation auto)
   sport: string           // 'ATP' | 'WTA'
   surface: string         // 'terre battue' | 'gazon' | 'dur'
   match: string           // "Joueur A vs Joueur B"
@@ -109,6 +111,8 @@ function analyzeTennisEvent(ev: OddsEvent, tour: 'atp' | 'wta'): ValueBet[] {
     if (edge <= EDGE_THRESHOLD) return
     bets.push({
       id: `${ev.id}-${suffix}`,
+      eventId: ev.id,
+      betOnPlayer: player,
       sport: tour.toUpperCase(),
       surface: surfLbl,
       match: `${o1.name} vs ${o2.name}`,

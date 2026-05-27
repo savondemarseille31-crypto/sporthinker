@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import SelectionsTracker from './SelectionsTracker'
+import type { TrackedBet, LevelStats } from '@/lib/selections-db'
 
 type Tab = 'tous' | 'tennis' | 'mlb' | 'nba' | 'suivi'
 
@@ -9,11 +10,15 @@ export default function SelectionsFilter({
   tennis,
   mlb,
   nba,
+  trackedBets,
+  trackedStats,
 }: {
   counts: { tennis: number; mlb: number; nba: number }
   tennis: React.ReactNode
   mlb:    React.ReactNode
   nba:    React.ReactNode
+  trackedBets: TrackedBet[]
+  trackedStats: Record<string, LevelStats>
 }) {
   const [active, setActive] = useState<Tab>('tous')
   const total = counts.tennis + counts.mlb + counts.nba
@@ -55,7 +60,7 @@ export default function SelectionsFilter({
       </div>
 
       {active === 'suivi' ? (
-        <SelectionsTracker />
+        <SelectionsTracker bets={trackedBets} stats={trackedStats} />
       ) : (
         <>
           {show('tennis') && <div key="tennis">{tennis}</div>}
