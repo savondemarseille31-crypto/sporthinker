@@ -47,7 +47,9 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
             <span className={`inline-block w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1 align-middle`} />
             {cfg.label}
           </span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 font-semibold text-blue-400">
+          <span className={`text-xs px-2 py-0.5 rounded-full bg-gray-800 font-semibold ${
+            bet.sport === 'WTA' ? 'text-pink-400' : 'text-blue-400'
+          }`}>
             🎾 {bet.sport} · {bet.surface}
           </span>
         </div>
