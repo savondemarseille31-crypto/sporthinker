@@ -49,7 +49,7 @@ export type LevelStats = {
 
 export async function upsertBets(bets: ValueBet[]): Promise<void> {
   if (!bets.length) return
-  await db().from('selections_tracked').upsert(
+  const { error } = await db().from('selections_tracked').upsert(
     bets.map(b => ({
       id:             b.id,
       event_id:       b.eventId,
@@ -68,13 +68,15 @@ export async function upsertBets(bets: ValueBet[]): Promise<void> {
     })),
     { onConflict: 'id', ignoreDuplicates: true },
   )
+  if (error) console.error('[selections-db] upsertBets error:', error.message)
 }
 
 export async function getTrackedBets(): Promise<TrackedBet[]> {
-  const { data } = await db()
+  const { data, error } = await db()
     .from('selections_tracked')
     .select('*')
     .order('created_at', { ascending: false })
+  if (error) console.error('[selections-db] getTrackedBets error:', error.message)
   return (data ?? []) as TrackedBet[]
 }
 
