@@ -3,7 +3,7 @@ import SelectionsFilter from '@/components/SelectionsFilter'
 import { getValueBets, type ValueBet, type NiveauEdge } from '@/lib/value-bets'
 import { upsertBets, getTrackedBets, validateCompletedBets, computeStats } from '@/lib/selections-db'
 
-export const revalidate = 3600  // re-render toutes les heures max
+export const dynamic = 'force-dynamic'  // jamais prérendu — Supabase indispo au build time
 
 // ── Config visuelle ───────────────────────────────────────────────────────────
 
