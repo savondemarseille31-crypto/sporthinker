@@ -146,15 +146,21 @@ function BetsByLevel({ bets }: { bets: ValueBet[] }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function SelectionsPage() {
-  // Fetch value bets + validate completed bets en parallèle
-  const [allBets, , trackedBets] = await Promise.all([
-    getValueBets(),
-    validateCompletedBets(),  // met à jour Supabase si matchs terminés (cache 8h sur scores)
-    getTrackedBets(),
-  ])
+  // Fetch value bets (indépendant de Supabase)
+  const allBets = await getValueBets().catch(() => [] as import('@/lib/value-bets').ValueBet[])
 
-  // Auto-ajouter les nouvelles sélections dans Supabase
-  await upsertBets(allBets)
+  // Supabase — dégradation gracieuse si indisponible
+  let trackedBets: import('@/lib/selections-db').TrackedBet[] = []
+  try {
+    const [, tracked] = await Promise.all([
+      validateCompletedBets(),
+      getTrackedBets(),
+    ])
+    trackedBets = tracked
+    await upsertBets(allBets)
+  } catch (err) {
+    console.error('[selections] Supabase unavailable:', err)
+  }
 
   const trackedStats = computeStats(trackedBets)
 
