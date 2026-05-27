@@ -97,26 +97,34 @@ export function findProfile(
   return null
 }
 
-// ── Probabilité blendée (formule améliorée) ───────────────────────────────────
-// P = 50% Elo_surface + 28% WR_18m + 22% forme_6matchs
-// Chaque composante absent → redistribution sur les composantes disponibles
+// ── Probabilité blendée ───────────────────────────────────────────────────────
+// Sans H2H : P = 55% Elo_surface + 25% WR_surface_18m + 20% forme_surface_6m
+// Avec H2H  : P = 55% Elo_surface + 25% WR_surface_18m + 10% forme + 10% H2H
+//
+// Règles :
+//  - Elo est toujours disponible (jamais null)
+//  - WR/form null → poids redistribué vers Elo
+//  - H2H : seuil minimum 3 matchs sur surface, sinon ignoré
 
 export function blendedWinProb(
-  pA: PlayerProfile, pB: PlayerProfile, surface: Surface,
+  pA: PlayerProfile,
+  pB: PlayerProfile,
+  surface: Surface,
+  h2hProb: number | null = null,   // P(A bat B) selon H2H surface — null = pas de données
 ): number {
   const sA = pA[surface]
   const sB = pB[surface]
 
-  // Composante 1 : Elo surface
+  // Composante 1 : Elo surface (toujours dispo)
   const eloProb = 1 / (1 + Math.pow(10, (sB.elo - sA.elo) / 400))
 
-  // Composante 2 : WR 18 mois (si ≥ MIN_MATCHES_WR pour les deux)
+  // Composante 2 : WR 18 mois surface
   let wrProb: number | null = null
   if (sA.wr18m !== null && sB.wr18m !== null && sA.wr18m + sB.wr18m > 0) {
     wrProb = sA.wr18m / (sA.wr18m + sB.wr18m)
   }
 
-  // Composante 3 : forme 6 matchs
+  // Composante 3 : forme (last 6 matchs surface-spécifique)
   let formProb: number | null = null
   if (sA.form6 !== null && sB.form6 !== null) {
     const fA = sA.form6 / 6
@@ -124,18 +132,20 @@ export function blendedWinProb(
     if (fA + fB > 0) formProb = fA / (fA + fB)
   }
 
-  // Poids adaptatifs selon données disponibles
-  const w = {
-    elo:  0.50,
-    wr:   wrProb   !== null ? 0.28 : 0,
-    form: formProb !== null ? 0.22 : 0,
-  }
-  const total = w.elo + w.wr + w.form
+  // Poids cibles
+  const hasH2H  = h2hProb !== null
+  const wElo    = 0.55
+  const wWR     = wrProb   !== null ? 0.25 : 0
+  const wForm   = formProb !== null ? (hasH2H ? 0.10 : 0.20) : 0
+  const wH2H    = hasH2H && formProb !== null ? 0.10 : (hasH2H ? 0.20 : 0)
+
+  const total = wElo + wWR + wForm + wH2H
 
   const prob = (
-    w.elo  * eloProb              +
-    w.wr   * (wrProb   ?? 0)      +
-    w.form * (formProb ?? 0)
+    wElo  * eloProb            +
+    wWR   * (wrProb   ?? 0)    +
+    wForm * (formProb ?? 0)    +
+    wH2H  * (h2hProb  ?? 0)
   ) / total
 
   return Math.max(0.01, Math.min(0.99, prob))

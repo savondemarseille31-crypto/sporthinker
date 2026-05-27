@@ -391,10 +391,11 @@ export function generateSignalFromESPNMatch(match: ESPNMatch): Signal[] {
   const rank2 = p2Prof?.rank ?? match.p2.rank ?? null
   if (!rank1 || !rank2) return []
 
-  // Probabilité blendée : Elo surface + WR 18m + forme 6 matchs
+  // Probabilité blendée : 55% Elo_surface + 25% WR_18m + 20% forme_surface
+  // H2H : non disponible dans le chemin ESPN (pas d'IDs RapidAPI) → null
   let prob: number
   if (p1Prof && p2Prof) {
-    prob = blendedWinProb(p1Prof, p2Prof, surface)
+    prob = blendedWinProb(p1Prof, p2Prof, surface, null)
   } else {
     // Fallback Elo depuis le ranking si profil manquant
     prob = eloProbability(rankToElo(rank1), rankToElo(rank2))
@@ -414,17 +415,19 @@ export function generateSignalFromESPNMatch(match: ESPNMatch): Signal[] {
   const rankDiff           = Math.abs(rank1 - rank2)
   const level              = match.isMajor ? 'Grand Slam' : undefined
 
-  // Détail des composantes pour le raisonnement
-  const surfStats = favProf?.[surface]
-  const wrNote    = surfStats?.wr18m != null
-    ? ` WR ${surface} (18m) : ${(surfStats.wr18m * 100).toFixed(0)}%.`
-    : ''
-  const formNote  = surfStats?.form6 != null
-    ? ` Forme : ${surfStats.form6}/6.`
-    : ''
+  // Composantes du favori pour l'affichage
+  const surfStats  = favProf?.[surface]
+  const surfLabel  = surface === 'clay' ? 'terre' : surface === 'grass' ? 'gazon' : 'dur'
 
-  let raison = `${favored.name} (#${favRank}) estimé à ${(favProb * 100).toFixed(0)}% de probabilité face à ${underdog.name} (#${undRank}).`
-  raison += wrNote + formNote
+  // Raisonnement détaillé par composante
+  const parts: string[] = [
+    `${favored.name} (#${favRank}) estimé à ${(favProb * 100).toFixed(0)}% — formule : 55% Elo surface + 25% WR 18m + 20% forme surface.`,
+  ]
+  if (surfStats?.wr18m != null)
+    parts.push(`WR ${surfLabel} (18m) : ${(surfStats.wr18m * 100).toFixed(0)}% sur ${surfStats.matches18m} matchs.`)
+  if (surfStats?.form6 != null)
+    parts.push(`Forme ${surfLabel} (6 derniers) : ${surfStats.form6}/6.`)
+  const raison = parts.join(' ')
 
   const base = {
     sport:           'Tennis' as const,
@@ -449,10 +452,10 @@ export function generateSignalFromESPNMatch(match: ESPNMatch): Signal[] {
     pari:         `Victoire ${favored.name}`,
     raisonnement: raison,
     stats: [
-      { label: 'Prob. victoire',                          val: `${(favProb * 100).toFixed(0)}%`,                                         highlight: true },
-      { label: `Elo ${surface}`,                          val: surfStats ? String(Math.round(surfStats.elo)) : '—',                       highlight: true },
-      { label: `WR ${surface} 18m`,                       val: surfStats?.wr18m != null ? `${(surfStats.wr18m * 100).toFixed(0)}%` : '—' },
-      { label: 'Forme (6 matchs)',                        val: surfStats?.form6 != null ? `${surfStats.form6}/6` : '—'                    },
+      { label: 'Prob. victoire',        val: `${(favProb * 100).toFixed(0)}%`,                                              highlight: true },
+      { label: `Elo ${surfLabel}`,      val: surfStats ? String(Math.round(surfStats.elo)) : '—',                            highlight: true },
+      { label: `WR ${surfLabel} 18m`,   val: surfStats?.wr18m != null ? `${(surfStats.wr18m * 100).toFixed(0)}%` : '—',     highlight: (surfStats?.wr18m ?? 0) >= 0.70 },
+      { label: `Forme ${surfLabel}`,    val: surfStats?.form6 != null ? `${surfStats.form6}/6` : '—',                        highlight: (surfStats?.form6 ?? 0) >= 5 },
     ],
   })
 
@@ -466,12 +469,12 @@ export function generateSignalFromESPNMatch(match: ESPNMatch): Signal[] {
       force:        forceH,
       typePari:     'Handicap Sets',
       pari:         `${favored.name} ${handicap}`,
-      raisonnement: `Avantage structurel très net (#${favRank} vs #${undRank}, écart ${rankDiff} places). Victoire nette attendue sur ${surface}.`,
+      raisonnement: `Avantage structurel très net (#${favRank} vs #${undRank}, écart ${rankDiff} places). Elo ${surfLabel} : ${surfStats ? Math.round(surfStats.elo) : '—'}. Victoire nette attendue sur ${surfLabel}.`,
       stats: [
-        { label: 'Prob. victoire', val: `${(favProb * 100).toFixed(0)}%`, highlight: true },
-        { label: 'Format',         val: `Best-of-${match.bestOf}` },
-        { label: 'Handicap',       val: handicap,                          highlight: true },
-        { label: 'Écart ranking',  val: String(rankDiff) },
+        { label: 'Prob. victoire',     val: `${(favProb * 100).toFixed(0)}%`, highlight: true },
+        { label: `Elo ${surfLabel}`,   val: surfStats ? String(Math.round(surfStats.elo)) : '—', highlight: true },
+        { label: 'Handicap',           val: handicap,                          highlight: true },
+        { label: 'Format',             val: `Best-of-${match.bestOf}` },
       ],
     })
   }
