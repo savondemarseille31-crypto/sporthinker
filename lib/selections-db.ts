@@ -3,6 +3,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import type { ValueBet } from './value-bets'
+import { getESPNTennisResults } from './espn-api'
 
 function db() {
   return createClient(
@@ -123,36 +124,24 @@ export function computeStats(bets: TrackedBet[]): Record<string, LevelStats> {
   return result
 }
 
-// ── Validation automatique via The Odds API scores ────────────────────────────
+// ── Validation automatique via ESPN (scores Roland Garros) ───────────────────
 
-type ScoreEntry = { name: string; score: string }
-type ScoreEvent = {
-  id: string
-  completed: boolean
-  scores: ScoreEntry[] | null
+function normName(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '')
 }
 
-async function fetchScores(sportKey: string): Promise<ScoreEvent[]> {
-  const key = process.env.ODDS_API_KEY
-  if (!key) return []
-  try {
-    const url = `https://api.the-odds-api.com/v4/sports/${sportKey}/scores?apiKey=${key}&daysFrom=3`
-    const res = await fetch(url, { next: { revalidate: 28800 } }) // cache 8h
-    if (!res.ok) return []
-    return res.json()
-  } catch {
-    return []
+function namesMatch(a: string, b: string): boolean {
+  const na = normName(a), nb = normName(b)
+  if (na === nb) return true
+  // "Last, First" format (The Odds API) → "First Last"
+  if (a.includes(',')) {
+    const [last, ...firsts] = a.split(',').map(p => p.trim())
+    if (normName(`${firsts.join(' ')} ${last}`) === nb) return true
   }
-}
-
-function winner(scores: ScoreEntry[], player: string): boolean | null {
-  const mine = scores.find(s => s.name === player)
-  const oppo = scores.find(s => s.name !== player)
-  if (!mine || !oppo) return null
-  const ms = parseInt(mine.score)
-  const os = parseInt(oppo.score)
-  if (isNaN(ms) || isNaN(os)) return null
-  return ms > os
+  // Fallback : correspondance sur les mots de > 3 chars (nom de famille)
+  const tokensA = a.split(/[\s,\-]+/).map(normName).filter(t => t.length > 3)
+  const tokensB = b.split(/[\s,\-]+/).map(normName).filter(t => t.length > 3)
+  return tokensA.some(ta => tokensB.includes(ta))
 }
 
 export async function validateCompletedBets(): Promise<number> {
@@ -163,26 +152,26 @@ export async function validateCompletedBets(): Promise<number> {
 
   if (!pending?.length) return 0
 
-  const sportKeys = [
-    'tennis_atp_french_open', 'tennis_wta_french_open',
-    'tennis_atp_wimbledon',   'tennis_wta_wimbledon',
-    'tennis_atp_us_open',     'tennis_wta_us_open',
-    'tennis_atp_australian_open', 'tennis_wta_australian_open',
-  ]
-
-  const scores: ScoreEvent[] = []
-  for (const key of sportKeys) {
-    scores.push(...await fetchScores(key))
-  }
+  const espnResults = await getESPNTennisResults(7)
+  if (!espnResults.length) return 0
 
   let validated = 0
   for (const bet of pending as TrackedBet[]) {
-    const ev = scores.find(s => s.id === bet.event_id)
-    if (!ev?.completed || !ev.scores) continue
+    // Extraire l'adversaire depuis match_str pour un matching précis
+    const opponentName = bet.match_str
+      .split(' vs ')
+      .map((p: string) => p.trim())
+      .find((p: string) => !namesMatch(bet.bet_on_player, p)) ?? ''
 
-    const won = winner(ev.scores, bet.bet_on_player)
-    if (won === null) continue
+    const result = espnResults.find(r => {
+      const hasPlayer = namesMatch(bet.bet_on_player, r.player1) || namesMatch(bet.bet_on_player, r.player2)
+      if (!hasPlayer) return false
+      if (!opponentName) return true
+      return namesMatch(opponentName, r.player1) || namesMatch(opponentName, r.player2)
+    })
+    if (!result) continue
 
+    const won = namesMatch(bet.bet_on_player, result.winnerName)
     await db()
       .from('selections_tracked')
       .update({ statut: won ? 'gagné' : 'perdu', validated_at: new Date().toISOString() })
