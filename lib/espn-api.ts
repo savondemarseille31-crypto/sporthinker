@@ -437,43 +437,46 @@ export type ESPNTennisResult = {
   date:       string  // ISO datetime
 }
 
-async function fetchTennisDayScores(tour: 'atp' | 'wta', dateStr: string): Promise<ESPNTennisResult[]> {
+// Les matchs tennis ESPN sont dans ev.groupings[].competitions[] (pas ev.competitions[])
+// Le statut est comp.status.completed (pas comp.status.type.completed comme pour les sports d'équipe)
+async function fetchESPNTournamentResults(tour: 'atp' | 'wta'): Promise<ESPNTennisResult[]> {
   try {
-    const url = `https://site.api.espn.com/apis/site/v2/sports/tennis/${tour}/scoreboard?dates=${dateStr}`
+    const url = `https://site.api.espn.com/apis/site/v2/sports/tennis/${tour}/scoreboard`
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return []
     const data = await res.json()
     const results: ESPNTennisResult[] = []
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const ev of (data.events ?? []) as any[]) {
-      const comp = ev.competitions?.[0]
-      if (!comp?.status?.type?.completed) continue
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const competitors: any[] = comp.competitors ?? []
-      if (competitors.length < 2) continue
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const winnerComp = competitors.find((c: any) => c.winner === true)
-      if (!winnerComp) continue
-      const p1: string = competitors[0]?.athlete?.displayName ?? ''
-      const p2: string = competitors[1]?.athlete?.displayName ?? ''
-      const winnerName: string = winnerComp.athlete?.displayName ?? ''
-      if (p1 && p2 && winnerName) results.push({ player1: p1, player2: p2, winnerName, date: ev.date ?? '' })
+      for (const g of (ev.groupings ?? []) as any[]) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        for (const comp of (g.competitions ?? []) as any[]) {
+          if (!comp.status?.completed) continue
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const competitors: any[] = comp.competitors ?? []
+          if (competitors.length < 2) continue
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const winnerComp = competitors.find((c: any) => c.winner === true)
+          if (!winnerComp) continue
+          const p1: string = competitors[0]?.athlete?.displayName ?? ''
+          const p2: string = competitors[1]?.athlete?.displayName ?? ''
+          const winnerName: string = winnerComp.athlete?.displayName ?? ''
+          if (p1 && p2 && winnerName) results.push({ player1: p1, player2: p2, winnerName, date: comp.date ?? '' })
+        }
+      }
     }
     return results
   } catch { return [] }
 }
 
-// Retourne tous les matchs terminés des N derniers jours (ATP + WTA)
-export async function getESPNTennisResults(daysBack = 7): Promise<ESPNTennisResult[]> {
-  const now = new Date()
-  const fetches: Promise<ESPNTennisResult[]>[] = []
-  for (let i = 0; i <= daysBack; i++) {
-    const d = new Date(now)
-    d.setDate(now.getDate() - i)
-    const ds = toESPNDate(d)
-    fetches.push(fetchTennisDayScores('atp', ds), fetchTennisDayScores('wta', ds))
-  }
-  return (await Promise.all(fetches)).flat()
+// Retourne tous les matchs terminés du tournoi en cours (ATP + WTA) — 2 requêtes seulement
+export async function getESPNTennisResults(): Promise<ESPNTennisResult[]> {
+  const [atp, wta] = await Promise.all([
+    fetchESPNTournamentResults('atp'),
+    fetchESPNTournamentResults('wta'),
+  ])
+  return [...atp, ...wta]
 }
 
 // =============================================
