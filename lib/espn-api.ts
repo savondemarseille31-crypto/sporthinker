@@ -452,7 +452,7 @@ async function fetchESPNTournamentResults(tour: 'atp' | 'wta'): Promise<ESPNTenn
       for (const g of (ev.groupings ?? []) as any[]) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         for (const comp of (g.competitions ?? []) as any[]) {
-          if (!comp.status?.completed) continue
+          if (!comp.status?.completed && !comp.status?.type?.completed) continue
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const competitors: any[] = comp.competitors ?? []
           if (competitors.length < 2) continue
