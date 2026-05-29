@@ -1,28 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateCompletedBets } from '@/lib/selections-db'
 
-// Test direct ESPN tennis API for a given date
-async function probeESPN(tour: 'atp' | 'wta', dateStr: string) {
+async function probeESPNRaw(tour: 'atp' | 'wta', dateStr: string) {
   try {
     const url = `https://site.api.espn.com/apis/site/v2/sports/tennis/${tour}/scoreboard?dates=${dateStr}`
     const res = await fetch(url, { cache: 'no-store' })
-    if (!res.ok) return { url, status: res.status, events: null }
+    if (!res.ok) return { url, status: res.status }
     const data = await res.json()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const events = (data.events ?? []) as any[]
+    const ev = events[0]
+    if (!ev) return { url, eventCount: 0 }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const competitions: any[] = ev.competitions ?? []
     return {
       url,
-      status: res.status,
       eventCount: events.length,
+      eventId: ev.id,
+      eventName: ev.name,
+      competitionsCount: competitions.length,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sample: events.slice(0, 2).map((ev: any) => ({
-        id: ev.id,
-        name: ev.name,
-        completed: ev.competitions?.[0]?.status?.type?.completed,
-        statusName: ev.competitions?.[0]?.status?.type?.name,
+      sample: competitions.slice(0, 3).map((comp: any) => ({
+        id: comp.id,
+        completed: comp.status?.type?.completed,
+        statusName: comp.status?.type?.name,
+        date: comp.date,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        competitors: (ev.competitions?.[0]?.competitors ?? []).map((c: any) => ({
-          name: c.athlete?.displayName ?? c.team?.displayName,
+        competitors: (comp.competitors ?? []).map((c: any) => ({
+          displayName: c.athlete?.displayName ?? c.team?.displayName,
           winner: c.winner,
           score: c.score,
         })),
@@ -41,18 +47,14 @@ export async function GET(request: NextRequest) {
 
   const probe = request.nextUrl.searchParams.get('probe')
   if (probe) {
-    // Probe mode: test ESPN API directly
-    const today = new Date()
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1)
     const fmt = (d: Date) =>
       `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`
-    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1)
-    const [atpToday, wtaToday, atpYest, wtaYest] = await Promise.all([
-      probeESPN('atp', fmt(today)),
-      probeESPN('wta', fmt(today)),
-      probeESPN('atp', fmt(yesterday)),
-      probeESPN('wta', fmt(yesterday)),
+    const [atp, wta] = await Promise.all([
+      probeESPNRaw('atp', fmt(yesterday)),
+      probeESPNRaw('wta', fmt(yesterday)),
     ])
-    return NextResponse.json({ atpToday, wtaToday, atpYest, wtaYest })
+    return NextResponse.json({ atp, wta })
   }
 
   const validated = await validateCompletedBets()
