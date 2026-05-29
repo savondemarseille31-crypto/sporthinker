@@ -152,7 +152,7 @@ export async function validateCompletedBets(): Promise<number> {
 
   if (!pending?.length) return 0
 
-  const espnResults = await getESPNTennisResults(7)
+  const espnResults = await getESPNTennisResults(21)
   if (!espnResults.length) return 0
 
   let validated = 0
