@@ -9,6 +9,7 @@ import { generateFootballSignalsForToday } from '@/lib/football-signals'
 import { LEAGUES } from '@/lib/api-football'
 import { generateTennisSignalsForToday } from '@/lib/tennis-signals'
 import { generateMLSSignalsForToday } from '@/lib/mls-signals'
+import { getMLBOdds, getCdMOdds, getNBAOdds, getTennisOdds, getMLSOdds, findEvent, extractRealOdds, type OddsEvent } from '@/lib/odds-api'
 
 export const revalidate = 300 // 5 min — signaux MLB + CdM + Tennis
 
@@ -97,7 +98,14 @@ function SignalCard({ signal }: { signal: Signal }) {
           {signal.flagDom} {signal.flagExt} <span className="font-semibold text-white ml-1">{signal.match}</span>
         </p>
         <div className="mt-2 bg-gray-800 rounded-xl px-4 py-3">
-          <p className="text-xs text-gray-500 mb-0.5">Pari recommandé</p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-xs text-gray-500 mb-0.5">Pari recommandé</p>
+            {signal.coteRef && (
+              <span className="text-sm font-bold text-white bg-gray-700 border border-gray-600 px-2 py-0.5 rounded-lg shrink-0">
+                {signal.coteRef.toFixed(2)}
+              </span>
+            )}
+          </div>
           <p className={`text-base font-bold ${typeColor(signal.typePari)}`}>{signal.pari}</p>
           <p className="text-xs text-gray-500 mt-0.5">{signal.typePari}</p>
         </div>
@@ -162,6 +170,21 @@ function SignalCard({ signal }: { signal: Signal }) {
   )
 }
 
+// ---- Enrichissement coteRef (Pinnacle via The Odds API) ----
+function addCoteRef(signals: Signal[], oddsMap: Partial<Record<Signal['sport'], OddsEvent[]>>): Signal[] {
+  return signals.map(signal => {
+    const events = oddsMap[signal.sport] ?? []
+    if (!events.length) return signal
+    const parts = signal.match.split(' vs ')
+    if (parts.length < 2) return signal
+    const [t1, t2] = parts.map(p => p.trim())
+    const event = findEvent(events, t1, t2)
+    if (!event) return signal
+    const realOdds = extractRealOdds(event, signal.typePari, signal.pari)
+    return realOdds ? { ...signal, coteRef: realOdds.cote } : signal
+  })
+}
+
 // ---- Match ESPN odds to CdM signal by team name ----
 function enrichSignalWithOdds(signal: Signal, espnOdds: ESPNCdMOdds[]): Signal {
   // Try to match by team abbreviation or display name
@@ -192,7 +215,7 @@ function enrichSignalWithOdds(signal: Signal, espnOdds: ESPNCdMOdds[]): Signal {
 // ---- Page ----
 export default async function SignauxPage() {
   // 1. Fetch everything in parallel
-  const [games, standings, espnCdMOdds, nbaSignals, liveFootballSignals, tennisSignals, mlsSignals] = await Promise.all([
+  const [games, standings, espnCdMOdds, nbaSignals, liveFootballSignals, tennisSignals, mlsSignals, mlbOdds, cdmOdds, nbaOdds, tennisOdds, mlsOdds] = await Promise.all([
     getSchedule(),
     getStandings(),
     getCdMUpcomingWithOdds(14),
@@ -200,7 +223,20 @@ export default async function SignauxPage() {
     generateFootballSignalsForToday(LEAGUES.WORLD_CUP, 2026).catch(() => [] as Signal[]),
     generateTennisSignalsForToday().catch(() => [] as Signal[]),
     generateMLSSignalsForToday().catch(() => [] as Signal[]),
+    getMLBOdds().catch(() => [] as OddsEvent[]),
+    getCdMOdds().catch(() => [] as OddsEvent[]),
+    getNBAOdds().catch(() => [] as OddsEvent[]),
+    getTennisOdds().catch(() => [] as OddsEvent[]),
+    getMLSOdds().catch(() => [] as OddsEvent[]),
   ])
+
+  const oddsMap: Partial<Record<Signal['sport'], OddsEvent[]>> = {
+    MLB:    mlbOdds,
+    CdM:    cdmOdds,
+    NBA:    nbaOdds,
+    Tennis: tennisOdds,
+    MLS:    mlsOdds,
+  }
 
   const previewGames = games.filter(g => g.status.abstractGameState === 'Preview')
 
@@ -216,7 +252,7 @@ export default async function SignauxPage() {
   }
 
   // 2. Générer les signaux MLB
-  const mlbSignals = (
+  const rawMlbSignals = (
     await Promise.all(
       previewGames.map(async (game) => {
         const homePitcherId = game.teams.home.probablePitcher?.id
@@ -229,17 +265,22 @@ export default async function SignauxPage() {
       })
     )
   ).filter(Boolean) as Signal[]
+  const mlbSignals = addCoteRef(rawMlbSignals, oddsMap)
 
   // 3. Signaux CdM — live (API-Football) ou statiques selon disponibilité
   const rawCdMSignals = generateCdMSignals(14)
   const staticCdmSignals = rawCdMSignals.map(s => enrichSignalWithOdds(s, espnCdMOdds))
-  const cdmSignals = [...liveFootballSignals, ...staticCdmSignals]
+  const cdmSignals = addCoteRef([...liveFootballSignals, ...staticCdmSignals], oddsMap)
 
   // 4. Trier chaque groupe par force
   const forceOrder: Record<SignalForce, number> = { fort: 0, modéré: 1, 'à surveiller': 2 }
   const sortByForce = (arr: Signal[]) => [...arr].sort((a, b) => forceOrder[a.force] - forceOrder[b.force])
 
-  const allSignals = sortByForce([...mlbSignals, ...mlsSignals, ...nbaSignals, ...cdmSignals, ...tennisSignals])
+  const enrichedTennis = addCoteRef(tennisSignals, oddsMap)
+  const enrichedNBA    = addCoteRef(nbaSignals,    oddsMap)
+  const enrichedMLS    = addCoteRef(mlsSignals,    oddsMap)
+
+  const allSignals = sortByForce([...mlbSignals, ...enrichedMLS, ...enrichedNBA, ...cdmSignals, ...enrichedTennis])
 
   const fortsCount      = allSignals.filter(s => s.force === 'fort').length
   const moderésCount    = allSignals.filter(s => s.force === 'modéré').length
@@ -338,7 +379,7 @@ export default async function SignauxPage() {
               </div>
               {tennisSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {sortByForce(tennisSignals).map(s => <SignalCard key={s.id} signal={s} />)}
+                  {sortByForce(enrichedTennis).map(s => <SignalCard key={s.id} signal={s} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -366,6 +407,7 @@ export default async function SignauxPage() {
               {mlbSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {sortByForce(mlbSignals).map(s => <SignalCard key={s.id} signal={s} />)}
+
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -424,7 +466,7 @@ export default async function SignauxPage() {
               </div>
               {mlsSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {sortByForce(mlsSignals).map(s => <SignalCard key={s.id} signal={s} />)}
+                  {sortByForce(enrichedMLS).map(s => <SignalCard key={s.id} signal={s} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -451,7 +493,7 @@ export default async function SignauxPage() {
               </div>
               {nbaSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {sortByForce(nbaSignals).map(s => <SignalCard key={s.id} signal={s} />)}
+                  {sortByForce(enrichedNBA).map(s => <SignalCard key={s.id} signal={s} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">

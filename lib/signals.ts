@@ -31,6 +31,7 @@ export type Signal = {
     spread?: string
     provider?: string
   }
+  coteRef?: number
 }
 
 // =============================================

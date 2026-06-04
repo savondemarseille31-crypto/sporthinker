@@ -47,9 +47,10 @@ async function fetchOdds(sportKey: string, markets: string, revalidateSec: numbe
 }
 
 // 6h cache — 4 req/jour par sport → ~120 req/mois
-export function getMLBOdds()  { return fetchOdds('baseball_mlb',     'h2h,totals', 21600) }
-export function getNBAOdds()  { return fetchOdds('basketball_nba',   'h2h',        21600) }
-export function getCdMOdds()  { return fetchOdds('soccer_fifa_world_cup', 'h2h',   86400) } // 24h
+export function getMLBOdds()  { return fetchOdds('baseball_mlb',          'h2h,totals', 21600) }
+export function getNBAOdds()  { return fetchOdds('basketball_nba',         'h2h,totals', 21600) }
+export function getMLSOdds()  { return fetchOdds('soccer_usa_mls',         'h2h',        21600) }
+export function getCdMOdds()  { return fetchOdds('soccer_fifa_world_cup',  'h2h',        86400) } // 24h
 
 // ── Player props CdM ─────────────────────────────────────────────────────────
 
@@ -200,7 +201,7 @@ export function extractRealOdds(event: OddsEvent, typePari: string, pari: string
   } else if (type.includes('over') || bet.includes('over')) {
     cote = overOdds ?? null
     ligneReelle = ligne
-  } else if (type.includes('moneyline') || type.includes('1x2')) {
+  } else if (type.includes('moneyline') || type.includes('1x2') || type.includes('vainqueur')) {
     if (homeOdds && match(pari, event.home_team)) cote = homeOdds
     else if (awayOdds && match(pari, event.away_team)) cote = awayOdds
     else cote = homeOdds ?? awayOdds ?? null
