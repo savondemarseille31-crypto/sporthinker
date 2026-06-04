@@ -51,6 +51,86 @@ export function getMLBOdds()  { return fetchOdds('baseball_mlb',     'h2h,totals
 export function getNBAOdds()  { return fetchOdds('basketball_nba',   'h2h',        21600) }
 export function getCdMOdds()  { return fetchOdds('soccer_fifa_world_cup', 'h2h',   86400) } // 24h
 
+// ── Player props CdM ─────────────────────────────────────────────────────────
+
+type PropsOutcome  = { name: string; description: string; price: number; point?: number }
+type PropsMarket   = { key: string; outcomes: PropsOutcome[] }
+type PropsBookmaker = { key: string; markets: PropsMarket[] }
+export type PlayerPropsResult = { id: string; bookmakers: PropsBookmaker[] }
+
+// Liste des événements WC à venir (1h cache — 1 appel/h max)
+export async function getCdMEventsList(): Promise<{ id: string; home_team: string; away_team: string }[]> {
+  if (!API_KEY) return []
+  try {
+    const res = await fetch(
+      `${BASE}/sports/soccer_fifa_world_cup/events?apiKey=${API_KEY}`,
+      { next: { revalidate: 3600 } },
+    )
+    if (!res.ok) return []
+    return res.json()
+  } catch {
+    return []
+  }
+}
+
+// Props joueurs pour un événement précis (24h cache — économise le quota)
+export async function getCdMPlayerProps(eventId: string): Promise<PlayerPropsResult | null> {
+  if (!API_KEY) return null
+  try {
+    const markets = 'player_goal_scorer_anytime,player_shots_on_target,player_cards,player_assists'
+    const res = await fetch(
+      `${BASE}/sports/soccer_fifa_world_cup/events/${eventId}/odds?apiKey=${API_KEY}&markets=${markets}&bookmakers=pinnacle&oddsFormat=decimal`,
+      { next: { revalidate: 86400 } },
+    )
+    if (!res.ok) return null
+    return res.json()
+  } catch {
+    return null
+  }
+}
+
+const PLAYER_MARKET_KEY: Record<string, string> = {
+  'buteur':       'player_goal_scorer_anytime',
+  'tirs-cadrés':  'player_shots_on_target',
+  'tirs-tentés':  'player_shots',
+  'carton-jaune': 'player_cards',
+  'passeur':      'player_assists',
+}
+
+function normPlayer(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z ]/g, '').trim()
+}
+
+function playerMatch(a: string, b: string): boolean {
+  const na = normPlayer(a), nb = normPlayer(b)
+  if (na === nb) return true
+  const lastA = na.split(' ').at(-1)!, lastB = nb.split(' ').at(-1)!
+  return lastA === lastB && lastA.length > 3
+}
+
+// Extrait la cote d'un joueur pour un marché donné depuis un résultat props
+export function extractPlayerCote(result: PlayerPropsResult, playerName: string, marché: string): number | null {
+  const bk = result.bookmakers[0]
+  if (!bk) return null
+
+  const marketKey = PLAYER_MARKET_KEY[marché]
+  if (!marketKey) return null
+
+  const market = bk.markets.find(m => m.key === marketKey)
+  if (!market) return null
+
+  // buteur / carton : outcome direct au nom du joueur
+  if (marché === 'buteur' || marché === 'carton-jaune') {
+    const o = market.outcomes.find(o => playerMatch(o.name, playerName))
+    return o ? parseFloat(o.price.toFixed(2)) : null
+  }
+
+  // tirs / passes : chercher l'outcome "Over" du joueur
+  const playerOutcomes = market.outcomes.filter(o => playerMatch(o.name, playerName))
+  const over = playerOutcomes.find(o => o.description === 'Over' || o.description === 'Yes')
+  return over ? parseFloat(over.price.toFixed(2)) : null
+}
+
 // Tennis : Roland Garros ATP + WTA (12h cache → ~60 req/mois pour les deux)
 export async function getTennisOdds(): Promise<OddsEvent[]> {
   const [atp, wta] = await Promise.all([

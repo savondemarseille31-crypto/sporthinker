@@ -1,8 +1,61 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { getTopByMarket, type PlayerSignal, type PlayerSignalForce, type PlayerMarket } from '@/lib/cdm-player-signals'
+import { getCdMEventsList, getCdMPlayerProps, extractPlayerCote } from '@/lib/odds-api'
+import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 
 export const revalidate = 3600
+
+// ── Enrichissement cotes ───────────────────────────────────────────────────
+
+function normTeam(s: string) {
+  return s.toLowerCase().replace(/[^a-z]/g, '')
+}
+
+function teamContainsPays(teamName: string, pays: string): boolean {
+  const nt = normTeam(teamName), np = normTeam(pays)
+  return nt === np || nt.includes(np) || np.includes(nt)
+}
+
+async function enrichWithCotes(signals: PlayerSignal[]): Promise<PlayerSignal[]> {
+  try {
+    const events = await getCdMEventsList()
+    if (!events.length) return signals
+
+    const today = new Date().toISOString().slice(0, 10)
+
+    // Cache eventId → props pour éviter les appels dupliqués
+    const propsCache = new Map<string, Awaited<ReturnType<typeof getCdMPlayerProps>>>()
+
+    return await Promise.all(signals.map(async (signal) => {
+      // Prochain match du pays de ce joueur
+      const fixture = CDM_FIXTURES.find(f =>
+        f.date >= today &&
+        (teamContainsPays(f.domicile, signal.pays) || teamContainsPays(f.exterieur, signal.pays))
+      )
+      if (!fixture) return signal
+
+      // Trouver l'événement correspondant dans The Odds API
+      const event = events.find(e =>
+        (teamContainsPays(e.home_team, fixture.domicile) && teamContainsPays(e.away_team, fixture.exterieur)) ||
+        (teamContainsPays(e.home_team, fixture.exterieur) && teamContainsPays(e.away_team, fixture.domicile))
+      )
+      if (!event) return signal
+
+      // Fetch props (depuis le cache ou l'API)
+      if (!propsCache.has(event.id)) {
+        propsCache.set(event.id, await getCdMPlayerProps(event.id))
+      }
+      const props = propsCache.get(event.id)
+      if (!props) return signal
+
+      const cote = extractPlayerCote(props, signal.playerName, signal.marché)
+      return cote ? { ...signal, cote } : signal
+    }))
+  } catch {
+    return signals
+  }
+}
 
 // =============================================
 // HELPERS VISUELS
@@ -58,7 +111,14 @@ function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
             {signal.marchéLabel}
           </span>
         </div>
-        <span className="text-lg">{signal.flag}</span>
+        <div className="flex items-center gap-2">
+          {signal.cote && (
+            <span className="text-xs bg-gray-800 border border-gray-700 text-white font-bold px-2 py-0.5 rounded-lg">
+              {signal.cote.toFixed(2)}
+            </span>
+          )}
+          <span className="text-lg">{signal.flag}</span>
+        </div>
       </div>
 
       {/* Joueur */}
@@ -140,11 +200,13 @@ function MarketSection({
 // PAGE
 // =============================================
 
-export default function CdmSignauxPage() {
-  const buteurs       = getTopByMarket('buteur', 8)
-  const tirsCadrés    = getTopByMarket('tirs-cadrés', 8)
-  const cartons       = getTopByMarket('carton-jaune', 8)
-  const passeurs      = getTopByMarket('passeur', 8)
+export default async function CdmSignauxPage() {
+  const [buteurs, tirsCadrés, cartons, passeurs] = await Promise.all([
+    enrichWithCotes(getTopByMarket('buteur', 8)),
+    enrichWithCotes(getTopByMarket('tirs-cadrés', 8)),
+    enrichWithCotes(getTopByMarket('carton-jaune', 8)),
+    enrichWithCotes(getTopByMarket('passeur', 8)),
+  ])
 
   const totalSignals  = buteurs.length + tirsCadrés.length + cartons.length + passeurs.length
   const totalForts    = [...buteurs, ...tirsCadrés, ...cartons, ...passeurs].filter(s => s.force === 'fort').length

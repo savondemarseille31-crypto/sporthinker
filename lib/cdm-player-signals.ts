@@ -67,6 +67,7 @@ export type PlayerSignal = {
   confiance: BlendedStats['confiance']
   sourceLabel: string
   stats: { label: string; val: string; highlight?: boolean }[]
+  cote?: number
 }
 
 // =============================================
