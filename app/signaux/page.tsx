@@ -62,7 +62,7 @@ function mlToDecimal(ml: number): string {
 // ---- Carte signal ----
 function SignalCard({ signal }: { signal: Signal }) {
   const cfg = forceConfig(signal.force)
-  const hasOdds = signal.odds && (signal.odds.homeMoneyLine || signal.odds.awayMoneyLine || signal.odds.overUnder)
+  const hasOdds = signal.odds && (signal.odds.home || signal.odds.away || signal.odds.homeMoneyLine || signal.odds.awayMoneyLine)
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4 hover:border-gray-700 transition-colors">
@@ -121,30 +121,40 @@ function SignalCard({ signal }: { signal: Signal }) {
       {/* Cotes de référence (format décimal européen) */}
       {hasOdds && (
         <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3">
-          <p className="text-xs text-gray-400 font-semibold mb-2">📊 Cotes de référence</p>
-          <div className="flex flex-wrap gap-4">
-            {signal.odds?.homeMoneyLine != null && signal.odds.homeMoneyLine !== 0 && (
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-gray-400 font-semibold">📊 Cotes 1X2</p>
+            {signal.odds?.bookmaker && (
+              <p className="text-xs text-gray-600">{signal.odds.bookmaker}</p>
+            )}
+          </div>
+          <div className="flex gap-4">
+            {signal.odds?.home != null && (
               <div className="text-center">
                 <p className="text-xs text-gray-500 mb-0.5">Dom.</p>
-                <p className="text-sm font-bold text-white">{mlToDecimal(signal.odds.homeMoneyLine)}</p>
+                <p className="text-sm font-bold text-white">{signal.odds.home.toFixed(2)}</p>
               </div>
             )}
-            {signal.odds?.overUnder != null && signal.odds.overUnder > 0 && (
+            {signal.odds?.draw != null ? (
               <div className="text-center">
+                <p className="text-xs text-gray-500 mb-0.5">Nul</p>
+                <p className="text-sm font-bold text-white">{signal.odds.draw.toFixed(2)}</p>
+              </div>
+            ) : (signal.odds?.home != null || signal.odds?.away != null) && (
+              <div className="text-center opacity-40">
                 <p className="text-xs text-gray-500 mb-0.5">Nul</p>
                 <p className="text-sm font-bold text-white">—</p>
               </div>
             )}
-            {signal.odds?.awayMoneyLine != null && signal.odds.awayMoneyLine !== 0 && (
+            {signal.odds?.away != null && (
               <div className="text-center">
                 <p className="text-xs text-gray-500 mb-0.5">Ext.</p>
-                <p className="text-sm font-bold text-white">{mlToDecimal(signal.odds.awayMoneyLine)}</p>
+                <p className="text-sm font-bold text-white">{signal.odds.away.toFixed(2)}</p>
               </div>
             )}
-            {signal.odds?.overUnder != null && signal.odds.overUnder > 0 && (
-              <div className="text-center">
+            {signal.odds?.ou != null && (
+              <div className="text-center ml-2 pl-2 border-l border-gray-700">
                 <p className="text-xs text-gray-500 mb-0.5">O/U</p>
-                <p className="text-sm font-bold text-white">{signal.odds.overUnder}</p>
+                <p className="text-sm font-bold text-white">{signal.odds.ou}</p>
               </div>
             )}
           </div>
@@ -172,7 +182,7 @@ function SignalCard({ signal }: { signal: Signal }) {
   )
 }
 
-// ---- Enrichissement coteRef (Pinnacle via The Odds API) ----
+// ---- Enrichissement coteRef + cotes décimales (Pinnacle via The Odds API) ----
 function addCoteRef(signals: Signal[], oddsMap: Partial<Record<Signal['sport'], OddsEvent[]>>): Signal[] {
   return signals.map(signal => {
     const events = oddsMap[signal.sport] ?? []
@@ -183,7 +193,18 @@ function addCoteRef(signals: Signal[], oddsMap: Partial<Record<Signal['sport'], 
     const event = findEvent(events, t1, t2)
     if (!event) return signal
     const realOdds = extractRealOdds(event, signal.typePari, signal.pari)
-    return realOdds ? { ...signal, coteRef: realOdds.cote } : signal
+    if (!realOdds) return signal
+    return {
+      ...signal,
+      coteRef: realOdds.cote,
+      odds: {
+        home:      realOdds.home,
+        draw:      realOdds.draw,
+        away:      realOdds.away,
+        ou:        realOdds.ligne,
+        bookmaker: realOdds.bookmaker,
+      },
+    }
   })
 }
 

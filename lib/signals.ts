@@ -25,6 +25,12 @@ export type Signal = {
   tournament?: string      // Nom du tournoi (Tennis uniquement)
   tournamentLevel?: string // Niveau : "Grand Slam", "ATP 250", "Challenger"…
   odds?: {
+    home?: number      // cote décimale domicile
+    draw?: number      // cote décimale nul (foot uniquement)
+    away?: number      // cote décimale extérieur
+    ou?: number        // ligne Over/Under (ex: 2.5)
+    bookmaker?: string
+    // Legacy ESPN (American format) — conservé pour compatibilité
     homeMoneyLine?: number
     awayMoneyLine?: number
     overUnder?: number

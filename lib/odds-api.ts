@@ -27,6 +27,7 @@ export type RealOdds = {
   bookmaker: string  // source
   ligne?: number     // ligne réelle pour OVER/UNDER (ex: 7.0, 8.5)
   home?: number
+  draw?: number
   away?: number
   over?: number
   under?: number
@@ -182,6 +183,10 @@ export function extractRealOdds(event: OddsEvent, typePari: string, pari: string
 
   const homeOdds  = h2h?.outcomes.find(o => match(o.name, event.home_team))?.price
   const awayOdds  = h2h?.outcomes.find(o => match(o.name, event.away_team))?.price
+  // Draw = le troisième outcome h2h (ni home ni away) — marché 3-way football
+  const drawOdds  = h2h?.outcomes.find(o =>
+    !match(o.name, event.home_team) && !match(o.name, event.away_team)
+  )?.price
   const overOut   = totals?.outcomes.find(o => o.name === 'Over')
   const underOut  = totals?.outcomes.find(o => o.name === 'Under')
   const overOdds  = overOut?.price
@@ -206,7 +211,15 @@ export function extractRealOdds(event: OddsEvent, typePari: string, pari: string
     else if (awayOdds && match(pari, event.away_team)) cote = awayOdds
     else cote = homeOdds ?? awayOdds ?? null
   } else if (type.includes('double chance')) {
-    if (homeOdds && awayOdds) cote = parseFloat(((homeOdds + awayOdds) / 2 * 0.85).toFixed(2))
+    // 1X (dom ou nul) : 1 / (P_home + P_draw), 2X (ext ou nul) : 1 / (P_away + P_draw)
+    const isHomeDouble = bet.includes('1x') || (bet.includes(norm(event.home_team)) && !bet.includes('2x'))
+    if (isHomeDouble && homeOdds && drawOdds) {
+      cote = parseFloat((1 / (1 / homeOdds + 1 / drawOdds)).toFixed(2))
+    } else if (!isHomeDouble && awayOdds && drawOdds) {
+      cote = parseFloat((1 / (1 / awayOdds + 1 / drawOdds)).toFixed(2))
+    } else if (homeOdds && drawOdds) {
+      cote = parseFloat((1 / (1 / homeOdds + 1 / drawOdds)).toFixed(2))
+    }
   } else if (type.includes('first 5') || type.includes('f5')) {
     if (homeOdds && match(pari, event.home_team)) cote = homeOdds
     else if (awayOdds && match(pari, event.away_team)) cote = awayOdds
@@ -224,6 +237,7 @@ export function extractRealOdds(event: OddsEvent, typePari: string, pari: string
     bookmaker: bk.title,
     ligne:     ligneReelle,
     home:  homeOdds  ? parseFloat(homeOdds.toFixed(2))  : undefined,
+    draw:  drawOdds  ? parseFloat(drawOdds.toFixed(2))  : undefined,
     away:  awayOdds  ? parseFloat(awayOdds.toFixed(2))  : undefined,
     over:  overOdds  ? parseFloat(overOdds.toFixed(2))  : undefined,
     under: underOdds ? parseFloat(underOdds.toFixed(2)) : undefined,
