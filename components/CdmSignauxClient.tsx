@@ -10,10 +10,10 @@ import type { PlayerSignal, PlayerSignalForce, PlayerMarket } from '@/lib/cdm-pl
 type DateFilter = 'Aujourd\'hui' | 'Demain' | 'Tous'
 
 type SignalsByMarket = {
-  buteurs: PlayerSignal[]
+  buteurs:    PlayerSignal[]
   tirsCadrés: PlayerSignal[]
-  cartons: PlayerSignal[]
-  passeurs: PlayerSignal[]
+  cartons:    PlayerSignal[]
+  passeurs:   PlayerSignal[]
 }
 
 // ── Helpers visuels ──────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ function marketColor(marché: PlayerMarket) {
 // ── Carte signal joueur ───────────────────────────────────────────────────────
 
 function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
-  const cfg = forceConfig(signal.force)
+  const cfg  = forceConfig(signal.force)
   const conf = confianceLabel(signal.confiance)
 
   return (
@@ -65,9 +65,9 @@ function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
             {signal.marchéLabel}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           {signal.cote && signal.probEstimee != null && (() => {
-            const ev = (signal.probEstimee * signal.cote - 1) * 100
+            const ev  = (signal.probEstimee * signal.cote - 1) * 100
             const pos = ev >= 0
             return (
               <span className={`text-xs font-bold px-2 py-0.5 rounded-lg border ${
@@ -116,13 +116,10 @@ function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
   )
 }
 
-// ── Section marché ────────────────────────────────────────────────────────────
+// ── Section marché (vue "Tous") ────────────────────────────────────────────────
 
 function MarketSection({
-  title,
-  signals,
-  accentClass,
-  emptyMsg,
+  title, signals, accentClass, emptyMsg,
 }: {
   title: string
   signals: PlayerSignal[]
@@ -156,13 +153,105 @@ function MarketSection({
   )
 }
 
-// ── Logique de filtrage par date ──────────────────────────────────────────────
+// ── Section match (vue Aujourd'hui / Demain) ──────────────────────────────────
 
-function getNextMatchDate(pays: string, fromDate: string): string | null {
-  const fixture = CDM_FIXTURES.find(f =>
-    f.date >= fromDate && (f.domicile === pays || f.exterieur === pays)
+function MatchSection({
+  fixture,
+  signals,
+}: {
+  fixture: (typeof CDM_FIXTURES)[number]
+  signals: PlayerSignal[]
+}) {
+  if (!signals.length) return null
+  const fortCount = signals.filter(s => s.force === 'fort').length
+
+  return (
+    <section className="mb-10">
+      {/* En-tête match */}
+      <Link
+        href={`/cdm/matchup/${fixture.id}`}
+        className="flex items-center gap-3 mb-4 group"
+      >
+        <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3 hover:border-emerald-500 transition-colors">
+          <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full shrink-0">
+            Gr. {fixture.groupe}
+          </span>
+          <span className="text-xs text-emerald-400 font-medium shrink-0">{fixture.heure}</span>
+          <div className="flex items-center gap-2 flex-1 justify-center min-w-0">
+            <span>{fixture.flagD}</span>
+            <span className="font-semibold text-white group-hover:text-emerald-400 transition-colors truncate text-sm">
+              {fixture.domicile}
+            </span>
+            <span className="text-gray-500 text-xs">vs</span>
+            <span className="font-semibold text-white group-hover:text-emerald-400 transition-colors truncate text-sm">
+              {fixture.exterieur}
+            </span>
+            <span>{fixture.flagE}</span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {fortCount > 0 && (
+              <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
+                {fortCount} ⚡
+              </span>
+            )}
+            <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">
+              {signals.length} signal{signals.length > 1 ? 's' : ''}
+            </span>
+            <span className="text-gray-600 text-xs group-hover:text-gray-400">Analyse →</span>
+          </div>
+        </div>
+      </Link>
+
+      {/* Signaux du match */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {signals.map(s => (
+          <PlayerSignalCard key={`${s.playerId}-${s.marché}`} signal={s} />
+        ))}
+      </div>
+    </section>
   )
-  return fixture?.date ?? null
+}
+
+// ── Vue groupée par match ─────────────────────────────────────────────────────
+
+function ByMatchView({
+  targetDate,
+  all,
+}: {
+  targetDate: string
+  all: PlayerSignal[]
+}) {
+  const fixtures = CDM_FIXTURES.filter(f => f.date === targetDate)
+
+  if (!fixtures.length) {
+    return (
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+        <p className="text-gray-400 text-base mb-1">Aucun match ce jour</p>
+        <p className="text-gray-600 text-sm">La compétition débute le 11 juin 2026.</p>
+      </div>
+    )
+  }
+
+  const hasAny = fixtures.some(f =>
+    all.some(s => s.pays === f.domicile || s.pays === f.exterieur)
+  )
+
+  if (!hasAny) {
+    return (
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+        <p className="text-gray-400 text-sm">Aucun signal joueur pour les {fixtures.length} matchs de ce jour.</p>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      {fixtures.map(f => {
+        const sigs = all.filter(s => s.pays === f.domicile || s.pays === f.exterieur)
+        return <MatchSection key={f.id} fixture={f} signals={sigs} />
+      })}
+    </>
+  )
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
@@ -170,31 +259,23 @@ function getNextMatchDate(pays: string, fromDate: string): string | null {
 export default function CdmSignauxClient({ signals }: { signals: SignalsByMarket }) {
   const [filter, setFilter] = useState<DateFilter>('Tous')
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today    = new Date().toISOString().slice(0, 10)
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
 
-  // Compte de matchs aujourd'hui / demain pour afficher les onglets pertinents
-  const matchesToday = CDM_FIXTURES.filter(f => f.date === today).length
+  const matchesToday    = CDM_FIXTURES.filter(f => f.date === today).length
   const matchesTomorrow = CDM_FIXTURES.filter(f => f.date === tomorrow).length
 
-  function applyFilter(sigs: PlayerSignal[]): PlayerSignal[] {
-    if (filter === 'Tous') return sigs.slice(0, 8)
-    const targetDate = filter === 'Aujourd\'hui' ? today : tomorrow
-    return sigs.filter(s => getNextMatchDate(s.pays, today) === targetDate)
-  }
-
-  const buteurs   = applyFilter(signals.buteurs)
-  const tirsCadrés = applyFilter(signals.tirsCadrés)
-  const cartons   = applyFilter(signals.cartons)
-  const passeurs  = applyFilter(signals.passeurs)
-
-  const emptyMsg = filter === 'Tous'
-    ? 'Aucun signal sur ce marché.'
-    : `Aucun joueur de ce marché ne joue ${filter === 'Aujourd\'hui' ? 'aujourd\'hui' : 'demain'}.`
+  // Pool complet de tous les signaux (pour la vue date)
+  const allSignals = [
+    ...signals.buteurs,
+    ...signals.tirsCadrés,
+    ...signals.cartons,
+    ...signals.passeurs,
+  ]
 
   return (
     <div>
-      {/* Filtres date */}
+      {/* Filtres */}
       <div className="flex gap-2 mb-8 flex-wrap">
         {(['Aujourd\'hui', 'Demain', 'Tous'] as DateFilter[]).map(f => {
           const count = f === 'Aujourd\'hui' ? matchesToday : f === 'Demain' ? matchesTomorrow : null
@@ -222,11 +303,23 @@ export default function CdmSignauxClient({ signals }: { signals: SignalsByMarket
         })}
       </div>
 
-      {/* Sections marchés */}
-      <MarketSection title="⚽ Buteur du match"  signals={buteurs}    accentClass="text-emerald-300" emptyMsg={emptyMsg} />
-      <MarketSection title="🎯 Tirs cadrés (≥ 1)" signals={tirsCadrés} accentClass="text-blue-300"   emptyMsg={emptyMsg} />
-      <MarketSection title="🎯 Passeur décisif"  signals={passeurs}   accentClass="text-purple-300"  emptyMsg={emptyMsg} />
-      <MarketSection title="🟨 Carton jaune"     signals={cartons}    accentClass="text-yellow-300"  emptyMsg={emptyMsg} />
+      {/* Vue "Aujourd'hui" / "Demain" — groupée par match */}
+      {filter !== 'Tous' && (
+        <ByMatchView
+          targetDate={filter === 'Aujourd\'hui' ? today : tomorrow}
+          all={allSignals}
+        />
+      )}
+
+      {/* Vue "Tous" — groupée par marché */}
+      {filter === 'Tous' && (
+        <>
+          <MarketSection title="⚽ Buteur du match"    signals={signals.buteurs.slice(0, 8)}    accentClass="text-emerald-300" emptyMsg="Aucun signal sur ce marché." />
+          <MarketSection title="🎯 Tirs cadrés (≥ 1)" signals={signals.tirsCadrés.slice(0, 8)} accentClass="text-blue-300"    emptyMsg="Aucun signal sur ce marché." />
+          <MarketSection title="🎯 Passeur décisif"   signals={signals.passeurs.slice(0, 8)}   accentClass="text-purple-300"  emptyMsg="Aucun signal sur ce marché." />
+          <MarketSection title="🟨 Carton jaune"      signals={signals.cartons.slice(0, 8)}    accentClass="text-yellow-300"  emptyMsg="Aucun signal sur ce marché." />
+        </>
+      )}
     </div>
   )
 }
