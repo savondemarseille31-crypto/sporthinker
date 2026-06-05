@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 import type { PlayerSignal, PlayerSignalForce, PlayerMarket } from '@/lib/cdm-player-signals'
+import { saveTrackedSignalRaw, isAlreadyTracked } from '@/lib/signal-tracker'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,73 +47,128 @@ function marketColor(marché: PlayerMarket) {
 
 // ── Carte signal joueur ───────────────────────────────────────────────────────
 
+function getNextFixture(pays: string) {
+  const today = new Date().toISOString().slice(0, 10)
+  return CDM_FIXTURES.find(f =>
+    f.date >= today && (f.domicile === pays || f.exterieur === pays)
+  ) ?? null
+}
+
 function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
-  const cfg  = forceConfig(signal.force)
-  const conf = confianceLabel(signal.confiance)
+  const cfg      = forceConfig(signal.force)
+  const conf     = confianceLabel(signal.confiance)
+  const fixture  = getNextFixture(signal.pays)
+  const signalId = `cdm-${signal.playerId}-${signal.marché}`
+  const date     = fixture?.date ?? new Date().toISOString().slice(0, 10)
+  const [saved, setSaved] = useState(() => isAlreadyTracked(signalId, date))
+  const [toast, setToast] = useState(false)
+
+  function handleSave(e: React.MouseEvent) {
+    e.preventDefault()
+    if (saved || !fixture) return
+    const matchStr = `${fixture.domicile} vs ${fixture.exterieur}`
+    saveTrackedSignalRaw({
+      signalId,
+      date,
+      sport: 'CdM',
+      match: matchStr,
+      pari: `${signal.playerName} — ${signal.marchéLabel}`,
+      typePari: signal.marché,
+      // PlayerSignalForce a 'faible' là où SignalForce a 'à surveiller'
+      force: signal.force === 'faible' ? 'à surveiller' : signal.force,
+      cote: signal.cote ?? 2.0,
+      statut: 'en_cours',
+      marché: signal.marché,
+    })
+    setSaved(true)
+    setToast(true)
+    setTimeout(() => setToast(false), 2000)
+  }
 
   return (
-    <Link
-      href={`/cdm/joueurs/${signal.playerId}`}
-      className="block bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-gray-600 transition-colors group"
-    >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cfg.badge}`}>
-            <span className={`inline-block w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1 align-middle`} />
-            {cfg.label}
-          </span>
-          <span className={`text-xs font-medium ${marketColor(signal.marché)}`}>
-            {signal.marchéLabel}
-          </span>
+    <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-gray-600 transition-colors">
+      {/* Toast */}
+      {toast && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-emerald-500 text-black text-xs font-bold px-3 py-1.5 rounded-full shadow-lg pointer-events-none">
+          ✓ Signal enregistré
         </div>
-        <div className="flex items-center gap-2 flex-wrap justify-end">
-          {signal.cote && signal.probEstimee != null && (() => {
-            const ev  = (signal.probEstimee * signal.cote - 1) * 100
-            const pos = ev >= 0
-            return (
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-lg border ${
-                pos
-                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                  : 'bg-red-500/10 text-red-400 border-red-500/20'
-              }`}>
-                EV {pos ? '+' : ''}{ev.toFixed(1)}%
-              </span>
-            )
-          })()}
-          {signal.cote && (
-            <span className="text-xs bg-gray-800 border border-gray-700 text-white font-bold px-2 py-0.5 rounded-lg">
-              Cote {signal.cote.toFixed(2)}
+      )}
+
+      <Link href={`/cdm/joueurs/${signal.playerId}`} className="block group">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cfg.badge}`}>
+              <span className={`inline-block w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1 align-middle`} />
+              {cfg.label}
             </span>
-          )}
-          <span className="text-lg">{signal.flag}</span>
-        </div>
-      </div>
-
-      <div className="mb-2">
-        <p className="font-bold text-white text-base group-hover:text-emerald-400 transition-colors">
-          {signal.playerName}
-        </p>
-        <p className="text-xs text-gray-500">{signal.poste} · {signal.club}</p>
-      </div>
-
-      <div className="bg-gray-800 rounded-xl px-3 py-2 mb-3">
-        <p className={`text-lg font-bold ${marketColor(signal.marché)}`}>{signal.valeurClé}</p>
-        <p className="text-xs text-gray-500">{signal.seuil}</p>
-      </div>
-
-      <p className="text-xs text-gray-400 leading-relaxed mb-3">{signal.raisonnement}</p>
-
-      <div className="grid grid-cols-2 gap-1.5">
-        {signal.stats.map((s, i) => (
-          <div key={i} className={`rounded-lg px-2 py-1.5 text-center ${s.highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
-            <p className={`text-sm font-bold ${s.highlight ? 'text-emerald-400' : 'text-white'}`}>{s.val}</p>
-            <p className="text-xs text-gray-500 leading-tight">{s.label}</p>
+            <span className={`text-xs font-medium ${marketColor(signal.marché)}`}>
+              {signal.marchéLabel}
+            </span>
           </div>
-        ))}
-      </div>
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            {signal.cote && signal.probEstimee != null && (() => {
+              const ev  = (signal.probEstimee * signal.cote - 1) * 100
+              const pos = ev >= 0
+              return (
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-lg border ${
+                  pos
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                    : 'bg-red-500/10 text-red-400 border-red-500/20'
+                }`}>
+                  EV {pos ? '+' : ''}{ev.toFixed(1)}%
+                </span>
+              )
+            })()}
+            {signal.cote && (
+              <span className="text-xs bg-gray-800 border border-gray-700 text-white font-bold px-2 py-0.5 rounded-lg">
+                Cote {signal.cote.toFixed(2)}
+              </span>
+            )}
+            <span className="text-lg">{signal.flag}</span>
+          </div>
+        </div>
 
-      <div className={`mt-3 text-xs ${conf.text}`}>{conf.label}</div>
-    </Link>
+        <div className="mb-2">
+          <p className="font-bold text-white text-base group-hover:text-emerald-400 transition-colors">
+            {signal.playerName}
+          </p>
+          <p className="text-xs text-gray-500">{signal.poste} · {signal.club}</p>
+        </div>
+
+        <div className="bg-gray-800 rounded-xl px-3 py-2 mb-3">
+          <p className={`text-lg font-bold ${marketColor(signal.marché)}`}>{signal.valeurClé}</p>
+          <p className="text-xs text-gray-500">{signal.seuil}</p>
+        </div>
+
+        <p className="text-xs text-gray-400 leading-relaxed mb-3">{signal.raisonnement}</p>
+
+        <div className="grid grid-cols-2 gap-1.5">
+          {signal.stats.map((s, i) => (
+            <div key={i} className={`rounded-lg px-2 py-1.5 text-center ${s.highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
+              <p className={`text-sm font-bold ${s.highlight ? 'text-emerald-400' : 'text-white'}`}>{s.val}</p>
+              <p className="text-xs text-gray-500 leading-tight">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className={`mt-3 text-xs ${conf.text}`}>{conf.label}</div>
+      </Link>
+
+      {/* Bouton enregistrer */}
+      <button
+        onClick={handleSave}
+        disabled={saved || !fixture}
+        className={`mt-3 w-full py-2 rounded-xl text-xs font-semibold transition-colors ${
+          saved
+            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default'
+            : !fixture
+            ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
+            : 'bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-gray-400 border border-gray-700 hover:border-emerald-500/30'
+        }`}
+      >
+        {saved ? '✓ Dans le suivi' : !fixture ? 'Pas de match prévu' : '+ Suivre ce signal'}
+      </button>
+    </div>
   )
 }
 

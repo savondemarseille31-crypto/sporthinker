@@ -129,6 +129,7 @@ export default function Header() {
         />
         {navItem('/selections', '🎯 Sélections')}
         {navItem('/paris', '💰 Mes Paris')}
+        {navItem('/suivi', '📊 Suivi')}
       </nav>
     </header>
   )

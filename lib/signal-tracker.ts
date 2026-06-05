@@ -15,6 +15,7 @@ export type TrackedSignal = {
   cote: number
   statut: SignalStatut
   gain?: number
+  marché?: string   // pour les signaux joueurs CdM
 }
 
 export type TrackerStats = {
@@ -56,6 +57,21 @@ export function saveTrackedSignal(signal: Signal, cote: number): TrackedSignal |
     force: signal.force,
     cote,
     statut: 'en_cours',
+  }
+  localStorage.setItem(KEY, JSON.stringify([tracked, ...signals]))
+  return tracked
+}
+
+// Sauvegarde flexible (signaux joueurs CdM ou tout autre source)
+export function saveTrackedSignalRaw(
+  data: Omit<TrackedSignal, 'id' | 'savedAt'>,
+): TrackedSignal | null {
+  if (isAlreadyTracked(data.signalId, data.date)) return null
+  const signals = getTrackedSignals()
+  const tracked: TrackedSignal = {
+    ...data,
+    id: crypto.randomUUID(),
+    savedAt: new Date().toISOString(),
   }
   localStorage.setItem(KEY, JSON.stringify([tracked, ...signals]))
   return tracked
