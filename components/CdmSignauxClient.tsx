@@ -66,9 +66,22 @@ function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {signal.cote && signal.probEstimee != null && (() => {
+            const ev = (signal.probEstimee * signal.cote - 1) * 100
+            const pos = ev >= 0
+            return (
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-lg border ${
+                pos
+                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                  : 'bg-red-500/10 text-red-400 border-red-500/20'
+              }`}>
+                EV {pos ? '+' : ''}{ev.toFixed(1)}%
+              </span>
+            )
+          })()}
           {signal.cote && (
             <span className="text-xs bg-gray-800 border border-gray-700 text-white font-bold px-2 py-0.5 rounded-lg">
-              {signal.cote.toFixed(2)}
+              Cote {signal.cote.toFixed(2)}
             </span>
           )}
           <span className="text-lg">{signal.flag}</span>

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
-import { getTopByMarket, type PlayerSignal } from '@/lib/cdm-player-signals'
+import { type PlayerSignal } from '@/lib/cdm-player-signals'
+import { getTopByMarketWithBlend } from '@/lib/cdm-signals-blend'
 import { getCdMEventsList, getCdMPlayerProps, extractPlayerCote } from '@/lib/odds-api'
 import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 import { generateCdMSignalsForMatch } from '@/lib/football-signals'
@@ -111,12 +112,12 @@ function MatchSignalCard({ signal }: { signal: Signal }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function CdmSignauxPage() {
-  // Signaux joueurs (30 par marché pour le filtre date client-side)
+  // Signaux joueurs (blend club + sélection + WC, 30 par marché pour le filtre date client-side)
   const [buteurs, tirsCadrés, cartons, passeurs] = await Promise.all([
-    enrichWithCotes(getTopByMarket('buteur', 30)),
-    enrichWithCotes(getTopByMarket('tirs-cadrés', 30)),
-    enrichWithCotes(getTopByMarket('carton-jaune', 30)),
-    enrichWithCotes(getTopByMarket('passeur', 30)),
+    enrichWithCotes(await getTopByMarketWithBlend('buteur', 30)),
+    enrichWithCotes(await getTopByMarketWithBlend('tirs-cadrés', 30)),
+    enrichWithCotes(await getTopByMarketWithBlend('carton-jaune', 30)),
+    enrichWithCotes(await getTopByMarketWithBlend('passeur', 30)),
   ])
 
   // KPIs basés sur le top 8

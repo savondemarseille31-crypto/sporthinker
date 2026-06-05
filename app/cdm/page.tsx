@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 import { CDM_GROUPS } from '@/lib/cdm-groups'
+import CdmCountdown from '@/components/CdmCountdown'
 
 export default function CdmPage() {
   const today = new Date().toISOString().slice(0, 10)
@@ -13,10 +14,13 @@ export default function CdmPage() {
 
       <div className="px-6 py-8 max-w-6xl mx-auto">
         {/* Titre */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-4xl font-bold mb-2">🌍 Coupe du Monde 2026</h1>
           <p className="text-gray-400">USA · Canada · Mexique · 11 juin – 19 juillet 2026</p>
         </div>
+
+        {/* Compte à rebours */}
+        <CdmCountdown />
 
         {/* Raccourcis */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">

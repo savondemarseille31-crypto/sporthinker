@@ -68,6 +68,7 @@ export type PlayerSignal = {
   sourceLabel: string
   stats: { label: string; val: string; highlight?: boolean }[]
   cote?: number
+  probEstimee?: number  // probabilité Poisson (0-1) pour le marché
 }
 
 // =============================================
@@ -220,6 +221,9 @@ function signalButeur(p: Player, b: BlendedStats): PlayerSignal | null {
     ? ` Sous-performe son xG de ${Math.abs(overperf).toFixed(1)} buts — peut être "dû".`
     : ''
 
+  // P(≥1 but) = 1 - e^(-xG) par modèle Poisson
+  const probEstimee = parseFloat((1 - Math.exp(-b.xGParMatch)).toFixed(4))
+
   return {
     playerId: p.id, playerName: p.nom, pays: p.pays, flag: p.flag,
     groupe: p.groupe, poste: p.poste, club: p.club,
@@ -229,6 +233,7 @@ function signalButeur(p: Player, b: BlendedStats): PlayerSignal | null {
     raisonnement: `${p.nom} génère ${b.xGParMatch.toFixed(2)} xG/match (${b.sourceLabel}).${perfNote}`,
     confiance: b.confiance,
     sourceLabel: b.sourceLabel,
+    probEstimee,
     stats: [
       { label: 'xG/match',       val: b.xGParMatch.toFixed(2),   highlight: true },
       { label: 'Tirs/match',     val: b.tirsParMatch.toFixed(1) },
@@ -246,6 +251,9 @@ function signalTirsCadrés(p: Player, b: BlendedStats): PlayerSignal | null {
   const precision = b.tirsParMatch > 0
     ? Math.round((b.tirsCadrésParMatch / b.tirsParMatch) * 100) : 0
 
+  // P(≥1 tir cadré) = 1 - e^(-SOT) par modèle Poisson
+  const probEstimee = parseFloat((1 - Math.exp(-b.tirsCadrésParMatch)).toFixed(4))
+
   return {
     playerId: p.id, playerName: p.nom, pays: p.pays, flag: p.flag,
     groupe: p.groupe, poste: p.poste, club: p.club,
@@ -255,6 +263,7 @@ function signalTirsCadrés(p: Player, b: BlendedStats): PlayerSignal | null {
     raisonnement: `${p.nom} place ${b.tirsCadrésParMatch.toFixed(2)} tirs cadrés par match (${precision}% de précision sur ${b.tirsParMatch.toFixed(1)} tirs tentés). Source : ${b.sourceLabel}.`,
     confiance: b.confiance,
     sourceLabel: b.sourceLabel,
+    probEstimee,
     stats: [
       { label: 'Cadrés/match',  val: b.tirsCadrésParMatch.toFixed(2), highlight: true },
       { label: 'Tirs/match',    val: b.tirsParMatch.toFixed(1) },
@@ -271,6 +280,10 @@ function signalTirsTentés(p: Player, b: BlendedStats): PlayerSignal | null {
   // Ne pas dupliquer si le signal tirs cadrés est déjà fort
   if (b.tirsCadrésParMatch >= SEUILS.tirsCadrésParMatch.fort) return null
 
+  // P(≥2 tirs) = 1 - e^(-λ)(1+λ) par modèle Poisson
+  const λ = b.tirsParMatch
+  const probEstimee = parseFloat((1 - Math.exp(-λ) * (1 + λ)).toFixed(4))
+
   return {
     playerId: p.id, playerName: p.nom, pays: p.pays, flag: p.flag,
     groupe: p.groupe, poste: p.poste, club: p.club,
@@ -280,6 +293,7 @@ function signalTirsTentés(p: Player, b: BlendedStats): PlayerSignal | null {
     raisonnement: `${p.nom} tente ${b.tirsParMatch.toFixed(1)} tirs par match (source : ${b.sourceLabel}). Candidat régulier au marché "tirs tentés".`,
     confiance: b.confiance,
     sourceLabel: b.sourceLabel,
+    probEstimee,
     stats: [
       { label: 'Tirs/match',  val: b.tirsParMatch.toFixed(1),   highlight: true },
       { label: 'xG/match',    val: b.xGParMatch.toFixed(2) },
@@ -298,6 +312,9 @@ function signalCarton(p: Player, b: BlendedStats): PlayerSignal | null {
   const everyN = freq > 0 ? Math.round(1 / freq) : 99
   const postalSuffix = ['Milieu', 'Défenseur'].some(pos => p.poste.includes(pos)) ? ' (poste à risque)' : ''
 
+  // Pour carton jaune, la fréquence est directement la probabilité par match
+  const probEstimee = parseFloat(Math.min(freq, 1).toFixed(4))
+
   return {
     playerId: p.id, playerName: p.nom, pays: p.pays, flag: p.flag,
     groupe: p.groupe, poste: p.poste, club: p.club,
@@ -307,6 +324,7 @@ function signalCarton(p: Player, b: BlendedStats): PlayerSignal | null {
     raisonnement: `${p.nom} prend un carton toutes les ~${everyN} rencontres${postalSuffix}. Source : ${b.sourceLabel}.`,
     confiance: b.confiance,
     sourceLabel: b.sourceLabel,
+    probEstimee,
     stats: [
       { label: 'Fréquence',    val: `${(freq * 100).toFixed(0)}%`, highlight: true },
       { label: '1 tous les…',  val: `${everyN} matchs`,           highlight: force === 'fort' },
@@ -325,6 +343,9 @@ function signalPasseur(p: Player, b: BlendedStats): PlayerSignal | null {
     ? ` ${b.passesClésParMatch.toFixed(1)} passes clés/match — créateur de premier rang.`
     : ''
 
+  // P(≥1 passe déc.) = 1 - e^(-xA) par modèle Poisson
+  const probEstimee = parseFloat((1 - Math.exp(-b.xAParMatch)).toFixed(4))
+
   return {
     playerId: p.id, playerName: p.nom, pays: p.pays, flag: p.flag,
     groupe: p.groupe, poste: p.poste, club: p.club,
@@ -334,6 +355,7 @@ function signalPasseur(p: Player, b: BlendedStats): PlayerSignal | null {
     raisonnement: `${p.nom} génère ${b.xAParMatch.toFixed(2)} xA/match (source : ${b.sourceLabel}).${pkNote}`,
     confiance: b.confiance,
     sourceLabel: b.sourceLabel,
+    probEstimee,
     stats: [
       { label: 'xA/match',        val: b.xAParMatch.toFixed(2),        highlight: true },
       { label: 'Passes clés/match',val: b.passesClésParMatch.toFixed(1), highlight: force === 'fort' },
@@ -378,7 +400,7 @@ export function generatePlayerSignals(
   return generateSignalsFromBlended(player, blended)
 }
 
-const FORCE_ORDER: Record<PlayerSignalForce, number> = { fort: 0, modéré: 1, faible: 2 }
+export const FORCE_ORDER: Record<PlayerSignalForce, number> = { fort: 0, modéré: 1, faible: 2 }
 
 export function getTopPlayerSignals(opts: {
   marché?: PlayerMarket
