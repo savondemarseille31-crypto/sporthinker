@@ -240,6 +240,7 @@ function TabParSport({ signals }: { signals: TrackedSignal[] }) {
                 <p className="text-xs opacity-50 text-center py-4">Aucun signal suivi</p>
               ) : (
                 <>
+                  {/* Stats globales sport */}
                   <div className="grid grid-cols-2 gap-2 mb-3">
                     <div className="bg-black/20 rounded-xl p-3 text-center">
                       <p className="text-xs opacity-60 mb-1">P&L</p>
@@ -254,7 +255,7 @@ function TabParSport({ signals }: { signals: TrackedSignal[] }) {
                       </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
+                  <div className="grid grid-cols-3 gap-1.5 text-center text-xs mb-3">
                     {[
                       { l: '✅', v: stats.gagnes },
                       { l: '❌', v: stats.perdus },
@@ -266,6 +267,28 @@ function TabParSport({ signals }: { signals: TrackedSignal[] }) {
                       </div>
                     ))}
                   </div>
+
+                  {/* Split Fort / Modéré */}
+                  {(() => {
+                    const fStats = calcTrackerStats(ss.filter(s => s.force === 'fort'))
+                    const mStats = calcTrackerStats(ss.filter(s => s.force === 'modéré'))
+                    return (
+                      <div className="border-t border-white/10 pt-3 space-y-1.5">
+                        {[
+                          { label: '⚡ Forts',    stats: fStats, count: ss.filter(s => s.force === 'fort').length },
+                          { label: '🔶 Modérés', stats: mStats, count: ss.filter(s => s.force === 'modéré').length },
+                        ].map(({ label, stats: fs, count }) => count === 0 ? null : (
+                          <div key={label} className="flex items-center justify-between text-xs bg-black/20 rounded-lg px-3 py-1.5">
+                            <span className="opacity-70">{label} <span className="opacity-50">({count})</span></span>
+                            <span className={`font-bold ${fs.roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                              {fs.gagnes}G/{fs.perdus}P · ROI {fs.roi >= 0 ? '+' : ''}{fs.roi}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
+
                   <p className="text-xs opacity-50 text-center mt-2">{stats.txReussite}% réussite · cote moy. {stats.coteMoyenne || '—'}</p>
                 </>
               )}
