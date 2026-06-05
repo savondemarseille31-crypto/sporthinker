@@ -53,9 +53,10 @@ function ctaHref(signal: Signal): string {
   return '/paris/calculateur'
 }
 
-function formatMoneyLine(ml: number): string {
+function mlToDecimal(ml: number): string {
   if (!ml || ml === 0) return '—'
-  return ml > 0 ? `+${ml}` : `${ml}`
+  const dec = ml > 0 ? ml / 100 + 1 : 100 / Math.abs(ml) + 1
+  return dec.toFixed(2)
 }
 
 // ---- Carte signal ----
@@ -101,9 +102,12 @@ function SignalCard({ signal }: { signal: Signal }) {
           <div className="flex items-start justify-between gap-2">
             <p className="text-xs text-gray-500 mb-0.5">Pari recommandé</p>
             {signal.coteRef && (
-              <span className="text-sm font-bold text-white bg-gray-700 border border-gray-600 px-2 py-0.5 rounded-lg shrink-0">
-                {signal.coteRef.toFixed(2)}
-              </span>
+              <div className="flex items-center gap-1 shrink-0">
+                <span className="text-xs text-gray-500">Cote</span>
+                <span className="text-sm font-bold text-white bg-gray-700 border border-gray-600 px-2 py-0.5 rounded-lg">
+                  {signal.coteRef.toFixed(2)}
+                </span>
+              </div>
             )}
           </div>
           <p className={`text-base font-bold ${typeColor(signal.typePari)}`}>{signal.pari}</p>
@@ -114,36 +118,34 @@ function SignalCard({ signal }: { signal: Signal }) {
       {/* Raisonnement */}
       <p className="text-sm text-gray-400 leading-relaxed">{signal.raisonnement}</p>
 
-      {/* Cotes ESPN DraftKings */}
+      {/* Cotes de référence (format décimal européen) */}
       {hasOdds && (
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl px-4 py-3">
-          <p className="text-xs text-blue-400 font-semibold mb-1.5">
-            📊 Cotes {signal.odds?.provider ? `— ${signal.odds.provider}` : '— DraftKings'}
-          </p>
-          <div className="flex flex-wrap gap-3 text-sm">
+        <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3">
+          <p className="text-xs text-gray-400 font-semibold mb-2">📊 Cotes de référence</p>
+          <div className="flex flex-wrap gap-4">
             {signal.odds?.homeMoneyLine != null && signal.odds.homeMoneyLine !== 0 && (
-              <span className="text-white font-mono">
-                Dom: <span className={signal.odds.homeMoneyLine < 0 ? 'text-emerald-400' : 'text-yellow-400'}>
-                  {formatMoneyLine(signal.odds.homeMoneyLine)}
-                </span>
-              </span>
-            )}
-            {signal.odds?.awayMoneyLine != null && signal.odds.awayMoneyLine !== 0 && (
-              <span className="text-white font-mono">
-                Ext: <span className={signal.odds.awayMoneyLine < 0 ? 'text-emerald-400' : 'text-yellow-400'}>
-                  {formatMoneyLine(signal.odds.awayMoneyLine)}
-                </span>
-              </span>
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-0.5">Dom.</p>
+                <p className="text-sm font-bold text-white">{mlToDecimal(signal.odds.homeMoneyLine)}</p>
+              </div>
             )}
             {signal.odds?.overUnder != null && signal.odds.overUnder > 0 && (
-              <span className="text-gray-400 font-mono">
-                OU: <span className="text-white">{signal.odds.overUnder}</span>
-              </span>
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-0.5">Nul</p>
+                <p className="text-sm font-bold text-white">—</p>
+              </div>
             )}
-            {signal.odds?.spread && (
-              <span className="text-gray-400 font-mono">
-                Spread: <span className="text-white">{signal.odds.spread}</span>
-              </span>
+            {signal.odds?.awayMoneyLine != null && signal.odds.awayMoneyLine !== 0 && (
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-0.5">Ext.</p>
+                <p className="text-sm font-bold text-white">{mlToDecimal(signal.odds.awayMoneyLine)}</p>
+              </div>
+            )}
+            {signal.odds?.overUnder != null && signal.odds.overUnder > 0 && (
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-0.5">O/U</p>
+                <p className="text-sm font-bold text-white">{signal.odds.overUnder}</p>
+              </div>
             )}
           </div>
         </div>
