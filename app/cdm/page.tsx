@@ -4,7 +4,8 @@ import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 import { CDM_GROUPS } from '@/lib/cdm-groups'
 
 export default function CdmPage() {
-  const prochainMatchs = CDM_FIXTURES.slice(0, 6)
+  const today = new Date().toISOString().slice(0, 10)
+  const prochainMatchs = CDM_FIXTURES.filter(m => m.date >= today).slice(0, 6)
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -54,23 +55,23 @@ export default function CdmPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {prochainMatchs.map((match) => (
-              <div key={match.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-emerald-500 transition-colors">
+              <Link key={match.id} href={`/cdm/matchup/${match.id}`} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-emerald-500 transition-colors block">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">Groupe {match.groupe}</span>
-                  <span className="text-xs text-gray-500">{new Date(match.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {match.heure}</span>
+                  <span className="text-xs text-gray-500">{new Date(`${match.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {match.heure}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="text-center flex-1">
+                <div className="grid grid-cols-[1fr_40px_1fr] items-center">
+                  <div className="text-center">
                     <p className="text-2xl mb-1">{match.flagD}</p>
                     <p className="text-sm font-semibold">{match.domicile}</p>
                   </div>
-                  <div className="text-emerald-400 font-bold">VS</div>
-                  <div className="text-center flex-1">
+                  <div className="text-emerald-400 font-bold text-center">VS</div>
+                  <div className="text-center">
                     <p className="text-2xl mb-1">{match.flagE}</p>
                     <p className="text-sm font-semibold">{match.exterieur}</p>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>

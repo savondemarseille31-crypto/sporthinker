@@ -326,6 +326,37 @@ function generateSignalsForFixture(
   return signals
 }
 
+// ---- Génération de signaux pour un match CdM (sans appel API) ----
+// Fallback pré-tournoi basé sur classements FIFA
+
+export function generateCdMSignalsForMatch(opts: {
+  id: number
+  date: string
+  heure: string
+  domicile: string
+  exterieur: string
+}): Signal[] {
+  const fixture: AFFixture = {
+    fixture: {
+      id: opts.id,
+      date: `${opts.date}T${opts.heure}:00+02:00`,
+      referee: null,
+      status: { long: 'Not Started', short: 'NS', elapsed: null },
+    },
+    league: { id: 1, name: 'FIFA World Cup', season: 2026, round: 'Group Stage' },
+    teams: {
+      home: { id: 0, name: opts.domicile, logo: '', winner: null },
+      away: { id: 0, name: opts.exterieur, logo: '', winner: null },
+    },
+    goals: { home: null, away: null },
+  }
+
+  const homeMetrics = estimateFromFIFA(getFIFARanking(opts.domicile) ?? 35)
+  const awayMetrics = estimateFromFIFA(getFIFARanking(opts.exterieur) ?? 35)
+
+  return generateSignalsForFixture(fixture, homeMetrics, awayMetrics, 1)
+}
+
 // ---- Point d'entrée principal ----
 
 export async function generateFootballSignalsForToday(leagueId: number, season: number): Promise<Signal[]> {
