@@ -31,7 +31,7 @@ export type ValueBet = {
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const EDGE_THRESHOLD = 0.03  // 3% minimum
-const BK_PRIORITY = ['pinnacle', 'pinnacle_us', 'betfair_ex_eu', 'bet365', 'unibet', 'williamhill']
+const BK_PRIORITY = ['pinnacle', 'pinnacle_us', 'betfair_ex_eu', 'bet365', 'winamax_fr', 'williamhill']
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

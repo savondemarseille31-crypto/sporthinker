@@ -5,7 +5,7 @@ const API_KEY = process.env.ODDS_API_KEY
 const BASE    = 'https://api.the-odds-api.com/v4'
 
 // Bookmakers prioritaires (décroissant) — préférence EU pour cotes décimales propres
-const BK_PRIORITY = ['pinnacle', 'bet365', 'unibet', 'draftkings', 'fanduel', 'betmgm', 'williamhill', 'bovada']
+const BK_PRIORITY = ['pinnacle', 'bet365', 'winamax_fr', 'draftkings', 'fanduel', 'betmgm', 'williamhill', 'bovada']
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ export type RealOdds = {
 async function fetchOdds(sportKey: string, markets: string, revalidateSec: number): Promise<OddsEvent[]> {
   if (!API_KEY) return []
   try {
-    const url = `${BASE}/sports/${sportKey}/odds?apiKey=${API_KEY}&regions=eu,us&markets=${markets}&oddsFormat=decimal`
+    const url = `${BASE}/sports/${sportKey}/odds?apiKey=${API_KEY}&regions=eu,us,fr&markets=${markets}&oddsFormat=decimal`
     const res = await fetch(url, { next: { revalidate: revalidateSec } })
     if (!res.ok) return []
     return res.json()
