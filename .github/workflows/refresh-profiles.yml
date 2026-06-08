@@ -7,9 +7,14 @@ on:
   workflow_dispatch:
     # Déclenchement manuel depuis GitHub Actions (onglet Actions → Run workflow)
 
+permissions:
+  contents: write
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
