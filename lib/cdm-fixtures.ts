@@ -1,4 +1,4 @@
-export const CDM_FIXTURES = [
+const CDM_FIXTURES_RAW = [
   // ── GROUPE A : Mexico · South Korea · South Africa · Czechia ──────────────
   { id: 1,  date: '2026-06-11', heure: '21:00', domicile: 'Mexico',       flagD: '🇲🇽', exterieur: 'South Africa', flagE: '🇿🇦', groupe: 'A', stade: 'Estadio Azteca, Mexico City' },
   { id: 2,  date: '2026-06-12', heure: '04:00', domicile: 'South Korea',  flagD: '🇰🇷', exterieur: 'Czechia',      flagE: '🇨🇿', groupe: 'A', stade: 'Estadio Akron, Guadalajara' },
@@ -24,7 +24,7 @@ export const CDM_FIXTURES = [
   { id: 18, date: '2026-06-24', heure: '01:00', domicile: 'Morocco',  flagD: '🇲🇦', exterieur: 'Haiti',    flagE: '🇭🇹', groupe: 'C', stade: 'Mercedes-Benz Stadium, Atlanta' },
 
   // ── GROUPE D : USA · Paraguay · Australia · Turkey ────────────────────────
-  { id: 19, date: '2026-06-12', heure: '03:00', domicile: 'USA',       flagD: '🇺🇸', exterieur: 'Paraguay',   flagE: '🇵🇾', groupe: 'D', stade: 'SoFi Stadium, Los Angeles' },
+  { id: 19, date: '2026-06-13', heure: '03:00', domicile: 'USA',       flagD: '🇺🇸', exterieur: 'Paraguay',   flagE: '🇵🇾', groupe: 'D', stade: 'SoFi Stadium, Los Angeles' },
   { id: 20, date: '2026-06-13', heure: '06:00', domicile: 'Australia', flagD: '🇦🇺', exterieur: 'Turkey',     flagE: '🇹🇷', groupe: 'D', stade: 'BC Place, Vancouver' },
   { id: 21, date: '2026-06-19', heure: '01:00', domicile: 'USA',       flagD: '🇺🇸', exterieur: 'Australia',  flagE: '🇦🇺', groupe: 'D', stade: 'Lumen Field, Seattle' },
   { id: 22, date: '2026-06-19', heure: '10:00', domicile: 'Turkey',    flagD: '🇹🇷', exterieur: 'Paraguay',   flagE: '🇵🇾', groupe: 'D', stade: "Levi's Stadium, San Francisco" },
@@ -95,3 +95,25 @@ export const CDM_FIXTURES = [
   { id: 71, date: '2026-06-27', heure: '00:00', domicile: 'Panama',  flagD: '🇵🇦', exterieur: 'England', flagE: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', groupe: 'L', stade: 'MetLife Stadium, New York/NJ' },
   { id: 72, date: '2026-06-27', heure: '00:00', domicile: 'Croatia', flagD: '🇭🇷', exterieur: 'Ghana',   flagE: '🇬🇭', groupe: 'L', stade: 'Lincoln Financial Field, Philadelphia' },
 ]
+
+export const CDM_FIXTURES = CDM_FIXTURES_RAW.slice().sort((a, b) => {
+  const ka = `${a.date}${a.heure}`
+  const kb = `${b.date}${b.heure}`
+  return ka < kb ? -1 : ka > kb ? 1 : 0
+})
+
+/**
+ * Returns the group-stage matchday (1 | 2 | 3) for a given fixture.
+ * J3 = simultaneous last round → key to detect potential stake management.
+ */
+export function getMatchday(fixtureId: number): 1 | 2 | 3 {
+  const fixture = CDM_FIXTURES.find(f => f.id === fixtureId)
+  if (!fixture) return 1
+  const sorted = CDM_FIXTURES
+    .filter(f => f.groupe === fixture.groupe)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.heure.localeCompare(b.heure))
+  const idx = sorted.findIndex(f => f.id === fixtureId)
+  if (idx < 2) return 1
+  if (idx < 4) return 2
+  return 3
+}

@@ -8,9 +8,14 @@ const GROUPES = ['Tous', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 
 export default function CalendrierClient({ fixtures }: { fixtures: any[] }) {
   const [filtreGroupe, setFiltreGroupe] = useState('Tous')
 
-  const matchsFiltres = filtreGroupe === 'Tous'
+  const matchsFiltres = (filtreGroupe === 'Tous'
     ? CDM_FIXTURES
     : CDM_FIXTURES.filter(m => m.groupe === filtreGroupe)
+  ).slice().sort((a, b) => {
+    const da = new Date(`${a.date}T${a.heure}:00`)
+    const db = new Date(`${b.date}T${b.heure}:00`)
+    return da.getTime() - db.getTime()
+  })
 
   return (
     <>
