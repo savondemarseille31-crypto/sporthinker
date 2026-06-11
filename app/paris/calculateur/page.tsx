@@ -1,15 +1,18 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import {
-  calcEV, calcKelly, calcMiseKelly, devig, isValueBet,
-  savePari, getBankroll, type Bankroll, type TypePari
+  calcEV, calcKelly, calcMiseKelly, devig, devigPower, blendProb, wBlend,
+  isValueBet, savePari, getBankroll, type Bankroll, type TypePari
 } from '@/lib/paris-store'
 
 type Mode = 'simple' | 'devig'
+type DevigMethod = 'mult' | 'power'
 
-export default function CalculateurPage() {
+function CalculateurInner() {
+  const searchParams = useSearchParams()
   const [mode, setMode] = useState<Mode>('simple')
   const [bankroll, setBankroll] = useState<Bankroll>({ montantInitial: 1000, montantActuel: 1000, devise: '€' })
 
@@ -22,6 +25,9 @@ export default function CalculateurPage() {
   const [coteN, setCoteN] = useState('')
   const [cote2, setCote2] = useState('')
   const [selectionDevig, setSelectionDevig] = useState<0 | 1 | 2>(0)
+  const [devigMethod, setDevigMethod] = useState<DevigMethod>('mult')
+  const [probModele, setProbModele] = useState('')
+  const [typeBlend, setTypeBlend] = useState<TypePari>('1X2')
 
   // Formulaire ajout pari
   const [showForm, setShowForm] = useState(false)
@@ -35,7 +41,9 @@ export default function CalculateurPage() {
 
   useEffect(() => {
     setBankroll(getBankroll())
-  }, [])
+    const p = searchParams.get('p')
+    if (p) setProbEstimee(p)
+  }, [searchParams])
 
   // ---- Calculs ----
   const coteNum = parseFloat(coteStake)
@@ -49,12 +57,18 @@ export default function CalculateurPage() {
     const cn = parseFloat(coteN)
     const c2 = parseFloat(cote2)
     if (!isNaN(c1) && !isNaN(cn) && !isNaN(c2) && c1 > 1 && cn > 1 && c2 > 1) {
-      devigProbs = devig([c1, cn, c2])
+      devigProbs = devigMethod === 'power' ? devigPower([c1, cn, c2]) : devig([c1, cn, c2])
       devigProb = devigProbs[selectionDevig]
     }
   }
 
-  const probActive = mode === 'simple' ? probNum : devigProb
+  // Blend marché : si l'utilisateur entre sa prob modèle, on shrink vers le marché
+  const probModeleNum = parseFloat(probModele)
+  const probBlended = mode === 'devig' && !isNaN(probModeleNum) && devigProb > 0
+    ? blendProb(probModeleNum, devigProb, typeBlend)
+    : null
+
+  const probActive = mode === 'simple' ? probNum : (probBlended ?? devigProb)
   const coteActive = coteNum
 
   const ev = (!isNaN(coteActive) && !isNaN(probActive) && coteActive > 1 && probActive > 0)
@@ -156,9 +170,19 @@ export default function CalculateurPage() {
                   </div>
                 ))}
               </div>
+                  {/* Méthode devig */}
+              <div className="flex gap-2 mb-3">
+                {(['mult', 'power'] as DevigMethod[]).map(m => (
+                  <button key={m} onClick={() => setDevigMethod(m)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${devigMethod === m ? 'bg-emerald-500/30 border border-emerald-500 text-emerald-400' : 'bg-gray-800 border border-gray-700 text-gray-400'}`}>
+                    {m === 'mult' ? 'Multiplicatif' : 'Power (buteurs)'}
+                  </button>
+                ))}
+              </div>
+
               {devigProbs.length === 3 && (
                 <div className="bg-gray-800 rounded-xl p-3 mb-3">
-                  <p className="text-xs text-gray-500 mb-2">Probabilités après devig :</p>
+                  <p className="text-xs text-gray-500 mb-2">Probabilités après devig ({devigMethod === 'power' ? 'méthode power' : 'multiplicatif'}) :</p>
                   <div className="grid grid-cols-3 gap-2">
                     {['1 — Dom.', 'X — Nul', '2 — Ext.'].map((label, i) => (
                       <button key={i} onClick={() => setSelectionDevig(i as 0 | 1 | 2)}
@@ -169,6 +193,34 @@ export default function CalculateurPage() {
                     ))}
                   </div>
                   <p className="text-xs text-gray-600 mt-2">← Clique sur ta sélection</p>
+
+                  {/* Blend marché */}
+                  <div className="mt-3 pt-3 border-t border-gray-700">
+                    <p className="text-xs text-gray-400 mb-2">🔀 Blend marché (optionnel)</p>
+                    <div className="flex gap-2 items-center mb-2">
+                      <input
+                        type="number" step="0.5" min="1" max="99"
+                        placeholder="Prob. modèle %"
+                        value={probModele}
+                        onChange={e => setProbModele(e.target.value)}
+                        className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500"
+                      />
+                      <select value={typeBlend} onChange={e => setTypeBlend(e.target.value as TypePari)}
+                        className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-2 py-2 text-white text-xs focus:outline-none">
+                        <option value="1X2">1X2 (w=20%)</option>
+                        <option value="over_under">O/U (w=30%)</option>
+                        <option value="buteur">Buteur (w=55%)</option>
+                        <option value="autre">Autre (w=40%)</option>
+                      </select>
+                    </div>
+                    {probBlended !== null && (
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-2 text-center">
+                        <p className="text-xs text-gray-400">Prob. blendée <span className="text-gray-500">({Math.round(wBlend(typeBlend)*100)}% modèle · {Math.round((1-wBlend(typeBlend))*100)}% marché)</span></p>
+                        <p className="text-lg font-bold text-emerald-400">{probBlended}%</p>
+                        <p className="text-xs text-gray-500">vs marché seul : {devigProb.toFixed(1)}%</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
               <p className="text-xs text-gray-600">
@@ -312,5 +364,13 @@ export default function CalculateurPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function CalculateurPage() {
+  return (
+    <Suspense>
+      <CalculateurInner />
+    </Suspense>
   )
 }

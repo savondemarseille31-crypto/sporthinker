@@ -139,9 +139,11 @@ export function blendStats(
 // Convertit un Player (stats totales saison club) en SourceStats (taux/match)
 export function playerToSourceStats(p: Player): SourceStats {
   const m = Math.max(1, p.matchsJoues)
+  // Priorité au npxG (non-penalty) pour éviter le double-comptage pénaltys
+  const xGBase = p.npxG ?? p.xG
   return {
     matchsJoues:          p.matchsJoues,
-    xGParMatch:           p.xG / m,
+    xGParMatch:           xGBase / m,
     tirsParMatch:         p.tirs / m,
     tirsCadrésParMatch:   p.tirsCadres   != null ? p.tirsCadres   / m : 0,
     xAParMatch:           p.xA / m,
@@ -212,8 +214,8 @@ function signalButeur(p: Player, b: BlendedStats): PlayerSignal | null {
   const convRate = b.tirsParMatch > 0
     ? Math.round((b.xGParMatch / b.tirsParMatch) * 100) : 0
 
-  const butsRef = p.buts
-  const xGRef   = p.xG
+  const butsRef  = p.buts
+  const xGRef    = p.npxG ?? p.xG  // comparaison sur la même base que le modèle
   const overperf = butsRef - xGRef
   const perfNote = overperf > 1.5
     ? ` Finisseur au-dessus de son xG (+${overperf.toFixed(1)} buts sur la saison club).`
@@ -221,21 +223,23 @@ function signalButeur(p: Player, b: BlendedStats): PlayerSignal | null {
     ? ` Sous-performe son xG de ${Math.abs(overperf).toFixed(1)} buts — peut être "dû".`
     : ''
 
-  // P(≥1 but) = 1 - e^(-xG) par modèle Poisson
+  const xGLabel = p.npxG != null ? 'npxG/match' : 'xG/match'
+
+  // P(≥1 but) = 1 - e^(-λ) par modèle Poisson (λ = npxG si disponible, sinon xG)
   const probEstimee = parseFloat((1 - Math.exp(-b.xGParMatch)).toFixed(4))
 
   return {
     playerId: p.id, playerName: p.nom, pays: p.pays, flag: p.flag,
     groupe: p.groupe, poste: p.poste, club: p.club,
     marché: 'buteur', marchéLabel: '⚽ Buteur du match', force,
-    valeurClé: `${b.xGParMatch.toFixed(2)} xG/match`,
+    valeurClé: `${b.xGParMatch.toFixed(2)} ${xGLabel}`,
     seuil: `fort ≥ ${SEUILS.xGParMatch.fort}`,
-    raisonnement: `${p.nom} génère ${b.xGParMatch.toFixed(2)} xG/match (${b.sourceLabel}).${perfNote}`,
+    raisonnement: `${p.nom} génère ${b.xGParMatch.toFixed(2)} ${xGLabel}/match (${b.sourceLabel}).${perfNote}`,
     confiance: b.confiance,
     sourceLabel: b.sourceLabel,
     probEstimee,
     stats: [
-      { label: 'xG/match',       val: b.xGParMatch.toFixed(2),   highlight: true },
+      { label: xGLabel,          val: b.xGParMatch.toFixed(2),   highlight: true },
       { label: 'Tirs/match',     val: b.tirsParMatch.toFixed(1) },
       { label: 'Cadrés/match',   val: b.tirsCadrésParMatch.toFixed(2) },
       { label: 'xG→but (est.)', val: `${convRate}%` },

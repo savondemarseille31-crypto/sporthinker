@@ -29,28 +29,65 @@ export type Bankroll = {
 // CALCULS VALUE BET
 // =============================================
 export function calcEV(cote: number, prob: number): number {
-  // EV = (cote × prob/100) - 1
   return parseFloat(((cote * (prob / 100)) - 1).toFixed(4))
 }
 
-export function calcKelly(cote: number, prob: number): number {
-  // Kelly fraction = (EV) / (cote - 1)
-  const ev = calcEV(cote, prob)
-  if (ev <= 0) return 0
-  return parseFloat((ev / (cote - 1)).toFixed(4))
+// Kelly exact avec push/nul — f = (pWin×b − pLose) / (b×(1−pPush))
+// pPush = 0 pour marchés binaires → formule standard
+export function calcKelly(cote: number, prob: number, pPush = 0): number {
+  const pWin  = prob / 100
+  const pLose = 1 - pWin - pPush
+  const b     = cote - 1
+  if (b <= 0 || pLose < 0 || pWin <= 0) return 0
+  const f = (pWin * b - pLose) / (b * (1 - pPush))
+  return f > 0 ? parseFloat(f.toFixed(4)) : 0
 }
 
-export function calcMiseKelly(bankroll: number, cote: number, prob: number, fraction = 0.25): number {
-  // On utilise le quart de Kelly pour limiter le risque
-  const kelly = calcKelly(cote, prob)
-  return parseFloat((bankroll * kelly * fraction).toFixed(2))
+export function calcMiseKelly(bankroll: number, cote: number, prob: number, fraction = 0.25, conf = 1.0, pPush = 0): number {
+  const kelly = calcKelly(cote, prob, pPush)
+  return parseFloat((bankroll * kelly * fraction * conf).toFixed(2))
 }
 
+// Devig multiplicatif (standard) — normalise les proba implicites
 export function devig(cotes: number[]): number[] {
-  // Retire la marge bookmaker — normalise les probabilités à 100%
-  const probsBrutes = cotes.map(c => 1 / c)
-  const total = probsBrutes.reduce((s, p) => s + p, 0)
-  return probsBrutes.map(p => parseFloat(((p / total) * 100).toFixed(2)))
+  const q = cotes.map(c => 1 / c)
+  const total = q.reduce((s, p) => s + p, 0)
+  return q.map(p => parseFloat(((p / total) * 100).toFixed(2)))
+}
+
+// Devig méthode puissance — corrige le biais favori/outsider (critique sur les marchés buteurs)
+// Trouve k tel que Σ (1/o_i)^k = 1, puis p_i = (1/o_i)^k / Σ
+export function devigPower(cotes: number[]): number[] {
+  const q = cotes.map(c => 1 / c)
+  let lo = 1, hi = 5
+  for (let i = 0; i < 64; i++) {
+    const mid = (lo + hi) / 2
+    q.reduce((s, qi) => s + Math.pow(qi, mid), 0) > 1 ? lo = mid : hi = mid
+  }
+  const k = (lo + hi) / 2
+  const p = q.map(qi => Math.pow(qi, k))
+  const total = p.reduce((s, pi) => s + pi, 0)
+  return p.map(pi => parseFloat(((pi / total) * 100).toFixed(2)))
+}
+
+// Blend marché — P_finale = w × P_modèle + (1-w) × P_marché_devig
+// w = poids du modèle ; (1-w) = confiance accordée au marché
+// Les marchés efficients (1X2 gros match) → faible w ; marchés mous (buteur, corners) → w élevé
+const W_PAR_MARCHE: Record<TypePari, number> = {
+  '1X2':           0.20,
+  'over_under':    0.30,
+  'double_chance': 0.30,
+  'buteur':        0.55,
+  'autre':         0.40,
+}
+
+export function blendProb(pModele: number, pMarchéDevig: number, typeMarché: TypePari): number {
+  const w = W_PAR_MARCHE[typeMarché] ?? 0.35
+  return parseFloat((w * pModele + (1 - w) * pMarchéDevig).toFixed(2))
+}
+
+export function wBlend(typeMarché: TypePari): number {
+  return W_PAR_MARCHE[typeMarché] ?? 0.35
 }
 
 export function isValueBet(cote: number, prob: number): boolean {
