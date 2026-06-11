@@ -2,6 +2,9 @@ import type { Signal, SignalForce } from './signals'
 import type { AFFixture, AFFixtureWithStats } from './api-football'
 import { getFixturesByDate, getTeamFormWithStats } from './api-football'
 import { CDM_TEAM_PROFILES } from './cdm-teams'
+import { getElo, isHost } from './cdm-elo'
+import { computeMatch, computeMatchFromLambda, type MatchResult } from './dixon-coles'
+import { CDM_FIXTURES, getMatchday } from './cdm-fixtures'
 
 // ---- Types internes ----
 
@@ -151,183 +154,120 @@ function buildSignal(
   }
 }
 
-// ---- Génération des signaux pour un match ----
-// Marchés couverts : 1x2, Over/Under buts, BTTS, Total cartons, Total corners
+// ---- Génération de signaux pour un match CdM via Dixon-Coles ----
+// Probabilités issues du moteur ELO + matrice de scores (pas d'appel API)
 
-function generateSignalsForFixture(
+function generateSignalsFromDixonColes(
   fixture: AFFixture,
-  home: TeamFormMetrics,
-  away: TeamFormMetrics,
+  result: MatchResult,
   leagueId: number,
 ): Signal[] {
-  const signals: Signal[] = []
-  const homeName = fixture.teams.home.name
-  const awayName = fixture.teams.away.name
-  const isEstimate = home.source === 'estimate' || away.source === 'estimate'
-  const sourceNote = isEstimate ? ' (basé sur classements FIFA)' : ` (${home.matchesAnalyzed}+${away.matchesAnalyzed} matchs analysés)`
+  const { markets, lh, la, blowoutRisk, conf } = result
+  const h = fixture.teams.home.name
+  const a = fixture.teams.away.name
 
-  const avgXGTotal = home.avgXGCreated + away.avgXGCreated
-
-  // ---- CAS 1 : MONEYLINE domicile ----
-  // Attaque dom. forte + défense ext. perméable + défense dom. solide + attaque ext. faible
-  if (
-    home.avgXGCreated >= 1.75 &&
-    away.avgXGConceded >= 1.50 &&
-    home.avgXGConceded <= 1.10 &&
-    home.winRate >= 0.60 &&
-    away.avgXGCreated <= 1.30
-  ) {
-    const force: SignalForce = home.avgXGCreated >= 2.1 && away.avgXGConceded >= 1.8 ? 'fort' : 'modéré'
-    signals.push(buildSignal(fixture, leagueId, force,
-      '1x2',
-      `Victoire ${homeName}`,
-      `${homeName} domine offensivement (xG créé moy. ${home.avgXGCreated.toFixed(2)}/match) face à une défense adverse perméable (xG concédé ${away.avgXGConceded.toFixed(2)}/match). Défense à domicile solide (${home.avgXGConceded.toFixed(2)} xG concédé/match).${sourceNote}`,
-      [
-        { label: `${homeName} xG créé`, val: home.avgXGCreated.toFixed(2), highlight: true },
-        { label: `${homeName} xG concédé`, val: home.avgXGConceded.toFixed(2), highlight: true },
-        { label: `${awayName} xG concédé`, val: away.avgXGConceded.toFixed(2) },
-        { label: `${homeName} win%`, val: `${Math.round(home.winRate * 100)}%` },
-      ],
-      'home-ml'
-    ))
-    return signals // un seul signal par match
+  // Force effective = probabilité × confiance données
+  function resolveForce(p: number): SignalForce | null {
+    const ep = p * conf
+    if (ep >= 0.65) return 'fort'
+    if (ep >= 0.55) return 'modéré'
+    if (ep >= 0.48) return 'à surveiller'
+    return null
   }
 
-  // ---- CAS 2 : MONEYLINE extérieur ----
-  if (
-    away.avgXGCreated >= 1.75 &&
-    home.avgXGConceded >= 1.50 &&
-    away.avgXGConceded <= 1.10 &&
-    away.winRate >= 0.60 &&
-    home.avgXGCreated <= 1.30
-  ) {
-    const force: SignalForce = away.avgXGCreated >= 2.1 && home.avgXGConceded >= 1.8 ? 'fort' : 'modéré'
-    signals.push(buildSignal(fixture, leagueId, force,
-      '1x2',
-      `Victoire ${awayName}`,
-      `${awayName} en grande forme (xG créé ${away.avgXGCreated.toFixed(2)}/match) face à une défense domicile fragilisée (xG concédé ${home.avgXGConceded.toFixed(2)}/match). Défense extérieure solide (${away.avgXGConceded.toFixed(2)} xG concédé/match).${sourceNote}`,
+  const totalGoals = lh + la
+  const sourceNote = ` (Dixon-Coles ELO · λ=${lh.toFixed(2)}+${la.toFixed(2)})`
+
+  // Priority order — first eligible signal wins (one per match)
+
+  // 1. Victoire nette domicile
+  if (markets.homeWin >= 0.52) {
+    const f = resolveForce(markets.homeWin)
+    if (f) return [buildSignal(fixture, leagueId, f,
+      '1x2', `Victoire ${h}`,
+      `P(${h} gagne) = ${Math.round(markets.homeWin * 100)}% selon le modèle Dixon-Coles.` +
+      ` Rapport de force ELO : λ domicile ${lh.toFixed(2)} buts/match vs λ extérieur ${la.toFixed(2)}.${sourceNote}`,
       [
-        { label: `${awayName} xG créé`, val: away.avgXGCreated.toFixed(2), highlight: true },
-        { label: `${awayName} xG concédé`, val: away.avgXGConceded.toFixed(2), highlight: true },
-        { label: `${homeName} xG concédé`, val: home.avgXGConceded.toFixed(2) },
-        { label: `${awayName} win%`, val: `${Math.round(away.winRate * 100)}%` },
+        { label: `P(${h})`, val: `${Math.round(markets.homeWin * 100)}%`, highlight: true },
+        { label: `P(Nul)`,   val: `${Math.round(markets.draw * 100)}%` },
+        { label: `P(${a})`,  val: `${Math.round(markets.awayWin * 100)}%` },
+        { label: 'λ dom./ext.', val: `${lh.toFixed(2)} / ${la.toFixed(2)}` },
       ],
-      'away-ml'
-    ))
-    return signals
+      'home-ml',
+    )]
   }
 
-  // ---- CAS 3 : OVER 2.5 buts ----
-  if (avgXGTotal >= 2.90 && home.scoringRate >= 0.72 && away.scoringRate >= 0.72) {
-    const force: SignalForce = avgXGTotal >= 3.30 ? 'fort' : 'modéré'
-    signals.push(buildSignal(fixture, leagueId, force,
-      'Over (Total buts)',
-      `OVER 2.5 buts`,
-      `Les deux attaques sont en forme : xG total combiné de ${avgXGTotal.toFixed(2)} par match. ${homeName} marque dans ${Math.round(home.scoringRate * 100)}% de ses matchs, ${awayName} dans ${Math.round(away.scoringRate * 100)}%.${sourceNote}`,
+  // 2. Victoire nette extérieur
+  if (markets.awayWin >= 0.52) {
+    const f = resolveForce(markets.awayWin)
+    if (f) return [buildSignal(fixture, leagueId, f,
+      '1x2', `Victoire ${a}`,
+      `P(${a} gagne) = ${Math.round(markets.awayWin * 100)}% selon le modèle Dixon-Coles.` +
+      ` Rapport de force ELO : λ domicile ${lh.toFixed(2)} vs λ extérieur ${la.toFixed(2)}.${sourceNote}`,
       [
-        { label: 'xG total moy.', val: avgXGTotal.toFixed(2), highlight: true },
-        { label: `${homeName} xG créé`, val: home.avgXGCreated.toFixed(2), highlight: true },
-        { label: `${awayName} xG créé`, val: away.avgXGCreated.toFixed(2) },
-        { label: 'Score rate moy.', val: `${Math.round((home.scoringRate + away.scoringRate) / 2 * 100)}%` },
+        { label: `P(${a})`,   val: `${Math.round(markets.awayWin * 100)}%`, highlight: true },
+        { label: `P(Nul)`,    val: `${Math.round(markets.draw * 100)}%` },
+        { label: `P(${h})`,   val: `${Math.round(markets.homeWin * 100)}%` },
+        { label: 'λ dom./ext.', val: `${lh.toFixed(2)} / ${la.toFixed(2)}` },
       ],
-      'over'
-    ))
-    return signals
+      'away-ml',
+    )]
   }
 
-  // ---- CAS 4 : UNDER 2.5 buts ----
-  if (
-    avgXGTotal <= 1.80 &&
-    home.cleanSheetRate >= 0.35 &&
-    away.cleanSheetRate >= 0.35
-  ) {
-    const force: SignalForce = avgXGTotal <= 1.40 ? 'fort' : 'modéré'
-    signals.push(buildSignal(fixture, leagueId, force,
-      'Under (Total buts)',
-      `UNDER 2.5 buts`,
-      `Deux défenses solides : xG total combiné de ${avgXGTotal.toFixed(2)}/match seulement. ${homeName} garde sa cage vierge dans ${Math.round(home.cleanSheetRate * 100)}% de ses matchs, ${awayName} dans ${Math.round(away.cleanSheetRate * 100)}%.${sourceNote}`,
+  // 3. Over 2.5 — attaques déséquilibrées ou deux forts xG
+  // Reduce force if blowoutRisk high (dominant team may see opponents park the bus)
+  if (markets.over25 >= 0.55) {
+    const adjustedP = markets.over25 * (1 - blowoutRisk * 0.15)
+    const f = resolveForce(adjustedP)
+    if (f) return [buildSignal(fixture, leagueId, f,
+      'Over (Total buts)', 'OVER 2.5 buts',
+      `P(+2.5 buts) = ${Math.round(markets.over25 * 100)}% — total attendu ${totalGoals.toFixed(2)} buts.` +
+      `${blowoutRisk > 0.5 ? ' Risque de match fermé atténué (déséquilibre fort).' : ''}${sourceNote}`,
       [
-        { label: 'xG total moy.', val: avgXGTotal.toFixed(2), highlight: true },
-        { label: `${homeName} CS%`, val: `${Math.round(home.cleanSheetRate * 100)}%`, highlight: true },
-        { label: `${awayName} CS%`, val: `${Math.round(away.cleanSheetRate * 100)}%` },
-        { label: 'xG concédé moy.', val: ((home.avgXGConceded + away.avgXGConceded) / 2).toFixed(2) },
+        { label: 'P(Over 2.5)', val: `${Math.round(markets.over25 * 100)}%`, highlight: true },
+        { label: 'λ total',     val: totalGoals.toFixed(2), highlight: true },
+        { label: `λ ${h}`,      val: lh.toFixed(2) },
+        { label: `λ ${a}`,      val: la.toFixed(2) },
       ],
-      'under'
-    ))
-    return signals
+      'over',
+    )]
   }
 
-  // ---- CAS 5 : BTTS — Les deux équipes marquent ----
-  if (
-    home.scoringRate >= 0.80 &&
-    away.scoringRate >= 0.80 &&
-    home.cleanSheetRate <= 0.25 &&
-    away.cleanSheetRate <= 0.25
-  ) {
-    signals.push(buildSignal(fixture, leagueId, 'modéré',
-      'BTTS',
-      `Les deux équipes marquent (BTTS Oui)`,
-      `Les deux équipes marquent régulièrement (${homeName} ${Math.round(home.scoringRate * 100)}%, ${awayName} ${Math.round(away.scoringRate * 100)}%) et les deux défenses sont perméables (clean sheets rares : ${Math.round(home.cleanSheetRate * 100)}% et ${Math.round(away.cleanSheetRate * 100)}%).${sourceNote}`,
+  // 4. Under 2.5 — deux défenses solides, match fermé attendu
+  if (markets.under25 >= 0.58) {
+    const f = resolveForce(markets.under25)
+    if (f) return [buildSignal(fixture, leagueId, f,
+      'Under (Total buts)', 'UNDER 2.5 buts',
+      `P(-2.5 buts) = ${Math.round(markets.under25 * 100)}% — total attendu seulement ${totalGoals.toFixed(2)} buts.${sourceNote}`,
       [
-        { label: `${homeName} score%`, val: `${Math.round(home.scoringRate * 100)}%`, highlight: true },
-        { label: `${awayName} score%`, val: `${Math.round(away.scoringRate * 100)}%`, highlight: true },
-        { label: `${homeName} CS%`, val: `${Math.round(home.cleanSheetRate * 100)}%` },
-        { label: `${awayName} CS%`, val: `${Math.round(away.cleanSheetRate * 100)}%` },
+        { label: 'P(Under 2.5)', val: `${Math.round(markets.under25 * 100)}%`, highlight: true },
+        { label: 'λ total',      val: totalGoals.toFixed(2), highlight: true },
+        { label: `λ ${h}`,       val: lh.toFixed(2) },
+        { label: `λ ${a}`,       val: la.toFixed(2) },
       ],
-      'btts'
-    ))
-    return signals
+      'under',
+    )]
   }
 
-  // ---- CAS 6 : Total cartons OVER 2.5 ----
-  // Seulement avec données réelles (pas sur estimations FIFA — pas de données cartons arbitre)
-  const avgCartons = home.avgYellows + away.avgYellows
-  if (
-    avgCartons >= 3.60 &&
-    home.matchesAnalyzed >= 3 &&
-    away.matchesAnalyzed >= 3
-  ) {
-    signals.push(buildSignal(fixture, leagueId, 'modéré',
-      'Total cartons',
-      `OVER 2.5 cartons jaunes`,
-      `Les deux équipes accumulent en moyenne ${avgCartons.toFixed(1)} cartons jaunes par match. ${homeName} reçoit ${home.avgYellows.toFixed(1)}/match, ${awayName} ${away.avgYellows.toFixed(1)}/match.${sourceNote}`,
+  // 5. BTTS — les deux équipes sont capables de marquer
+  if (markets.btts >= 0.60) {
+    const f = resolveForce(markets.btts)
+    if (f) return [buildSignal(fixture, leagueId, f,
+      'BTTS', 'Les deux équipes marquent (BTTS Oui)',
+      `P(BTTS) = ${Math.round(markets.btts * 100)}% — les deux équipes sont offensivement dangereuses` +
+      ` (λ ${h}: ${lh.toFixed(2)}, λ ${a}: ${la.toFixed(2)}).${sourceNote}`,
       [
-        { label: 'Cartons/match combiné', val: avgCartons.toFixed(1), highlight: true },
-        { label: `${homeName} jaunes/match`, val: home.avgYellows.toFixed(1) },
-        { label: `${awayName} jaunes/match`, val: away.avgYellows.toFixed(1) },
-        { label: 'Matchs analysés', val: `${home.matchesAnalyzed}+${away.matchesAnalyzed}` },
+        { label: 'P(BTTS)',  val: `${Math.round(markets.btts * 100)}%`, highlight: true },
+        { label: `λ ${h}`,  val: lh.toFixed(2), highlight: true },
+        { label: `λ ${a}`,  val: la.toFixed(2) },
+        { label: 'P(Over 1.5)', val: `${Math.round(markets.over15 * 100)}%` },
       ],
-      'cards'
-    ))
-    return signals
+      'btts',
+    )]
   }
 
-  // ---- CAS 7 : Total corners OVER 10.5 ----
-  const avgCorners = home.avgCorners + away.avgCorners
-  if (
-    avgCorners >= 11.5 &&
-    home.matchesAnalyzed >= 3 &&
-    away.matchesAnalyzed >= 3
-  ) {
-    signals.push(buildSignal(fixture, leagueId, 'modéré',
-      'Total corners',
-      `OVER 10.5 corners`,
-      `Les deux équipes génèrent beaucoup de corners : ${homeName} ${home.avgCorners.toFixed(1)}/match + ${awayName} ${away.avgCorners.toFixed(1)}/match = ${avgCorners.toFixed(1)} en moyenne.${sourceNote}`,
-      [
-        { label: 'Corners/match total', val: avgCorners.toFixed(1), highlight: true },
-        { label: `${homeName} corners/match`, val: home.avgCorners.toFixed(1) },
-        { label: `${awayName} corners/match`, val: away.avgCorners.toFixed(1) },
-        { label: 'Matchs analysés', val: `${home.matchesAnalyzed}+${away.matchesAnalyzed}` },
-      ],
-      'corners'
-    ))
-  }
-
-  return signals
+  return []
 }
-
-// ---- Génération de signaux pour un match CdM (sans appel API) ----
-// Fallback pré-tournoi basé sur classements FIFA
 
 export function generateCdMSignalsForMatch(opts: {
   id: number
@@ -351,58 +291,121 @@ export function generateCdMSignalsForMatch(opts: {
     goals: { home: null, away: null },
   }
 
-  const homeMetrics = estimateFromFIFA(getFIFARanking(opts.domicile) ?? 35)
-  const awayMetrics = estimateFromFIFA(getFIFARanking(opts.exterieur) ?? 35)
+  const eloH = getElo(opts.domicile)
+  const eloA = getElo(opts.exterieur)
 
-  return generateSignalsForFixture(fixture, homeMetrics, awayMetrics, 1)
+  // J3 stake flag — dernière journée : certaines équipes peuvent gérer leur qualification
+  // conf réduit à 0.70 (vs 0.85) → les signaux "fort" deviennent quasi impossibles
+  const matchday = getMatchday(opts.id)
+  const conf = matchday === 3 ? 0.70 : 0.85
+
+  const result = computeMatch(eloH, eloA, isHost(opts.domicile), isHost(opts.exterieur), conf)
+
+  const signals = generateSignalsFromDixonColes(fixture, result, 1)
+
+  // Annoter le raisonnement si J3
+  if (matchday === 3 && signals.length > 0) {
+    signals[0] = {
+      ...signals[0],
+      raisonnement:
+        '⚠️ Dernière journée de groupes — gestion possible de la qualification à prendre en compte. ' +
+        signals[0].raisonnement,
+    }
+  }
+
+  // Patcher les vrais flags d'équipe (buildSignal met l'emoji de ligue par défaut)
+  const fixtureData = CDM_FIXTURES.find(f => f.id === opts.id)
+  if (fixtureData) {
+    return signals.map(s => ({ ...s, flagDom: fixtureData.flagD, flagExt: fixtureData.flagE }))
+  }
+
+  return signals
 }
 
 // ---- Point d'entrée principal ----
+// Pendant le tournoi : blend ELO prior + xG réel → Dixon-Coles
+// w = min(1, matchsJoués/5) → conf monte de 0.85 à 1.0 au fur et à mesure
 
 export async function generateFootballSignalsForToday(leagueId: number, season: number): Promise<Signal[]> {
   const today = new Date().toISOString().split('T')[0]
   const fixtures = await getFixturesByDate(today, leagueId, season)
 
-  // Uniquement les matchs pas encore commencés
   const upcoming = fixtures.filter(f =>
     f.fixture.status.short === 'NS' || f.fixture.status.short === 'TBD'
   )
-
   if (!upcoming.length) return []
 
   const signals: Signal[] = []
 
   for (const fixture of upcoming) {
-    const homeId = fixture.teams.home.id
-    const awayId = fixture.teams.away.id
+    const homeId   = fixture.teams.home.id
+    const awayId   = fixture.teams.away.id
     const homeName = fixture.teams.home.name
     const awayName = fixture.teams.away.name
 
-    // Récupérer la forme réelle des deux équipes en parallèle
     const [homeFixtures, awayFixtures] = await Promise.all([
       getTeamFormWithStats(homeId, leagueId, season, 5),
       getTeamFormWithStats(awayId, leagueId, season, 5),
     ])
 
-    // Métriques domicile — données réelles si ≥ 2 matchs, sinon estimations FIFA
-    let homeMetrics: TeamFormMetrics
-    if (homeFixtures.length >= 2) {
-      homeMetrics = computeMetrics(homeId, homeFixtures)
-    } else {
-      const rank = getFIFARanking(homeName)
-      homeMetrics = estimateFromFIFA(rank ?? 30)
+    const homeMetrics = homeFixtures.length >= 2
+      ? computeMetrics(homeId, homeFixtures)
+      : estimateFromFIFA(getFIFARanking(homeName) ?? 30)
+
+    const awayMetrics = awayFixtures.length >= 2
+      ? computeMetrics(awayId, awayFixtures)
+      : estimateFromFIFA(getFIFARanking(awayName) ?? 30)
+
+    // Blend ELO prior avec xG réel — poids croissant selon le nombre de matchs joués
+    const wHome = Math.min(1.0, homeMetrics.matchesAnalyzed / 5)
+    const wAway = Math.min(1.0, awayMetrics.matchesAnalyzed / 5)
+    const w     = (wHome + wAway) / 2
+
+    const eloH   = getElo(homeName)
+    const eloA   = getElo(awayName)
+    const eloResult = computeMatch(eloH, eloA, isHost(homeName), isHost(awayName), 1.0)
+
+    // λ blendé : xG réel quand disponible, ELO sinon
+    const lhBlend = homeMetrics.avgXGCreated * wHome + eloResult.lh * (1 - wHome)
+    const laBlend = awayMetrics.avgXGCreated * wAway + eloResult.la * (1 - wAway)
+    const conf    = 0.85 + 0.15 * w   // 0.85 pré-tournoi → 1.0 après 5 matchs
+
+    const result  = computeMatchFromLambda(lhBlend, laBlend, conf)
+
+    // Signaux principaux via Dixon-Coles
+    let fixtureSignals = generateSignalsFromDixonColes(fixture, result, leagueId)
+
+    // Marchés secondaires (cartons, corners) si pas de signal principal — garde la logique règle
+    if (fixtureSignals.length === 0) {
+      const avgCartons = homeMetrics.avgYellows + awayMetrics.avgYellows
+      if (avgCartons >= 3.60 && homeMetrics.matchesAnalyzed >= 3 && awayMetrics.matchesAnalyzed >= 3) {
+        fixtureSignals = [buildSignal(fixture, leagueId, 'modéré',
+          'Total cartons', 'OVER 2.5 cartons jaunes',
+          `Moyenne combinée de ${avgCartons.toFixed(1)} cartons/match sur ${homeMetrics.matchesAnalyzed}+${awayMetrics.matchesAnalyzed} matchs.`,
+          [
+            { label: 'Cartons/match', val: avgCartons.toFixed(1), highlight: true },
+            { label: `${homeName} jaunes`, val: homeMetrics.avgYellows.toFixed(1) },
+            { label: `${awayName} jaunes`, val: awayMetrics.avgYellows.toFixed(1) },
+          ],
+          'cards',
+        )]
+      } else {
+        const avgCorners = homeMetrics.avgCorners + awayMetrics.avgCorners
+        if (avgCorners >= 11.5 && homeMetrics.matchesAnalyzed >= 3 && awayMetrics.matchesAnalyzed >= 3) {
+          fixtureSignals = [buildSignal(fixture, leagueId, 'modéré',
+            'Total corners', 'OVER 10.5 corners',
+            `Moyenne combinée de ${avgCorners.toFixed(1)} corners/match.`,
+            [
+              { label: 'Corners/match', val: avgCorners.toFixed(1), highlight: true },
+              { label: `${homeName} corners`, val: homeMetrics.avgCorners.toFixed(1) },
+              { label: `${awayName} corners`, val: awayMetrics.avgCorners.toFixed(1) },
+            ],
+            'corners',
+          )]
+        }
+      }
     }
 
-    // Métriques extérieur
-    let awayMetrics: TeamFormMetrics
-    if (awayFixtures.length >= 2) {
-      awayMetrics = computeMetrics(awayId, awayFixtures)
-    } else {
-      const rank = getFIFARanking(awayName)
-      awayMetrics = estimateFromFIFA(rank ?? 30)
-    }
-
-    const fixtureSignals = generateSignalsForFixture(fixture, homeMetrics, awayMetrics, leagueId)
     signals.push(...fixtureSignals)
   }
 

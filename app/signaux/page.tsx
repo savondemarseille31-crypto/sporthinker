@@ -2,10 +2,11 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 import SignauxFilter from '@/components/SignauxFilter'
 import { getSchedule, getStandings, getPitcherSeasonStats } from '@/lib/mlb-api'
-import { generateMLBSignal, generateCdMSignals, type Signal, type SignalForce } from '@/lib/signals'
+import { generateMLBSignal, type Signal, type SignalForce } from '@/lib/signals'
+import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 import { getCdMUpcomingWithOdds, type ESPNCdMOdds } from '@/lib/espn-api'
 import { generateNBASignalsForToday } from '@/lib/nba-signals'
-import { generateFootballSignalsForToday } from '@/lib/football-signals'
+import { generateFootballSignalsForToday, generateCdMSignalsForMatch } from '@/lib/football-signals'
 import { LEAGUES } from '@/lib/api-football'
 import { generateTennisSignalsForToday } from '@/lib/tennis-signals'
 import { generateMLSSignalsForToday } from '@/lib/mls-signals'
@@ -290,8 +291,16 @@ export default async function SignauxPage() {
   ).filter(Boolean) as Signal[]
   const mlbSignals = addCoteRef(rawMlbSignals, oddsMap)
 
-  // 3. Signaux CdM — live (API-Football) ou statiques selon disponibilité
-  const rawCdMSignals = generateCdMSignals(14)
+  // 3. Signaux CdM — Dixon-Coles ELO pour les 14 prochains jours
+  const cdmToday = new Date()
+  const cdmLimit = new Date(cdmToday)
+  cdmLimit.setDate(cdmToday.getDate() + 14)
+  const upcomingFixtures = CDM_FIXTURES
+    .filter(f => { const d = new Date(`${f.date}T12:00:00`); return d >= cdmToday && d <= cdmLimit })
+    .slice(0, 12)
+  const rawCdMSignals = upcomingFixtures.flatMap(f =>
+    generateCdMSignalsForMatch({ id: f.id, date: f.date, heure: f.heure, domicile: f.domicile, exterieur: f.exterieur })
+  )
   const staticCdmSignals = rawCdMSignals.map(s => enrichSignalWithOdds(s, espnCdMOdds))
   const cdmSignals = addCoteRef([...liveFootballSignals, ...staticCdmSignals], oddsMap)
 
