@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 type Sport = 'tous' | 'mlb' | 'cdm' | 'nba' | 'tennis' | 'mls' | 'values'
 
@@ -16,7 +17,14 @@ export default function SignauxFilter({
   mls:    React.ReactNode
   values: React.ReactNode
 }) {
-  const [active, setActive] = useState<Sport>('tous')
+  const searchParams = useSearchParams()
+  const initialTab = (searchParams.get('tab') as Sport | null) ?? 'tous'
+  const [active, setActive] = useState<Sport>(initialTab)
+
+  useEffect(() => {
+    const tab = searchParams.get('tab') as Sport | null
+    if (tab) setActive(tab)
+  }, [searchParams])
   const total = counts.mlb + counts.cdm + counts.nba + counts.tennis + counts.mls
 
   const tabs: { key: Sport; emoji: string; label: string; count: number; highlight?: boolean }[] = [

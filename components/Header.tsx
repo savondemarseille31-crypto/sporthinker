@@ -102,7 +102,14 @@ export default function Header() {
     <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
       <Link href="/"><Logo /></Link>
       <nav className="flex gap-6 text-sm">
-        {navItem('/signaux', '⚡ Signaux')}
+        <NavDropdown
+          label="⚡ Conseils du jour"
+          isActive={path.startsWith('/signaux')}
+          items={[
+            { href: '/signaux',         label: '📊 Signaux'  },
+            { href: '/signaux?tab=values', label: '💰 Values'   },
+          ]}
+        />
         <NavDropdown
           label="⚽ Foot"
           isActive={isFootActive}
