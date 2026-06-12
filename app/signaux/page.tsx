@@ -317,23 +317,32 @@ export default async function SignauxPage() {
   const enrichedNBA    = addCoteRef(nbaSignals,    oddsMap)
   const enrichedMLS    = addCoteRef(mlsSignals,    oddsMap)
 
+  // Tous les signaux (les deux tiers)
   const allSignals = sortByForce([...mlbSignals, ...enrichedMLS, ...enrichedNBA, ...cdmSignals, ...enrichedTennis])
 
-  // Value signals — EV > 3% confirmé par les cotes (tous sports)
-  const valueSignals = sortByForce(
-    allSignals
-      .filter(s => s.tier === 'value' || (s.pImpl != null && s.coteRef != null && s.pImpl * s.coteRef - 1 > 0.03))
-      .map(s => {
-        if (s.tier === 'value') return s
-        const ev = s.pImpl! * s.coteRef! - 1
-        return { ...s, tier: 'value' as const, ev: parseFloat((ev * 100).toFixed(1)) }
-      })
-  )
+  // Tier Signaux — probabiliste uniquement (pas de value)
+  const signauxSignals = sortByForce(allSignals.filter(s => s.tier !== 'value'))
 
-  const fortsCount      = allSignals.filter(s => s.force === 'fort').length
-  const moderésCount    = allSignals.filter(s => s.force === 'modéré').length
-  const surveillerCount = allSignals.filter(s => s.force === 'à surveiller').length
-  const withOddsCount   = staticCdmSignals.filter(s => s.odds?.homeMoneyLine || s.odds?.awayMoneyLine).length
+  // Tier Values — EV > 3% confirmé par les cotes (tous sports)
+  const valueSignals = sortByForce([
+    // CdM value (déjà tagués tier:value par le moteur Dixon-Coles)
+    ...allSignals.filter(s => s.tier === 'value'),
+    // Autres sports : EV > 3% si pImpl + coteRef disponibles
+    ...allSignals
+      .filter(s => s.tier !== 'value' && s.pImpl != null && s.coteRef != null && s.pImpl * s.coteRef - 1 > 0.03)
+      .map(s => ({ ...s, tier: 'value' as const, ev: parseFloat(((s.pImpl! * s.coteRef! - 1) * 100).toFixed(1)) }))
+  ])
+
+  // Signaux par sport pour les sections (tier probabiliste uniquement)
+  const cdmSignauxOnly    = signauxSignals.filter(s => s.sport === 'CdM')
+  const mlbSignauxOnly    = signauxSignals.filter(s => s.sport === 'MLB')
+  const tennisSignauxOnly = signauxSignals.filter(s => s.sport === 'Tennis')
+  const nbaSignauxOnly    = signauxSignals.filter(s => s.sport === 'NBA')
+  const mlsSignauxOnly    = signauxSignals.filter(s => s.sport === 'MLS')
+
+  const fortsCount      = signauxSignals.filter(s => s.force === 'fort').length
+  const moderésCount    = signauxSignals.filter(s => s.force === 'modéré').length
+  const surveillerCount = signauxSignals.filter(s => s.force === 'à surveiller').length
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -353,7 +362,7 @@ export default async function SignauxPage() {
         {/* Résumé stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-white">{allSignals.length}</p>
+            <p className="text-2xl font-bold text-white">{signauxSignals.length}</p>
             <p className="text-xs text-gray-500 mt-1">Signaux totaux</p>
           </div>
           <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
@@ -384,7 +393,7 @@ export default async function SignauxPage() {
         </div>
 
         {/* ---- Top 3 signaux forts du jour ---- */}
-        {allSignals.filter(s => s.force === 'fort').length > 0 && (
+        {signauxSignals.filter(s => s.force === 'fort').length > 0 && (
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <h2 className="text-xl font-bold text-white">À ne pas rater aujourd&apos;hui</h2>
@@ -393,13 +402,13 @@ export default async function SignauxPage() {
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {allSignals.filter(s => s.force === 'fort').slice(0, 3).map(s => (
+              {signauxSignals.filter(s => s.force === 'fort').slice(0, 3).map(s => (
                 <SignalCard key={`top-${s.id}`} signal={s} />
               ))}
             </div>
-            {allSignals.filter(s => s.force === 'fort').length > 3 && (
+            {signauxSignals.filter(s => s.force === 'fort').length > 3 && (
               <p className="text-xs text-gray-600 text-center mt-3">
-                + {allSignals.filter(s => s.force === 'fort').length - 3} autres signaux forts ci-dessous
+                + {signauxSignals.filter(s => s.force === 'fort').length - 3} autres signaux forts ci-dessous
               </p>
             )}
           </section>
@@ -408,11 +417,11 @@ export default async function SignauxPage() {
         <Suspense fallback={<div className="h-12 bg-gray-900 rounded-2xl animate-pulse mb-8" />}>
         <SignauxFilter
           counts={{
-            mlb:    mlbSignals.length,
-            cdm:    cdmSignals.length,
-            nba:    nbaSignals.length,
-            tennis: tennisSignals.length,
-            mls:    mlsSignals.length,
+            mlb:    mlbSignauxOnly.length,
+            cdm:    cdmSignauxOnly.length,
+            nba:    nbaSignauxOnly.length,
+            tennis: tennisSignauxOnly.length,
+            mls:    mlsSignauxOnly.length,
             values: valueSignals.length,
           }}
           tennis={(
@@ -429,7 +438,7 @@ export default async function SignauxPage() {
               </div>
               {tennisSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {sortByForce(enrichedTennis).map(s => <SignalCard key={s.id} signal={s} />)}
+                  {tennisSignauxOnly.map(s => <SignalCard key={s.id} signal={s} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -456,7 +465,7 @@ export default async function SignauxPage() {
               </div>
               {mlbSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {sortByForce(mlbSignals).map(s => <SignalCard key={s.id} signal={s} />)}
+                  {mlbSignauxOnly.map(s => <SignalCard key={s.id} signal={s} />)}
 
                 </div>
               ) : (
@@ -478,22 +487,17 @@ export default async function SignauxPage() {
             <section className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <h2 className="text-xl font-bold text-emerald-300">🌍 CdM 2026 — À venir</h2>
-                {cdmSignals.length > 0
-                  ? <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">{cdmSignals.length} signal{cdmSignals.length > 1 ? 's' : ''}</span>
+                {cdmSignauxOnly.length > 0
+                  ? <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">{cdmSignauxOnly.length} signal{cdmSignauxOnly.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
-                {withOddsCount > 0 && (
-                  <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">
-                    {withOddsCount} avec cotes ESPN
-                  </span>
-                )}
                 <Link href="/cdm" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
                   Voir le calendrier →
                 </Link>
               </div>
-              {cdmSignals.length > 0 ? (
+              {cdmSignauxOnly.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {cdmSignals.map(s => <SignalCard key={s.id} signal={s} />)}
+                  {cdmSignauxOnly.map(s => <SignalCard key={s.id} signal={s} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -516,7 +520,7 @@ export default async function SignauxPage() {
               </div>
               {mlsSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {sortByForce(enrichedMLS).map(s => <SignalCard key={s.id} signal={s} />)}
+                  {mlsSignauxOnly.map(s => <SignalCard key={s.id} signal={s} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -543,7 +547,7 @@ export default async function SignauxPage() {
               </div>
               {nbaSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {sortByForce(enrichedNBA).map(s => <SignalCard key={s.id} signal={s} />)}
+                  {nbaSignauxOnly.map(s => <SignalCard key={s.id} signal={s} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -580,7 +584,7 @@ export default async function SignauxPage() {
         />
         </Suspense>
 
-        {allSignals.length === 0 && (
+        {signauxSignals.length === 0 && (
           <div className="text-center py-16 text-gray-600">
             <p className="text-5xl mb-4">📊</p>
             <p className="text-xl font-semibold mb-2">Aucun signal détecté aujourd&apos;hui</p>
