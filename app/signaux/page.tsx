@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import Header from '@/components/Header'
 import SignauxFilter from '@/components/SignauxFilter'
 import { getSchedule, getStandings, getPitcherSeasonStats } from '@/lib/mlb-api'
@@ -404,6 +405,7 @@ export default async function SignauxPage() {
           </section>
         )}
 
+        <Suspense fallback={<div className="h-12 bg-gray-900 rounded-2xl animate-pulse mb-8" />}>
         <SignauxFilter
           counts={{
             mlb:    mlbSignals.length,
@@ -576,6 +578,7 @@ export default async function SignauxPage() {
             </section>
           )}
         />
+        </Suspense>
 
         {allSignals.length === 0 && (
           <div className="text-center py-16 text-gray-600">
