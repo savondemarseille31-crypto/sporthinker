@@ -166,13 +166,12 @@ function generateSignalsFromDixonColes(
   const h = fixture.teams.home.name
   const a = fixture.teams.away.name
 
-  // Force effective = probabilité brute × confiance données
-  // Seuils calibrés pour foot international (λ moyen ~1.35/équipe, inférieur au foot de club)
+  // Force effective = probabilité × confiance données
   function resolveForce(p: number): SignalForce | null {
     const ep = p * conf
-    if (ep >= 0.58) return 'fort'
-    if (ep >= 0.47) return 'modéré'
-    if (ep >= 0.38) return 'à surveiller'
+    if (ep >= 0.65) return 'fort'
+    if (ep >= 0.55) return 'modéré'
+    if (ep >= 0.48) return 'à surveiller'
     return null
   }
 
@@ -215,8 +214,9 @@ function generateSignalsFromDixonColes(
     )]
   }
 
-  // 3. Over 2.5 — seuil abaissé à 0.48 (λ moyen WC donne ~0.50 sur matchs équilibrés)
-  if (markets.over25 >= 0.48) {
+  // 3. Over 2.5 — attaques déséquilibrées ou deux forts xG
+  // Reduce force if blowoutRisk high (dominant team may see opponents park the bus)
+  if (markets.over25 >= 0.55) {
     const adjustedP = markets.over25 * (1 - blowoutRisk * 0.15)
     const f = resolveForce(adjustedP)
     if (f) return [buildSignal(fixture, leagueId, f,
@@ -234,7 +234,7 @@ function generateSignalsFromDixonColes(
   }
 
   // 4. Under 2.5 — deux défenses solides, match fermé attendu
-  if (markets.under25 >= 0.55) {
+  if (markets.under25 >= 0.58) {
     const f = resolveForce(markets.under25)
     if (f) return [buildSignal(fixture, leagueId, f,
       'Under (Total buts)', 'UNDER 2.5 buts',
@@ -250,7 +250,7 @@ function generateSignalsFromDixonColes(
   }
 
   // 5. BTTS — les deux équipes sont capables de marquer
-  if (markets.btts >= 0.52) {
+  if (markets.btts >= 0.60) {
     const f = resolveForce(markets.btts)
     if (f) return [buildSignal(fixture, leagueId, f,
       'BTTS', 'Les deux équipes marquent (BTTS Oui)',
