@@ -7,6 +7,7 @@ import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 import { generateCdMSignalsForMatch } from '@/lib/football-signals'
 import type { Signal, SignalForce } from '@/lib/signals'
 import CdmSignauxClient from '@/components/CdmSignauxClient'
+import ConseillsMatchClient from './ConseillsMatchClient'
 
 export const revalidate = 3600
 
@@ -202,8 +203,10 @@ export default async function CdmSignauxPage() {
 
   // Cotes CdM pour déviggement + tier value
   const cdmOdds = await getCdMOdds().catch(() => [] as import('@/lib/odds-api').OddsEvent[])
-  // Signaux matchs prochains 3 jours + enrichissement cotes réelles
-  const matchSignals = await enrichMatchSignalsWithOdds(getUpcomingMatchSignals(3, cdmOdds))
+  // Signaux matchs prochains 3 jours — retourne les deux tiers
+  const allMatchSignals = await enrichMatchSignalsWithOdds(getUpcomingMatchSignals(3, cdmOdds))
+  const signaux = allMatchSignals.filter(s => s.tier === 'probabiliste' || !s.tier)
+  const values  = allMatchSignals.filter(s => s.tier === 'value')
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -270,20 +273,8 @@ export default async function CdmSignauxPage() {
           ))}
         </div>
 
-        {/* Signaux matchs */}
-        {matchSignals.length > 0 && (
-          <section className="mb-10">
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-xl font-bold text-emerald-400">⚽ Signaux Matchs (3 prochains jours)</h2>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">
-                {matchSignals.length} signal{matchSignals.length > 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {matchSignals.map(s => <MatchSignalCard key={s.id} signal={s} />)}
-            </div>
-          </section>
-        )}
+        {/* Conseils du jour — onglets Signaux / Values */}
+        <ConseillsMatchClient signaux={signaux} values={values} />
 
         {/* Signaux joueurs (avec filtre date client-side) */}
         <CdmSignauxClient signals={{ buteurs, tirsCadrés, cartons, passeurs }} />

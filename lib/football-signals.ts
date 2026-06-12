@@ -285,13 +285,15 @@ function generateSignalsFromDixonColes(
     }
   }
 
-  // Retourner le signal value avec le meilleur EV
+  const results: Signal[] = []
+
+  // Tier value — meilleur EV parmi tous les marchés
   if (valueCandidates.length > 0) {
     valueCandidates.sort((a, b) => b.ev - a.ev)
-    return [valueCandidates[0].signal]
+    results.push(valueCandidates[0].signal)
   }
 
-  // Fallback : tier probabiliste — opinion directionnelle du modèle sans cotes
+  // Tier probabiliste — opinion directionnelle du modèle (indépendant du tier value)
   const probChecks: Array<{ p: number; adjusted?: number; typePari: string; pari: string; raisonnement: string; stats: Signal['stats']; suffix: string }> = [
     {
       p: markets.homeWin, typePari: '1x2', pari: `Victoire ${h}`,
@@ -358,11 +360,12 @@ function generateSignalsFromDixonColes(
     if (pEff < PROB_MIN) continue
     const f = resolveForce(pEff)
     if (!f) continue
-    const sig = buildSignal(fixture, leagueId, f, c.typePari, c.pari, c.raisonnement, c.stats, c.suffix)
-    return [{ ...sig, tier: 'probabiliste' }]
+    const sig = buildSignal(fixture, leagueId, f, c.typePari, c.pari, c.raisonnement, c.stats, `${c.suffix}-prob`)
+    results.push({ ...sig, tier: 'probabiliste' })
+    break
   }
 
-  return []
+  return results
 }
 
 export function generateCdMSignalsForMatch(opts: {
