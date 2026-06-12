@@ -6,6 +6,15 @@ const RHO = -0.10          // low-score correlation (calibrated on intl football
 const LEAGUE_AVG = 1.35    // WC expected goals per team per match (historical avg)
 const HOST_BOOST = 1.08    // crowd/atmosphere bonus for USA / CAN / MEX
 
+// Multiplicateurs de phase de groupe
+// J1 : équipes prudentes, adversaires inconnus → moins de buts
+// J3 : au moins une équipe peut avoir besoin de marquer → légèrement plus ouvert
+const MATCHDAY_MULT: Record<number, number> = { 1: 0.92, 2: 1.00, 3: 1.05 }
+
+export type MatchContext = {
+  matchday?: 1 | 2 | 3
+}
+
 // Precomputed factorials k=0..8
 const FACT = [1, 1, 2, 6, 24, 120, 720, 5040, 40320]
 
@@ -101,13 +110,13 @@ export function computeMatch(
   isHostH: boolean,
   isHostA: boolean,
   conf = 0.85,
+  context?: MatchContext,
 ): MatchResult {
   const diff  = eloH - eloA
-  // ELO → strength ratio (logistic scale)
   const ratio = Math.pow(10, diff / 400)
-  // Symmetric around LEAGUE_AVG using geometric mean
-  let lh = LEAGUE_AVG * Math.sqrt(ratio)
-  let la = LEAGUE_AVG / Math.sqrt(ratio)
+  const phaseMult = MATCHDAY_MULT[context?.matchday ?? 2] ?? 1.00
+  let lh = LEAGUE_AVG * phaseMult * Math.sqrt(ratio)
+  let la = LEAGUE_AVG * phaseMult / Math.sqrt(ratio)
 
   if (isHostH) lh *= HOST_BOOST
   if (isHostA) la *= HOST_BOOST

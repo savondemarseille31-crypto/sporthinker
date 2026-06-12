@@ -247,6 +247,43 @@ export function extractRealOdds(event: OddsEvent, typePari: string, pari: string
 // ── Enrichissement d'un signal ────────────────────────────────────────────────
 
 import type { Signal } from './signals'
+import type { DeviggdMarkets } from './football-signals'
+
+// ── Extraction des probabilités déviggées depuis un OddsEvent ─────────────────
+export function devigFromEvent(event: OddsEvent, home: string, away: string): DeviggdMarkets {
+  const bk = event.bookmakers.find(b => b.key === 'pinnacle' || b.key === 'pinnacle_us')
+    ?? event.bookmakers[0]
+  if (!bk) return {}
+
+  const h2h    = bk.markets.find(m => m.key === 'h2h')
+  const totals = bk.markets.find(m => m.key === 'totals')
+  const result: DeviggdMarkets = {}
+
+  if (h2h) {
+    const ho = h2h.outcomes.find(o => match(o.name, home))?.price
+    const ao = h2h.outcomes.find(o => match(o.name, away))?.price
+    const do_ = h2h.outcomes.find(o => !match(o.name, home) && !match(o.name, away))?.price
+    if (ho && ao && do_) {
+      const ph = 1/ho, pa = 1/ao, pd = 1/do_
+      const t = ph + pa + pd
+      result.homeWin = ph / t
+      result.awayWin = pa / t
+    }
+  }
+
+  if (totals) {
+    const oo = totals.outcomes.find(o => o.name === 'Over')?.price
+    const uo = totals.outcomes.find(o => o.name === 'Under')?.price
+    if (oo && uo) {
+      const po = 1/oo, pu = 1/uo
+      const t = po + pu
+      result.over25  = po / t
+      result.under25 = pu / t
+    }
+  }
+
+  return result
+}
 
 export function enrichWithRealOdds(
   signal: Signal,

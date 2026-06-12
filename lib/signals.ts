@@ -38,6 +38,11 @@ export type Signal = {
     provider?: string
   }
   coteRef?: number
+  pImpl?: number    // probabilité win modèle [0,1] — Moneyline v2 uniquement
+  coteMin?: number  // cote minimale pour EV > 0 (= 1/pImpl)
+  // Deux tiers de signal CdM
+  tier?: 'probabiliste' | 'value'
+  ev?: number       // EV en % pour le tier value (ex: 7.2 pour +7.2%)
 }
 
 // =============================================

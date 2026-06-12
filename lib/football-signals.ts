@@ -3,7 +3,7 @@ import type { AFFixture, AFFixtureWithStats } from './api-football'
 import { getFixturesByDate, getTeamFormWithStats } from './api-football'
 import { CDM_TEAM_PROFILES } from './cdm-teams'
 import { getElo, isHost } from './cdm-elo'
-import { computeMatch, computeMatchFromLambda, type MatchResult } from './dixon-coles'
+import { computeMatch, computeMatchFromLambda, type MatchResult, type MatchContext } from './dixon-coles'
 import { CDM_FIXTURES, getMatchday } from './cdm-fixtures'
 
 // ---- Types internes ----
@@ -154,19 +154,35 @@ function buildSignal(
   }
 }
 
-// ---- Génération de signaux pour un match CdM via Dixon-Coles ----
-// Probabilités issues du moteur ELO + matrice de scores (pas d'appel API)
+// ---- Probabilités de marché déviggées (optionnelles — issues des cotes bookmaker) ----
+export type DeviggdMarkets = {
+  homeWin?: number
+  awayWin?: number
+  over25?:  number
+  under25?: number
+  btts?:    number
+}
+
+// ---- Génération de signaux — deux tiers ----
+// TIER VALUE    : nécessite cotes devigées → EV = P_modèle/P_marché − 1 > 3%
+// TIER PROBABILISTE : sans cotes → P_modèle > seuil fort (opinion directionnelle)
+
+const EV_MIN   = 0.03   // edge minimum tier value
+const PROB_MIN = 0.62   // seuil tier probabiliste (opinion claire du modèle)
 
 function generateSignalsFromDixonColes(
   fixture: AFFixture,
   result: MatchResult,
   leagueId: number,
+  devigged?: DeviggdMarkets,
 ): Signal[] {
   const { markets, lh, la, blowoutRisk, conf } = result
   const h = fixture.teams.home.name
   const a = fixture.teams.away.name
+  const totalGoals = lh + la
+  const sourceNote = ` (Dixon-Coles ELO · λ=${lh.toFixed(2)}+${la.toFixed(2)})`
 
-  // Force effective = probabilité × confiance données
+  // Force pour tier probabiliste (P × conf)
   function resolveForce(p: number): SignalForce | null {
     const ep = p * conf
     if (ep >= 0.65) return 'fort'
@@ -175,95 +191,175 @@ function generateSignalsFromDixonColes(
     return null
   }
 
-  const totalGoals = lh + la
-  const sourceNote = ` (Dixon-Coles ELO · λ=${lh.toFixed(2)}+${la.toFixed(2)})`
-
-  // Priority order — first eligible signal wins (one per match)
-
-  // 1. Victoire nette domicile
-  if (markets.homeWin >= 0.52) {
-    const f = resolveForce(markets.homeWin)
-    if (f) return [buildSignal(fixture, leagueId, f,
-      '1x2', `Victoire ${h}`,
-      `P(${h} gagne) = ${Math.round(markets.homeWin * 100)}% selon le modèle Dixon-Coles.` +
-      ` Rapport de force ELO : λ domicile ${lh.toFixed(2)} buts/match vs λ extérieur ${la.toFixed(2)}.${sourceNote}`,
-      [
-        { label: `P(${h})`, val: `${Math.round(markets.homeWin * 100)}%`, highlight: true },
-        { label: `P(Nul)`,   val: `${Math.round(markets.draw * 100)}%` },
-        { label: `P(${a})`,  val: `${Math.round(markets.awayWin * 100)}%` },
-        { label: 'λ dom./ext.', val: `${lh.toFixed(2)} / ${la.toFixed(2)}` },
-      ],
-      'home-ml',
-    )]
+  // Force pour tier value (EV absolu)
+  function valueForce(ev: number): SignalForce {
+    if (ev >= 0.10) return 'fort'
+    if (ev >= 0.05) return 'modéré'
+    return 'à surveiller'
   }
 
-  // 2. Victoire nette extérieur
-  if (markets.awayWin >= 0.52) {
-    const f = resolveForce(markets.awayWin)
-    if (f) return [buildSignal(fixture, leagueId, f,
-      '1x2', `Victoire ${a}`,
-      `P(${a} gagne) = ${Math.round(markets.awayWin * 100)}% selon le modèle Dixon-Coles.` +
-      ` Rapport de force ELO : λ domicile ${lh.toFixed(2)} vs λ extérieur ${la.toFixed(2)}.${sourceNote}`,
-      [
-        { label: `P(${a})`,   val: `${Math.round(markets.awayWin * 100)}%`, highlight: true },
-        { label: `P(Nul)`,    val: `${Math.round(markets.draw * 100)}%` },
-        { label: `P(${h})`,   val: `${Math.round(markets.homeWin * 100)}%` },
-        { label: 'λ dom./ext.', val: `${lh.toFixed(2)} / ${la.toFixed(2)}` },
-      ],
-      'away-ml',
-    )]
+  // Candidats value : calcule EV pour chaque marché si cotes dispo
+  type Candidate = { market: string; ev: number; signal: Signal }
+  const valueCandidates: Candidate[] = []
+
+  if (devigged) {
+    const checks: Array<{
+      key: keyof DeviggdMarkets
+      pModel: number
+      typePari: string
+      pari: string
+      raisonnement: string
+      stats: Signal['stats']
+      suffix: string
+    }> = [
+      {
+        key: 'homeWin', pModel: markets.homeWin,
+        typePari: '1x2', pari: `Victoire ${h}`,
+        raisonnement: `P_modèle(${h}) = ${Math.round(markets.homeWin*100)}% vs marché devigué ${Math.round((devigged.homeWin??0)*100)}%.${sourceNote}`,
+        stats: [
+          { label: 'P modèle',   val: `${Math.round(markets.homeWin*100)}%`, highlight: true },
+          { label: 'P marché',   val: `${Math.round((devigged.homeWin??0)*100)}%` },
+          { label: `λ ${h}`,     val: lh.toFixed(2) },
+          { label: `λ ${a}`,     val: la.toFixed(2) },
+        ],
+        suffix: 'home-ml',
+      },
+      {
+        key: 'awayWin', pModel: markets.awayWin,
+        typePari: '1x2', pari: `Victoire ${a}`,
+        raisonnement: `P_modèle(${a}) = ${Math.round(markets.awayWin*100)}% vs marché devigué ${Math.round((devigged.awayWin??0)*100)}%.${sourceNote}`,
+        stats: [
+          { label: 'P modèle',   val: `${Math.round(markets.awayWin*100)}%`, highlight: true },
+          { label: 'P marché',   val: `${Math.round((devigged.awayWin??0)*100)}%` },
+          { label: `λ ${h}`,     val: lh.toFixed(2) },
+          { label: `λ ${a}`,     val: la.toFixed(2) },
+        ],
+        suffix: 'away-ml',
+      },
+      {
+        key: 'over25', pModel: markets.over25 * (1 - blowoutRisk * 0.15),
+        typePari: 'Over (Total buts)', pari: 'OVER 2.5 buts',
+        raisonnement: `P_modèle(Over 2.5) = ${Math.round(markets.over25*100)}% vs marché devigué ${Math.round((devigged.over25??0)*100)}%. λ total ${totalGoals.toFixed(2)}.${sourceNote}`,
+        stats: [
+          { label: 'P modèle',    val: `${Math.round(markets.over25*100)}%`, highlight: true },
+          { label: 'P marché',    val: `${Math.round((devigged.over25??0)*100)}%` },
+          { label: 'λ total',     val: totalGoals.toFixed(2), highlight: true },
+          { label: `λ ${h}/${a}`, val: `${lh.toFixed(2)}/${la.toFixed(2)}` },
+        ],
+        suffix: 'over',
+      },
+      {
+        key: 'under25', pModel: markets.under25,
+        typePari: 'Under (Total buts)', pari: 'UNDER 2.5 buts',
+        raisonnement: `P_modèle(Under 2.5) = ${Math.round(markets.under25*100)}% vs marché devigué ${Math.round((devigged.under25??0)*100)}%. λ total ${totalGoals.toFixed(2)}.${sourceNote}`,
+        stats: [
+          { label: 'P modèle',    val: `${Math.round(markets.under25*100)}%`, highlight: true },
+          { label: 'P marché',    val: `${Math.round((devigged.under25??0)*100)}%` },
+          { label: 'λ total',     val: totalGoals.toFixed(2), highlight: true },
+          { label: `λ ${h}/${a}`, val: `${lh.toFixed(2)}/${la.toFixed(2)}` },
+        ],
+        suffix: 'under',
+      },
+      {
+        key: 'btts', pModel: markets.btts,
+        typePari: 'BTTS', pari: 'Les deux équipes marquent (BTTS Oui)',
+        raisonnement: `P_modèle(BTTS) = ${Math.round(markets.btts*100)}% vs marché devigué ${Math.round((devigged.btts??0)*100)}%.${sourceNote}`,
+        stats: [
+          { label: 'P modèle',   val: `${Math.round(markets.btts*100)}%`, highlight: true },
+          { label: 'P marché',   val: `${Math.round((devigged.btts??0)*100)}%` },
+          { label: `λ ${h}`,     val: lh.toFixed(2) },
+          { label: `λ ${a}`,     val: la.toFixed(2) },
+        ],
+        suffix: 'btts',
+      },
+    ]
+
+    for (const c of checks) {
+      const pMkt = devigged[c.key]
+      if (!pMkt || pMkt <= 0) continue
+      const ev = c.pModel / pMkt - 1
+      if (ev < EV_MIN) continue
+      const evPct = parseFloat((ev * 100).toFixed(1))
+      const sig = buildSignal(fixture, leagueId, valueForce(ev), c.typePari, c.pari, c.raisonnement, c.stats, c.suffix)
+      valueCandidates.push({ market: c.key, ev, signal: { ...sig, tier: 'value', ev: evPct } })
+    }
   }
 
-  // 3. Over 2.5 — attaques déséquilibrées ou deux forts xG
-  // Reduce force if blowoutRisk high (dominant team may see opponents park the bus)
-  if (markets.over25 >= 0.55) {
-    const adjustedP = markets.over25 * (1 - blowoutRisk * 0.15)
-    const f = resolveForce(adjustedP)
-    if (f) return [buildSignal(fixture, leagueId, f,
-      'Over (Total buts)', 'OVER 2.5 buts',
-      `P(+2.5 buts) = ${Math.round(markets.over25 * 100)}% — total attendu ${totalGoals.toFixed(2)} buts.` +
-      `${blowoutRisk > 0.5 ? ' Risque de match fermé atténué (déséquilibre fort).' : ''}${sourceNote}`,
-      [
-        { label: 'P(Over 2.5)', val: `${Math.round(markets.over25 * 100)}%`, highlight: true },
+  // Retourner le signal value avec le meilleur EV
+  if (valueCandidates.length > 0) {
+    valueCandidates.sort((a, b) => b.ev - a.ev)
+    return [valueCandidates[0].signal]
+  }
+
+  // Fallback : tier probabiliste — opinion directionnelle du modèle sans cotes
+  const probChecks: Array<{ p: number; adjusted?: number; typePari: string; pari: string; raisonnement: string; stats: Signal['stats']; suffix: string }> = [
+    {
+      p: markets.homeWin, typePari: '1x2', pari: `Victoire ${h}`,
+      raisonnement: `P(${h} gagne) = ${Math.round(markets.homeWin*100)}% selon le modèle Dixon-Coles.` +
+        ` Rapport de force ELO : λ ${lh.toFixed(2)} vs ${la.toFixed(2)}.${sourceNote}`,
+      stats: [
+        { label: `P(${h})`,      val: `${Math.round(markets.homeWin*100)}%`, highlight: true },
+        { label: `P(Nul)`,        val: `${Math.round(markets.draw*100)}%` },
+        { label: `P(${a})`,       val: `${Math.round(markets.awayWin*100)}%` },
+        { label: 'λ dom./ext.',   val: `${lh.toFixed(2)} / ${la.toFixed(2)}` },
+      ],
+      suffix: 'home-ml',
+    },
+    {
+      p: markets.awayWin, typePari: '1x2', pari: `Victoire ${a}`,
+      raisonnement: `P(${a} gagne) = ${Math.round(markets.awayWin*100)}% selon le modèle Dixon-Coles.` +
+        ` Rapport de force ELO : λ ${lh.toFixed(2)} vs ${la.toFixed(2)}.${sourceNote}`,
+      stats: [
+        { label: `P(${a})`,       val: `${Math.round(markets.awayWin*100)}%`, highlight: true },
+        { label: `P(Nul)`,        val: `${Math.round(markets.draw*100)}%` },
+        { label: `P(${h})`,       val: `${Math.round(markets.homeWin*100)}%` },
+        { label: 'λ dom./ext.',   val: `${lh.toFixed(2)} / ${la.toFixed(2)}` },
+      ],
+      suffix: 'away-ml',
+    },
+    {
+      p: markets.over25, adjusted: markets.over25 * (1 - blowoutRisk * 0.15),
+      typePari: 'Over (Total buts)', pari: 'OVER 2.5 buts',
+      raisonnement: `P(+2.5 buts) = ${Math.round(markets.over25*100)}% — total attendu ${totalGoals.toFixed(2)} buts.${sourceNote}`,
+      stats: [
+        { label: 'P(Over 2.5)', val: `${Math.round(markets.over25*100)}%`, highlight: true },
         { label: 'λ total',     val: totalGoals.toFixed(2), highlight: true },
         { label: `λ ${h}`,      val: lh.toFixed(2) },
         { label: `λ ${a}`,      val: la.toFixed(2) },
       ],
-      'over',
-    )]
-  }
-
-  // 4. Under 2.5 — deux défenses solides, match fermé attendu
-  if (markets.under25 >= 0.58) {
-    const f = resolveForce(markets.under25)
-    if (f) return [buildSignal(fixture, leagueId, f,
-      'Under (Total buts)', 'UNDER 2.5 buts',
-      `P(-2.5 buts) = ${Math.round(markets.under25 * 100)}% — total attendu seulement ${totalGoals.toFixed(2)} buts.${sourceNote}`,
-      [
-        { label: 'P(Under 2.5)', val: `${Math.round(markets.under25 * 100)}%`, highlight: true },
+      suffix: 'over',
+    },
+    {
+      p: markets.under25, typePari: 'Under (Total buts)', pari: 'UNDER 2.5 buts',
+      raisonnement: `P(-2.5 buts) = ${Math.round(markets.under25*100)}% — total attendu ${totalGoals.toFixed(2)} buts.${sourceNote}`,
+      stats: [
+        { label: 'P(Under 2.5)', val: `${Math.round(markets.under25*100)}%`, highlight: true },
         { label: 'λ total',      val: totalGoals.toFixed(2), highlight: true },
         { label: `λ ${h}`,       val: lh.toFixed(2) },
         { label: `λ ${a}`,       val: la.toFixed(2) },
       ],
-      'under',
-    )]
-  }
-
-  // 5. BTTS — les deux équipes sont capables de marquer
-  if (markets.btts >= 0.60) {
-    const f = resolveForce(markets.btts)
-    if (f) return [buildSignal(fixture, leagueId, f,
-      'BTTS', 'Les deux équipes marquent (BTTS Oui)',
-      `P(BTTS) = ${Math.round(markets.btts * 100)}% — les deux équipes sont offensivement dangereuses` +
-      ` (λ ${h}: ${lh.toFixed(2)}, λ ${a}: ${la.toFixed(2)}).${sourceNote}`,
-      [
-        { label: 'P(BTTS)',  val: `${Math.round(markets.btts * 100)}%`, highlight: true },
-        { label: `λ ${h}`,  val: lh.toFixed(2), highlight: true },
-        { label: `λ ${a}`,  val: la.toFixed(2) },
-        { label: 'P(Over 1.5)', val: `${Math.round(markets.over15 * 100)}%` },
+      suffix: 'under',
+    },
+    {
+      p: markets.btts, typePari: 'BTTS', pari: 'Les deux équipes marquent (BTTS Oui)',
+      raisonnement: `P(BTTS) = ${Math.round(markets.btts*100)}% — les deux équipes sont offensivement dangereuses.${sourceNote}`,
+      stats: [
+        { label: 'P(BTTS)',       val: `${Math.round(markets.btts*100)}%`, highlight: true },
+        { label: `λ ${h}`,        val: lh.toFixed(2), highlight: true },
+        { label: `λ ${a}`,        val: la.toFixed(2) },
+        { label: 'P(Over 1.5)',   val: `${Math.round(markets.over15*100)}%` },
       ],
-      'btts',
-    )]
+      suffix: 'btts',
+    },
+  ]
+
+  for (const c of probChecks) {
+    const pEff = c.adjusted ?? c.p
+    if (pEff < PROB_MIN) continue
+    const f = resolveForce(pEff)
+    if (!f) continue
+    const sig = buildSignal(fixture, leagueId, f, c.typePari, c.pari, c.raisonnement, c.stats, c.suffix)
+    return [{ ...sig, tier: 'probabiliste' }]
   }
 
   return []
@@ -275,6 +371,7 @@ export function generateCdMSignalsForMatch(opts: {
   heure: string
   domicile: string
   exterieur: string
+  devigged?: DeviggdMarkets
 }): Signal[] {
   const fixture: AFFixture = {
     fixture: {
@@ -299,9 +396,9 @@ export function generateCdMSignalsForMatch(opts: {
   const matchday = getMatchday(opts.id)
   const conf = matchday === 3 ? 0.70 : 0.85
 
-  const result = computeMatch(eloH, eloA, isHost(opts.domicile), isHost(opts.exterieur), conf)
+  const result = computeMatch(eloH, eloA, isHost(opts.domicile), isHost(opts.exterieur), conf, { matchday })
 
-  const signals = generateSignalsFromDixonColes(fixture, result, 1)
+  const signals = generateSignalsFromDixonColes(fixture, result, 1, opts.devigged)
 
   // Annoter le raisonnement si J3
   if (matchday === 3 && signals.length > 0) {
