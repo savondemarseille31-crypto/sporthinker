@@ -10,7 +10,7 @@ import { generateFootballSignalsForToday, generateCdMSignalsForMatch } from '@/l
 import { LEAGUES } from '@/lib/api-football'
 import { generateTennisSignalsForToday } from '@/lib/tennis-signals'
 import { generateMLSSignalsForToday } from '@/lib/mls-signals'
-import { getMLBOdds, getCdMOdds, getNBAOdds, getTennisOdds, getMLSOdds, findEvent, extractRealOdds, type OddsEvent } from '@/lib/odds-api'
+import { getMLBOdds, getCdMOdds, getNBAOdds, getTennisOdds, getMLSOdds, findEvent, extractRealOdds, devigFromEvent, type OddsEvent } from '@/lib/odds-api'
 
 export const revalidate = 300 // 5 min — signaux MLB + CdM + Tennis
 
@@ -298,9 +298,13 @@ export default async function SignauxPage() {
   const upcomingFixtures = CDM_FIXTURES
     .filter(f => { const d = new Date(`${f.date}T12:00:00`); return d >= cdmToday && d <= cdmLimit })
     .slice(0, 12)
-  const rawCdMSignals = upcomingFixtures.flatMap(f =>
-    generateCdMSignalsForMatch({ id: f.id, date: f.date, heure: f.heure, domicile: f.domicile, exterieur: f.exterieur })
-  )
+  const rawCdMSignals = upcomingFixtures.flatMap(f => {
+    const ev = cdmOdds.length ? findEvent(cdmOdds, f.domicile, f.exterieur) : null
+    return generateCdMSignalsForMatch({
+      id: f.id, date: f.date, heure: f.heure, domicile: f.domicile, exterieur: f.exterieur,
+      devigged: ev ? devigFromEvent(ev, f.domicile, f.exterieur) : undefined,
+    })
+  })
   const staticCdmSignals = rawCdMSignals.map(s => enrichSignalWithOdds(s, espnCdMOdds))
   const cdmSignals = addCoteRef([...liveFootballSignals, ...staticCdmSignals], oddsMap)
 
@@ -313,6 +317,17 @@ export default async function SignauxPage() {
   const enrichedMLS    = addCoteRef(mlsSignals,    oddsMap)
 
   const allSignals = sortByForce([...mlbSignals, ...enrichedMLS, ...enrichedNBA, ...cdmSignals, ...enrichedTennis])
+
+  // Value signals — EV > 3% confirmé par les cotes (tous sports)
+  const valueSignals = sortByForce(
+    allSignals
+      .filter(s => s.tier === 'value' || (s.pImpl != null && s.coteRef != null && s.pImpl * s.coteRef - 1 > 0.03))
+      .map(s => {
+        if (s.tier === 'value') return s
+        const ev = s.pImpl! * s.coteRef! - 1
+        return { ...s, tier: 'value' as const, ev: parseFloat((ev * 100).toFixed(1)) }
+      })
+  )
 
   const fortsCount      = allSignals.filter(s => s.force === 'fort').length
   const moderésCount    = allSignals.filter(s => s.force === 'modéré').length
@@ -348,9 +363,9 @@ export default async function SignauxPage() {
             <p className="text-2xl font-bold text-yellow-400">{moderésCount}</p>
             <p className="text-xs text-gray-500 mt-1">🔶 Modérés</p>
           </div>
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-blue-400">{withOddsCount}</p>
-            <p className="text-xs text-gray-500 mt-1">📊 Avec cotes ESPN</p>
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4 text-center">
+            <p className="text-2xl font-bold text-yellow-400">{valueSignals.length}</p>
+            <p className="text-xs text-gray-500 mt-1">💰 Values EV+3%</p>
           </div>
         </div>
 
@@ -396,6 +411,7 @@ export default async function SignauxPage() {
             nba:    nbaSignals.length,
             tennis: tennisSignals.length,
             mls:    mlsSignals.length,
+            values: valueSignals.length,
           }}
           tennis={(
             <section className="mb-10">
@@ -534,6 +550,27 @@ export default async function SignauxPage() {
                   <Link href="/nba" className="inline-block mt-3 text-sm text-orange-400 hover:text-orange-300 transition-colors">
                     Analyser les matchups playoffs →
                   </Link>
+                </div>
+              )}
+            </section>
+          )}
+          values={(
+            <section className="mb-10">
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-xl font-bold text-yellow-300">💰 Values — EV confirmé vs marché</h2>
+                {valueSignals.length > 0
+                  ? <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full">{valueSignals.length} value{valueSignals.length > 1 ? 's' : ''}</span>
+                  : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucune value</span>
+                }
+              </div>
+              {valueSignals.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {valueSignals.map(s => <SignalCard key={`val-${s.id}`} signal={s} />)}
+                </div>
+              ) : (
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+                  <p className="text-gray-500 text-sm mb-1">Aucune value détectée pour l&apos;instant</p>
+                  <p className="text-gray-600 text-xs">Les values apparaissent quand P_modèle × cote_marché − 1 &gt; 3% (edge confirmé).</p>
                 </div>
               )}
             </section>

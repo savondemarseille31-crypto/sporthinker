@@ -2,32 +2,38 @@
 
 import { useState } from 'react'
 
-type Sport = 'tous' | 'mlb' | 'cdm' | 'nba' | 'tennis' | 'mls'
+type Sport = 'tous' | 'mlb' | 'cdm' | 'nba' | 'tennis' | 'mls' | 'values'
 
 export default function SignauxFilter({
   counts,
-  mlb, cdm, nba, tennis, mls,
+  mlb, cdm, nba, tennis, mls, values,
 }: {
-  counts: { mlb: number; cdm: number; nba: number; tennis: number; mls: number }
+  counts: { mlb: number; cdm: number; nba: number; tennis: number; mls: number; values: number }
   mlb:    React.ReactNode
   cdm:    React.ReactNode
   nba:    React.ReactNode
   tennis: React.ReactNode
   mls:    React.ReactNode
+  values: React.ReactNode
 }) {
   const [active, setActive] = useState<Sport>('tous')
   const total = counts.mlb + counts.cdm + counts.nba + counts.tennis + counts.mls
 
-  const tabs: { key: Sport; emoji: string; label: string; count: number }[] = [
-    { key: 'tous',   emoji: '⚡', label: 'Tous',    count: total          },
-    { key: 'tennis', emoji: '🎾', label: 'Tennis',  count: counts.tennis  },
-    { key: 'mlb',    emoji: '⚾', label: 'MLB',     count: counts.mlb     },
-    { key: 'mls',    emoji: '⚽', label: 'MLS',     count: counts.mls     },
-    { key: 'cdm',    emoji: '🌍', label: 'CdM',     count: counts.cdm     },
-    { key: 'nba',    emoji: '🏀', label: 'NBA',     count: counts.nba     },
+  const tabs: { key: Sport; emoji: string; label: string; count: number; highlight?: boolean }[] = [
+    { key: 'tous',   emoji: '⚡', label: 'Tous',    count: total           },
+    { key: 'values', emoji: '💰', label: 'Values',  count: counts.values, highlight: true },
+    { key: 'tennis', emoji: '🎾', label: 'Tennis',  count: counts.tennis   },
+    { key: 'mlb',    emoji: '⚾', label: 'MLB',     count: counts.mlb      },
+    { key: 'mls',    emoji: '⚽', label: 'MLS',     count: counts.mls      },
+    { key: 'cdm',    emoji: '🌍', label: 'CdM',     count: counts.cdm      },
+    { key: 'nba',    emoji: '🏀', label: 'NBA',     count: counts.nba      },
   ]
 
-  const show = (sport: Sport) => active === 'tous' || active === sport
+  const show = (sport: Sport) => {
+    if (active === 'values') return sport === 'values'
+    if (active === 'tous') return sport !== 'values'
+    return active === sport
+  }
 
   return (
     <>
@@ -38,8 +44,10 @@ export default function SignauxFilter({
             onClick={() => setActive(t.key)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
               active === t.key
-                ? 'bg-emerald-500 text-black'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                ? t.highlight ? 'bg-yellow-500 text-black' : 'bg-emerald-500 text-black'
+                : t.highlight
+                  ? 'text-yellow-400 hover:text-yellow-300 hover:bg-gray-800 border border-yellow-500/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
             }`}
           >
             <span>{t.emoji}</span>
@@ -57,6 +65,7 @@ export default function SignauxFilter({
 
       {(
         [
+          { key: 'values', content: values },
           { key: 'tennis', content: tennis },
           { key: 'mlb',    content: mlb    },
           { key: 'mls',    content: mls    },
