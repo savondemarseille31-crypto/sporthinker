@@ -325,8 +325,8 @@ export default async function SignauxPage() {
     s.tier === 'value' ||
     (s.pImpl != null && s.coteRef != null && s.pImpl * s.coteRef - 1 > 0.03)
 
-  // Tier Signaux — probabiliste uniquement (les values sont exclues, elles vont dans l'onglet Values)
-  const signauxSignals = sortByForce(allSignals.filter(s => !isValue(s)))
+  // Clé d'identification d'un match (un match = un seul onglet)
+  const matchKey = (s: Signal) => `${s.sport}|${s.match}|${s.date}`
 
   // Tier Values — EV > 3% confirmé par les cotes (tous sports)
   const valueSignals = sortByForce(
@@ -335,6 +335,13 @@ export default async function SignauxPage() {
         ? s
         : { ...s, tier: 'value' as const, ev: parseFloat(((s.pImpl! * s.coteRef! - 1) * 100).toFixed(1)) }
     )
+  )
+
+  // Tier Signaux — probabiliste uniquement. Séparation PAR MATCH : si un match a une value,
+  // il part entièrement dans l'onglet Values et n'apparaît plus dans Signaux (sinon doublon visuel).
+  const valueMatchKeys = new Set(valueSignals.map(matchKey))
+  const signauxSignals = sortByForce(
+    allSignals.filter(s => !isValue(s) && !valueMatchKeys.has(matchKey(s)))
   )
 
   // Signaux par sport pour les sections (tier probabiliste uniquement)
@@ -396,28 +403,6 @@ export default async function SignauxPage() {
           </div>
         </div>
 
-        {/* ---- Top 3 signaux forts du jour ---- */}
-        {signauxSignals.filter(s => s.force === 'fort').length > 0 && (
-          <section className="mb-10">
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-xl font-bold text-white">À ne pas rater aujourd&apos;hui</h2>
-              <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
-                ⚡ Top signaux
-              </span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {signauxSignals.filter(s => s.force === 'fort').slice(0, 3).map(s => (
-                <SignalCard key={`top-${s.id}`} signal={s} />
-              ))}
-            </div>
-            {signauxSignals.filter(s => s.force === 'fort').length > 3 && (
-              <p className="text-xs text-gray-600 text-center mt-3">
-                + {signauxSignals.filter(s => s.force === 'fort').length - 3} autres signaux forts ci-dessous
-              </p>
-            )}
-          </section>
-        )}
-
         <Suspense fallback={<div className="h-12 bg-gray-900 rounded-2xl animate-pulse mb-8" />}>
         <SignauxFilter
           counts={{
@@ -428,6 +413,26 @@ export default async function SignauxPage() {
             mls:    mlsSignauxOnly.length,
             values: valueSignals.length,
           }}
+          topForts={signauxSignals.filter(s => s.force === 'fort').length > 0 ? (
+            <section className="mb-10">
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-xl font-bold text-white">À ne pas rater aujourd&apos;hui</h2>
+                <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+                  ⚡ Top signaux
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {signauxSignals.filter(s => s.force === 'fort').slice(0, 3).map(s => (
+                  <SignalCard key={`top-${s.id}`} signal={s} />
+                ))}
+              </div>
+              {signauxSignals.filter(s => s.force === 'fort').length > 3 && (
+                <p className="text-xs text-gray-600 text-center mt-3">
+                  + {signauxSignals.filter(s => s.force === 'fort').length - 3} autres signaux forts ci-dessous
+                </p>
+              )}
+            </section>
+          ) : null}
           tennis={(
             <section className="mb-10">
               <div className="flex items-center gap-3 mb-4">

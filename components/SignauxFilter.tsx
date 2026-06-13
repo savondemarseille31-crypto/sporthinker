@@ -7,7 +7,7 @@ type Sport = 'tous' | 'mlb' | 'cdm' | 'nba' | 'tennis' | 'mls' | 'values'
 
 export default function SignauxFilter({
   counts,
-  mlb, cdm, nba, tennis, mls, values,
+  mlb, cdm, nba, tennis, mls, values, topForts,
 }: {
   counts: { mlb: number; cdm: number; nba: number; tennis: number; mls: number; values: number }
   mlb:    React.ReactNode
@@ -16,6 +16,7 @@ export default function SignauxFilter({
   tennis: React.ReactNode
   mls:    React.ReactNode
   values: React.ReactNode
+  topForts?: React.ReactNode
 }) {
   const searchParams = useSearchParams()
   const initialTab = (searchParams.get('tab') as Sport | null) ?? 'tous'
@@ -45,6 +46,9 @@ export default function SignauxFilter({
 
   return (
     <>
+      {/* Top signaux forts — masqué sur l'onglet Values (ce sont des signaux, pas des values) */}
+      {active !== 'values' && topForts}
+
       <div className="flex gap-2 overflow-x-auto mb-8 bg-gray-900 border border-gray-800 rounded-2xl p-2 scrollbar-none">
         {tabs.map(t => (
           <button
