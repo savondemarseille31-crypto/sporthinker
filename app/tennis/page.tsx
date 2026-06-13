@@ -202,7 +202,7 @@ export default async function TennisPage() {
         {/* Titre */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-1">🎾 Tennis</h1>
-          <p className="text-gray-400">Roland Garros 2026 · Signaux ATP &amp; WTA · Via ESPN</p>
+          <p className="text-gray-400">Signaux ATP &amp; WTA · Via ESPN</p>
         </div>
 
         {/* KPIs */}

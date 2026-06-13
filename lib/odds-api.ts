@@ -133,13 +133,26 @@ export function extractPlayerCote(result: PlayerPropsResult, playerName: string,
   return over ? parseFloat(over.price.toFixed(2)) : null
 }
 
-// Tennis : Roland Garros ATP + WTA (12h cache → ~60 req/mois pour les deux)
+// Découvre les tournois ATP/WTA actifs (l'endpoint /sports ne consomme PAS de quota).
+// S'adapte automatiquement à la saison : terre battue, gazon (Halle, Queen's), Wimbledon, US Open…
+async function getActiveTennisKeys(): Promise<string[]> {
+  if (!API_KEY) return []
+  try {
+    const res = await fetch(`${BASE}/sports/?apiKey=${API_KEY}`, { next: { revalidate: 43200 } })
+    if (!res.ok) return []
+    const sports: { key: string; active: boolean }[] = await res.json()
+    return sports.filter(s => s.key.startsWith('tennis_') && s.active).map(s => s.key)
+  } catch {
+    return []
+  }
+}
+
+// Tennis : cotes h2h de tous les tournois ATP/WTA actuellement en cours (12h cache)
 export async function getTennisOdds(): Promise<OddsEvent[]> {
-  const [atp, wta] = await Promise.all([
-    fetchOdds('tennis_atp_french_open', 'h2h', 43200),
-    fetchOdds('tennis_wta_french_open', 'h2h', 43200),
-  ])
-  return [...atp, ...wta]
+  const keys = await getActiveTennisKeys()
+  if (!keys.length) return []
+  const results = await Promise.all(keys.map(k => fetchOdds(k, 'h2h', 43200)))
+  return results.flat()
 }
 
 // ── Matching ─────────────────────────────────────────────────────────────────

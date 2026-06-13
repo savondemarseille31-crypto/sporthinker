@@ -436,7 +436,7 @@ export default async function SignauxPage() {
           tennis={(
             <section className="mb-10">
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-xl font-bold text-orange-300">🎾 Tennis — Roland Garros</h2>
+                <h2 className="text-xl font-bold text-orange-300">🎾 Tennis — ATP / WTA</h2>
                 {tennisSignals.length > 0
                   ? <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full">{tennisSignals.length} signal{tennisSignals.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
