@@ -320,18 +320,22 @@ export default async function SignauxPage() {
   // Tous les signaux (les deux tiers)
   const allSignals = sortByForce([...mlbSignals, ...enrichedMLS, ...enrichedNBA, ...cdmSignals, ...enrichedTennis])
 
-  // Tier Signaux — probabiliste uniquement (pas de value)
-  const signauxSignals = sortByForce(allSignals.filter(s => s.tier !== 'value'))
+  // Un signal est une "value" si tagué par le moteur (CdM Dixon-Coles) ou si EV > 3% confirmé par les cotes
+  const isValue = (s: Signal) =>
+    s.tier === 'value' ||
+    (s.pImpl != null && s.coteRef != null && s.pImpl * s.coteRef - 1 > 0.03)
+
+  // Tier Signaux — probabiliste uniquement (les values sont exclues, elles vont dans l'onglet Values)
+  const signauxSignals = sortByForce(allSignals.filter(s => !isValue(s)))
 
   // Tier Values — EV > 3% confirmé par les cotes (tous sports)
-  const valueSignals = sortByForce([
-    // CdM value (déjà tagués tier:value par le moteur Dixon-Coles)
-    ...allSignals.filter(s => s.tier === 'value'),
-    // Autres sports : EV > 3% si pImpl + coteRef disponibles
-    ...allSignals
-      .filter(s => s.tier !== 'value' && s.pImpl != null && s.coteRef != null && s.pImpl * s.coteRef - 1 > 0.03)
-      .map(s => ({ ...s, tier: 'value' as const, ev: parseFloat(((s.pImpl! * s.coteRef! - 1) * 100).toFixed(1)) }))
-  ])
+  const valueSignals = sortByForce(
+    allSignals.filter(isValue).map(s =>
+      s.tier === 'value'
+        ? s
+        : { ...s, tier: 'value' as const, ev: parseFloat(((s.pImpl! * s.coteRef! - 1) * 100).toFixed(1)) }
+    )
+  )
 
   // Signaux par sport pour les sections (tier probabiliste uniquement)
   const cdmSignauxOnly    = signauxSignals.filter(s => s.sport === 'CdM')
