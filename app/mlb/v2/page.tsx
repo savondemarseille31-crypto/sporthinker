@@ -72,9 +72,24 @@ function SignalCard({ signal, accent }: { signal: Signal; accent?: string }) {
         ))}
       </div>
 
+      {/* Kelly chips — uniquement sur les Moneylines avec pImpl */}
+      {signal.pImpl && signal.coteMin && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs bg-blue-500/10 border border-blue-500/20 text-blue-300 px-2.5 py-1 rounded-full font-semibold">
+            P(win) {Math.round(signal.pImpl * 100)}%
+          </span>
+          <span className="text-xs bg-gray-800 border border-gray-700 text-gray-300 px-2.5 py-1 rounded-full">
+            Cote min. {signal.coteMin}
+          </span>
+        </div>
+      )}
+
       {/* CTA */}
       <Link
-        href="/paris/calculateur"
+        href={signal.pImpl
+          ? `/paris/calculateur?p=${Math.round(signal.pImpl * 100)}`
+          : '/paris/calculateur'
+        }
         className="mt-auto flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
       >
         💰 Calculer la value →

@@ -235,15 +235,18 @@ export function generateMLBv2Signal(
 
   // ── Signal 2 : MONEYLINE — avantage runs significatif (Priorité 2) ─────────
   const runsDiff = runs_dom - runs_ext
-  if (Math.abs(runsDiff) >= 1.2) {
+  if (Math.abs(runsDiff) >= 1.5) {
     const favHome   = runsDiff > 0
     const favTeam   = favHome ? game.teams.home.team : game.teams.away.team
     const favRuns   = favHome ? runs_dom : runs_ext
     const oppRuns   = favHome ? runs_ext : runs_dom
     const favWOBA   = favHome ? homeHitting.wOBA : awayHitting.wOBA
     const favFIPadv = favHome ? awayFIP : homeFIP  // FIP du lanceur adverse
-    const pImpl     = favRuns / (favRuns + oppRuns)
-    const force: SignalForce = Math.abs(runsDiff) >= 1.8 ? 'fort' : 'modéré'
+    // Pythagorean expectation (exponent 1.83, standard MLB calibration)
+    const r1    = Math.pow(favRuns, 1.83)
+    const r2    = Math.pow(oppRuns, 1.83)
+    const pImpl = r1 / (r1 + r2)
+    const force: SignalForce = Math.abs(runsDiff) >= 2.0 ? 'fort' : 'modéré'
     return {
       id:       `mlbv2-${game.gamePk}-ml`,
       sport:    'MLB',
@@ -253,7 +256,7 @@ export function generateMLBv2Signal(
       date, heure, force,
       typePari: 'Moneyline',
       pari:     `Victoire ${favTeam.name} — Moneyline`,
-      raisonnement: `Avantage de ${Math.abs(runsDiff).toFixed(1)} runs estimés (${favRuns.toFixed(1)} vs ${oppRuns.toFixed(1)}). ${favTeam.name} : wOBA off. ${wStr(favWOBA)} contre FIP adverse ${favFIPadv.toFixed(2)}. P(win) implicite ≈ ${Math.round(pImpl * 100)}% — cherche cote ≥ ${(1 / pImpl).toFixed(2)}.`,
+      raisonnement: `Avantage de ${Math.abs(runsDiff).toFixed(1)} runs estimés (${favRuns.toFixed(1)} vs ${oppRuns.toFixed(1)}). ${favTeam.name} : wOBA off. ${wStr(favWOBA)} contre FIP adverse ${favFIPadv.toFixed(2)}. P(win) Pythagoricienne ≈ ${Math.round(pImpl * 100)}% — cherche cote ≥ ${(1 / pImpl).toFixed(2)}.`,
       stats: [
         { label: `${favTeam.abbreviation} runs est.`, val: favRuns.toFixed(1),           highlight: true },
         { label: 'FIP starter adverse',               val: favFIPadv.toFixed(2),          highlight: true },
@@ -261,6 +264,8 @@ export function generateMLBv2Signal(
         { label: 'P(win) implicite',                  val: `${Math.round(pImpl * 100)}%`, highlight: true },
       ],
       lienCalculateur: '/paris/calculateur',
+      pImpl,
+      coteMin: parseFloat((1 / pImpl).toFixed(2)),
     }
   }
 
