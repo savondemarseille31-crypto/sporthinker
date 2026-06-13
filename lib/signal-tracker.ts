@@ -12,10 +12,12 @@ export type TrackedSignal = {
   pari: string
   typePari: string
   force: SignalForce
-  cote: number
+  cote: number           // cote d'ouverture (au moment du save)
   statut: SignalStatut
   gain?: number
-  marché?: string   // pour les signaux joueurs CdM
+  marché?: string        // pour les signaux joueurs CdM
+  coteCloture?: number   // cote de clôture — à renseigner après le match pour valider l'edge
+  clv?: number           // Closing Line Value = cote/coteCloture - 1 (>0 = battu la clôture)
 }
 
 export type TrackerStats = {
@@ -100,6 +102,16 @@ export function updateTrackedSignal(id: string, updates: Partial<TrackedSignal>)
 
 export function deleteTrackedSignal(id: string): void {
   localStorage.setItem(KEY, JSON.stringify(getTrackedSignals().filter(s => s.id !== id)))
+}
+
+// CLV — enregistre la cote de clôture et calcule l'edge modèle vs marché
+export function updateCoteCloture(id: string, coteCloture: number): void {
+  const signals = getTrackedSignals()
+  const idx = signals.findIndex(s => s.id === id)
+  if (idx === -1) return
+  const clv = parseFloat((signals[idx].cote / coteCloture - 1).toFixed(4))
+  signals[idx] = { ...signals[idx], coteCloture, clv }
+  localStorage.setItem(KEY, JSON.stringify(signals))
 }
 
 export function calcTrackerStats(signals: TrackedSignal[]): TrackerStats {

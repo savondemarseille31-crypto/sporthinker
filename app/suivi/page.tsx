@@ -7,6 +7,7 @@ import {
   getTrackedSignals,
   updateTrackedSignal,
   deleteTrackedSignal,
+  updateCoteCloture,
   calcTrackerStats,
   type TrackedSignal,
   type TrackerStats,
@@ -345,10 +346,12 @@ function TabParMarché({ signals }: { signals: TrackedSignal[] }) {
 // ── Tab: Historique ───────────────────────────────────────────────────────────
 
 function TabHistorique({ signals, onRefresh }: { signals: TrackedSignal[]; onRefresh: () => void }) {
-  const [sport,   setSport]  = useState<string>('Tous')
-  const [statut,  setStatut] = useState<string>('Tous')
-  const [force,   setForce]  = useState<string>('Tous')
-  const [editId,  setEditId] = useState<string | null>(null)
+  const [sport,      setSport]     = useState<string>('Tous')
+  const [statut,     setStatut]    = useState<string>('Tous')
+  const [force,      setForce]     = useState<string>('Tous')
+  const [editId,     setEditId]    = useState<string | null>(null)
+  const [clvEditId,  setClvEditId] = useState<string | null>(null)
+  const [clvInput,   setClvInput]  = useState('')
 
   function handleStatut(id: string, s: SignalStatut) {
     updateTrackedSignal(id, { statut: s })
@@ -359,6 +362,15 @@ function TabHistorique({ signals, onRefresh }: { signals: TrackedSignal[]; onRef
   function handleDelete(id: string) {
     deleteTrackedSignal(id)
     onRefresh()
+  }
+
+  function handleCLV(id: string) {
+    const val = parseFloat(clvInput.replace(',', '.'))
+    if (isNaN(val) || val <= 1) return
+    updateCoteCloture(id, val)
+    onRefresh()
+    setClvEditId(null)
+    setClvInput('')
   }
 
   const filtered = signals.filter(s => {
@@ -480,7 +492,41 @@ function TabHistorique({ signals, onRefresh }: { signals: TrackedSignal[]; onRef
                         )}
                       </div>
                     </div>
-                    <div className="mt-3 pt-2 border-t border-gray-800 flex justify-end">
+                    <div className="mt-3 pt-2 border-t border-gray-800 flex items-center justify-between gap-3">
+                      {/* CLV — Closing Line Value */}
+                      <div className="flex items-center gap-2">
+                        {signal.clv != null ? (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                            signal.clv > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                          }`} title={`Cote ouv. ${signal.cote.toFixed(2)} / Cote clôt. ${signal.coteCloture?.toFixed(2)}`}>
+                            CLV {signal.clv > 0 ? '+' : ''}{(signal.clv * 100).toFixed(1)}%
+                          </span>
+                        ) : signal.statut !== 'en_cours' && (
+                          clvEditId === signal.id ? (
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="number" step="0.01" min="1.01" placeholder="Cote clôture"
+                                value={clvInput} onChange={e => setClvInput(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleCLV(signal.id)}
+                                className="w-28 bg-gray-800 border border-gray-600 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500"
+                                autoFocus
+                              />
+                              <button onClick={() => handleCLV(signal.id)}
+                                className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-lg hover:bg-emerald-500/40 transition-colors">
+                                OK
+                              </button>
+                              <button onClick={() => { setClvEditId(null); setClvInput('') }}
+                                className="text-xs text-gray-600 hover:text-gray-300 px-1">✕</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => { setClvEditId(signal.id); setClvInput('') }}
+                              className="text-xs text-gray-600 hover:text-blue-400 transition-colors"
+                              title="Enregistrer la cote de clôture pour calculer le CLV">
+                              + CLV
+                            </button>
+                          )
+                        )}
+                      </div>
                       <button onClick={() => handleDelete(signal.id)}
                         className="text-xs text-gray-700 hover:text-red-400 transition-colors">
                         Supprimer
