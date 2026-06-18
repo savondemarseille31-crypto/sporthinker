@@ -28,21 +28,21 @@ export default function HistoriquePage() {
   const [editId, setEditId] = useState<string | null>(null)
 
   useEffect(() => {
-    setParis(getParis())
-    setBankroll(getBankroll())
+    getParis().then(setParis)
+    getBankroll().then(setBankroll)
   }, [])
 
-  const refresh = () => setParis(getParis())
+  const refresh = () => { getParis().then(setParis) }
 
-  const handleStatut = (id: string, statut: StatutPari) => {
-    updatePari(id, { statut })
+  const handleStatut = async (id: string, statut: StatutPari) => {
+    await updatePari(id, { statut })
     refresh()
     setEditId(null)
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Supprimer ce pari ?')) return
-    deletePari(id)
+    await deletePari(id)
     refresh()
   }
 

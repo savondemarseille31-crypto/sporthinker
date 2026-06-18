@@ -40,7 +40,7 @@ function CalculateurInner() {
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    setBankroll(getBankroll())
+    getBankroll().then(setBankroll)
     const p = searchParams.get('p')
     if (p) setProbEstimee(p)
   }, [searchParams])
@@ -77,9 +77,9 @@ function CalculateurInner() {
   const miseKelly = ev !== null && ev > 0 ? calcMiseKelly(bankroll.montantInitial, coteActive, probActive) : 0
   const isValue = ev !== null ? isValueBet(coteActive, probActive) : null
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!match || !selection || !mise || isNaN(parseFloat(mise))) return
-    savePari({
+    await savePari({
       match,
       competition,
       typePari,

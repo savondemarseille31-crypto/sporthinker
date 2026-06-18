@@ -552,7 +552,7 @@ export default function SuiviPage() {
 
   function refresh() {
     setSignals(getTrackedSignals())
-    setParis(getParis())
+    getParis().then(setParis)
   }
 
   useEffect(() => { refresh() }, [])

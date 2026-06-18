@@ -19,8 +19,8 @@ function miseToNumber(s: string): number {
 
 function MiseInput({ pari, devise, onCommit }: { pari: Pari; devise: string; onCommit: () => void }) {
   const [val, setVal] = useState(pari.mise ? String(pari.mise).replace('.', ',') : '')
-  function commit() {
-    updatePari(pari.id, { mise: miseToNumber(val) })
+  async function commit() {
+    await updatePari(pari.id, { mise: miseToNumber(val) })
     onCommit()
   }
   return (
@@ -44,10 +44,10 @@ function MiseInput({ pari, devise, onCommit }: { pari: Pari; devise: string; onC
 
 function CoteInput({ pari, onCommit }: { pari: Pari; onCommit: () => void }) {
   const [val, setVal] = useState(String(pari.coteStake).replace('.', ','))
-  function commit() {
+  async function commit() {
     const n = parseFloat(val.replace(',', '.'))
     const valid = Number.isFinite(n) && n >= 1.01 // une cote décimale est toujours > 1
-    if (valid) updatePari(pari.id, { coteStake: parseFloat(n.toFixed(2)) })
+    if (valid) await updatePari(pari.id, { coteStake: parseFloat(n.toFixed(2)) })
     // re-formate l'affichage (revert si saisie invalide)
     setVal(String(valid ? parseFloat(n.toFixed(2)) : pari.coteStake).replace('.', ','))
     if (valid) onCommit()
@@ -74,21 +74,21 @@ export default function ParisPage() {
   const [inputBankroll, setInputBankroll] = useState('')
 
   useEffect(() => {
-    setParis(getParis())
-    setBankroll(getBankroll())
+    getParis().then(setParis)
+    getBankroll().then(setBankroll)
   }, [])
 
-  const refresh = () => setParis(getParis())
+  const refresh = () => { getParis().then(setParis) }
 
   const stats = calcStats(paris)
   const roiColor = stats.roi >= 0 ? 'text-emerald-400' : 'text-red-400'
   const gainColor = stats.totalGain >= 0 ? 'text-emerald-400' : 'text-red-400'
 
-  const handleSaveBankroll = () => {
+  const handleSaveBankroll = async () => {
     const val = parseFloat(inputBankroll)
     if (isNaN(val) || val <= 0) return
     const updated = { ...bankroll, montantInitial: val, montantActuel: val }
-    saveBankroll(updated)
+    await saveBankroll(updated)
     setBankroll(updated)
     setEditBankroll(false)
   }

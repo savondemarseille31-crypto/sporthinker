@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { savePari, getParis, type TypePari } from '@/lib/paris-store'
 import type { Signal } from '@/lib/signals'
@@ -15,28 +15,30 @@ function mapType(typePari: string): TypePari {
   return 'autre'
 }
 
-function alreadyAdded(signal: Signal): boolean {
-  return getParis().some(p => p.match === signal.match && p.selection === signal.pari)
+async function isAdded(signal: Signal): Promise<boolean> {
+  return (await getParis()).some(p => p.match === signal.match && p.selection === signal.pari)
 }
 
-// Bouton « Je suis ce pick » — ajoute le pari à « Mes Paris » (mise + bankroll + Kelly).
-// La mise est pré-remplie par Kelly quand une probabilité modèle est disponible (signal.pImpl) ;
-// sinon mise = 0, à renseigner par l'utilisateur sur /paris. localStorage aujourd'hui → Supabase en W3.
+// Bouton « Je suis ce pick » — ajoute le pari à « Mes Paris » (Supabase si connecté, localStorage sinon).
+// La mise est vide (saisie par l'utilisateur sur /paris). Une fois ajouté, devient un lien vers /paris.
 export default function FollowPickButton({ signal }: { signal: Signal }) {
-  const [state, setState] = useState<'idle' | 'saved' | 'error'>(
-    () => (alreadyAdded(signal) ? 'saved' : 'idle'),
-  )
+  const [state, setState] = useState<'idle' | 'saved' | 'error'>('idle')
 
-  function handle(e: React.MouseEvent) {
+  useEffect(() => {
+    let active = true
+    isAdded(signal).then(added => { if (active && added) setState('saved') })
+    return () => { active = false }
+  }, [signal])
+
+  async function handle(e: React.MouseEvent) {
     e.preventDefault()
     try {
-      if (!alreadyAdded(signal)) {
+      if (!(await isAdded(signal))) {
         const cote = signal.coteRef ?? 2.0
-        // proba estimée : modèle si dispo (pImpl), sinon proba implicite de la cote
         const prob = signal.pImpl != null
           ? Math.round(signal.pImpl * 100)
           : parseFloat((100 / cote).toFixed(1))
-        savePari({
+        await savePari({
           match: signal.match,
           competition: signal.tournament ?? signal.sport,
           typePari: mapType(signal.typePari),
@@ -47,7 +49,7 @@ export default function FollowPickButton({ signal }: { signal: Signal }) {
           statut: 'en_cours',
         })
       }
-      setState(alreadyAdded(signal) ? 'saved' : 'error')
+      setState((await isAdded(signal)) ? 'saved' : 'error')
     } catch (err) {
       console.error('[FollowPick] échec ajout à Mes Paris', err)
       setState('error')
