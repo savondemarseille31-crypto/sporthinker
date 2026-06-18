@@ -1,42 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { verifySessionToken, COOKIE_NAME } from '@/lib/auth'
+import { type NextRequest, NextResponse } from 'next/server'
+import { updateSession } from '@/lib/supabase/middleware'
 
-const PICKS_COOKIE = 'st_picks'
+// Routes internes réservées (le contrôle fin du rôle 'admin' est fait dans les layouts).
+const PROTECTED = ['/admin', '/api/stake', '/selections']
 
 export async function middleware(request: NextRequest) {
+  // Rafraîchit la session Supabase à chaque requête et récupère l'utilisateur.
+  const { response, user } = await updateSession(request)
   const { pathname } = request.nextUrl
-  const secret = process.env.SESSION_SECRET
 
-  // ── Admin (/admin, /api/stake) ────────────────────────────────────────────
-  const isAdmin = pathname.startsWith('/admin') || pathname.startsWith('/api/stake')
-  if (isAdmin) {
-    if (pathname === '/admin/login') return NextResponse.next()
-    if (!secret) return NextResponse.json({ error: 'Configuration serveur incomplète' }, { status: 500 })
-    const token = request.cookies.get(COOKIE_NAME)?.value
-    if (!token || !(await verifySessionToken(token, secret))) {
-      const url = new URL('/admin/login', request.url)
-      url.searchParams.set('from', pathname)
-      return NextResponse.redirect(url)
-    }
-    return NextResponse.next()
+  const isProtected = PROTECTED.some(p => pathname.startsWith(p))
+  if (isProtected && !user) {
+    const url = new URL('/login', request.url)
+    url.searchParams.set('next', pathname)
+    return NextResponse.redirect(url)
   }
 
-  // ── Sélections (/selections) ──────────────────────────────────────────────
-  if (pathname.startsWith('/selections')) {
-    if (pathname === '/selections/login') return NextResponse.next()
-    if (!secret) return NextResponse.json({ error: 'Configuration serveur incomplète' }, { status: 500 })
-    const token = request.cookies.get(PICKS_COOKIE)?.value
-    if (!token || !(await verifySessionToken(token, secret))) {
-      const url = new URL('/selections/login', request.url)
-      url.searchParams.set('from', pathname)
-      return NextResponse.redirect(url)
-    }
-    return NextResponse.next()
-  }
-
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/stake/:path*', '/selections/:path*'],
+  // Toutes les routes sauf les assets statiques (pour rafraîchir la session partout).
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)'],
 }

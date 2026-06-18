@@ -2,7 +2,70 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Header from '@/components/Header'
-import { getParis, getBankroll, calcStats, type Pari, type Bankroll, saveBankroll } from '@/lib/paris-store'
+import { getParis, getBankroll, calcStats, updatePari, type Pari, type Bankroll, saveBankroll } from '@/lib/paris-store'
+
+// Sanitise une saisie de montant : uniquement chiffres + virgule (max 2 décimales).
+// Stocké comme NOMBRE → aucune chaîne arbitraire ne peut être injectée.
+function sanitizeMise(raw: string): string {
+  let s = raw.replace(/[^\d.,]/g, '').replace(/\./g, ',')
+  const i = s.indexOf(',')
+  if (i !== -1) s = s.slice(0, i + 1) + s.slice(i + 1).replace(/,/g, '').slice(0, 2)
+  return s
+}
+function miseToNumber(s: string): number {
+  const n = parseFloat(s.replace(',', '.'))
+  return Number.isFinite(n) && n >= 0 ? parseFloat(n.toFixed(2)) : 0
+}
+
+function MiseInput({ pari, devise, onCommit }: { pari: Pari; devise: string; onCommit: () => void }) {
+  const [val, setVal] = useState(pari.mise ? String(pari.mise).replace('.', ',') : '')
+  function commit() {
+    updatePari(pari.id, { mise: miseToNumber(val) })
+    onCommit()
+  }
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        type="text"
+        inputMode="decimal"
+        value={val}
+        onChange={e => setVal(sanitizeMise(e.target.value))}
+        onBlur={commit}
+        onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+        placeholder="0"
+        maxLength={12}
+        aria-label="Montant misé"
+        className="w-20 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-right text-white focus:outline-none focus:border-emerald-500"
+      />
+      <span className="text-sm text-gray-400">{devise}</span>
+    </div>
+  )
+}
+
+function CoteInput({ pari, onCommit }: { pari: Pari; onCommit: () => void }) {
+  const [val, setVal] = useState(String(pari.coteStake).replace('.', ','))
+  function commit() {
+    const n = parseFloat(val.replace(',', '.'))
+    const valid = Number.isFinite(n) && n >= 1.01 // une cote décimale est toujours > 1
+    if (valid) updatePari(pari.id, { coteStake: parseFloat(n.toFixed(2)) })
+    // re-formate l'affichage (revert si saisie invalide)
+    setVal(String(valid ? parseFloat(n.toFixed(2)) : pari.coteStake).replace('.', ','))
+    if (valid) onCommit()
+  }
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={val}
+      onChange={e => setVal(sanitizeMise(e.target.value))}
+      onBlur={commit}
+      onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+      maxLength={7}
+      aria-label="Cote réelle"
+      className="w-16 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-right text-white focus:outline-none focus:border-emerald-500"
+    />
+  )
+}
 
 export default function ParisPage() {
   const [paris, setParis] = useState<Pari[]>([])
@@ -14,6 +77,8 @@ export default function ParisPage() {
     setParis(getParis())
     setBankroll(getBankroll())
   }, [])
+
+  const refresh = () => setParis(getParis())
 
   const stats = calcStats(paris)
   const roiColor = stats.roi >= 0 ? 'text-emerald-400' : 'text-red-400'
@@ -150,10 +215,17 @@ export default function ParisPage() {
                 <div key={pari.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-xl">
                   <div>
                     <p className="font-semibold text-sm">{pari.selection}</p>
-                    <p className="text-xs text-gray-400">{pari.match} · Cote {pari.coteStake}</p>
+                    <p className="text-xs text-gray-400">{pari.match}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <p className="text-sm font-bold">{pari.mise}{bankroll.devise}</p>
+                    {pari.statut === 'en_cours' ? (
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1 text-xs text-gray-400">Cote <CoteInput pari={pari} onCommit={refresh} /></span>
+                        <MiseInput pari={pari} devise={bankroll.devise} onCommit={refresh} />
+                      </div>
+                    ) : (
+                      <p className="text-sm font-bold">Cote {pari.coteStake} · {pari.mise}{bankroll.devise}</p>
+                    )}
                     <span className={`text-xs font-bold px-2 py-1 rounded-full ${
                       pari.statut === 'gagné' ? 'bg-emerald-500/20 text-emerald-400' :
                       pari.statut === 'perdu' ? 'bg-red-500/20 text-red-400' :

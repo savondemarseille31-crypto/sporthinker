@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import Header from '@/components/Header'
 import SignauxFilter from '@/components/SignauxFilter'
+import FollowPickButton from '@/components/FollowPickButton'
 import { getSchedule, getStandings, getPitcherSeasonStats } from '@/lib/mlb-api'
 import { generateMLBSignal, type Signal, type SignalForce } from '@/lib/signals'
 import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
@@ -174,12 +175,15 @@ function SignalCard({ signal }: { signal: Signal }) {
       </div>
 
       {/* CTA */}
-      <Link
-        href={signal.lienCalculateur}
-        className="mt-auto flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
-      >
-        {ctaLabel(signal.sport)}
-      </Link>
+      <div className="mt-auto flex flex-col gap-2">
+        <FollowPickButton signal={signal} />
+        <Link
+          href={signal.lienCalculateur}
+          className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
+        >
+          {ctaLabel(signal.sport)}
+        </Link>
+      </div>
     </div>
   )
 }

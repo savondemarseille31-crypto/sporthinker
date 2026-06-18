@@ -34,6 +34,13 @@ export type TrackerStats = {
 
 const KEY = 'sporthinker_signal_tracker'
 
+// UUID robuste : crypto.randomUUID n'existe que dans un contexte sécurisé (https/localhost).
+// Fallback pour les accès via IP réseau (http://192.168.x.x) où il est indisponible.
+function uid(): string {
+  try { if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID() } catch { /* noop */ }
+  return `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 export function getTrackedSignals(): TrackedSignal[] {
   if (typeof window === 'undefined') return []
   try { return JSON.parse(localStorage.getItem(KEY) ?? '[]') }
@@ -48,7 +55,7 @@ export function saveTrackedSignal(signal: Signal, cote: number): TrackedSignal |
   if (isAlreadyTracked(signal.id, signal.date)) return null
   const signals = getTrackedSignals()
   const tracked: TrackedSignal = {
-    id: crypto.randomUUID(),
+    id: uid(),
     signalId: signal.id,
     savedAt: new Date().toISOString(),
     date: signal.date,
@@ -72,7 +79,7 @@ export function saveTrackedSignalRaw(
   const signals = getTrackedSignals()
   const tracked: TrackedSignal = {
     ...data,
-    id: crypto.randomUUID(),
+    id: uid(),
     savedAt: new Date().toISOString(),
   }
   localStorage.setItem(KEY, JSON.stringify([tracked, ...signals]))

@@ -1,5 +1,4 @@
 import Header from '@/components/Header'
-import LogoutButton from '@/components/LogoutButton'
 
 export default function AdminPage() {
   return (
@@ -12,7 +11,6 @@ export default function AdminPage() {
             <h1 className="text-4xl font-bold mb-1">🔐 Admin</h1>
             <p className="text-gray-400">Zone privée — configuration et intégrations</p>
           </div>
-          <LogoutButton />
         </div>
 
         <div className="space-y-4">
@@ -36,7 +34,7 @@ export default function AdminPage() {
           {/* Infos session */}
           <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-5">
             <p className="text-xs text-gray-600">
-              Session sécurisée · Cookie httpOnly · Expiration automatique dans 7 jours
+              Accès réservé aux comptes administrateurs · session gérée par Supabase (déconnexion via le menu en haut à droite).
             </p>
           </div>
         </div>

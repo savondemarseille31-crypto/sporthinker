@@ -133,6 +133,12 @@ export function calcStats(paris: Pari[]) {
 const KEY_PARIS = 'sporthinker_paris'
 const KEY_BANKROLL = 'sporthinker_bankroll'
 
+// UUID robuste (crypto.randomUUID requiert un contexte sécurisé : https/localhost)
+function uid(): string {
+  try { if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID() } catch { /* noop */ }
+  return `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 export function getParis(): Pari[] {
   if (typeof window === 'undefined') return []
   try {
@@ -144,7 +150,7 @@ export function savePari(pari: Omit<Pari, 'id' | 'createdAt'>): Pari {
   const paris = getParis()
   const nouveau: Pari = {
     ...pari,
-    id: crypto.randomUUID(),
+    id: uid(),
     createdAt: new Date().toISOString(),
   }
   localStorage.setItem(KEY_PARIS, JSON.stringify([nouveau, ...paris]))

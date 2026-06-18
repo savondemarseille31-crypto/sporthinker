@@ -1,8 +1,9 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Logo from './Logo'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 type DropdownItem = { href: string; label: string }
 
@@ -80,6 +81,22 @@ function NavDropdown({
 
 export default function Header() {
   const path = usePathname()
+  const router = useRouter()
+  const [email, setEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient()
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null))
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setEmail(session?.user?.email ?? null))
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
+  async function signOut() {
+    const supabase = createSupabaseBrowserClient()
+    await supabase.auth.signOut()
+    setEmail(null)
+    router.refresh()
+  }
 
   const navItem = (href: string, label: string) => {
     const isActive = path.startsWith(href)
@@ -101,7 +118,8 @@ export default function Header() {
   return (
     <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
       <Link href="/"><Logo /></Link>
-      <nav className="flex gap-6 text-sm">
+      <div className="flex items-center gap-4 md:gap-6">
+      <nav className="flex gap-4 md:gap-6 text-sm items-center">
         <NavDropdown
           label="⚡ Conseils du jour"
           isActive={path.startsWith('/signaux')}
@@ -110,6 +128,7 @@ export default function Header() {
             { href: '/signaux?tab=values', label: '💰 Values'   },
           ]}
         />
+        {navItem('/performance', '📈 Performance')}
         <NavDropdown
           label="⚽ Foot"
           isActive={isFootActive}
@@ -138,6 +157,18 @@ export default function Header() {
         {navItem('/paris', '💰 Mes Paris')}
         {navItem('/suivi', '📊 Suivi')}
       </nav>
+      {email ? (
+        <div className="flex items-center gap-3 text-sm">
+          <span className="hidden md:inline max-w-[140px] truncate text-gray-400">{email}</span>
+          <button onClick={signOut} className="text-gray-400 hover:text-emerald-400 transition-colors">Déconnexion</button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3 text-sm">
+          <Link href="/login" className="text-gray-400 hover:text-emerald-400 transition-colors">Connexion</Link>
+          <Link href="/signup" className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold px-3 py-1.5 rounded-lg transition-colors">Inscription</Link>
+        </div>
+      )}
+      </div>
     </header>
   )
 }
