@@ -18,7 +18,9 @@ export type TrackEntry = {
   cote: number
   resultat: TrackResult
   tier: 'signal' | 'value'
-  confiance: 'fort' | 'modéré' | 'à surveiller' | null
+  // Niveau de confiance : forces des signaux (fort/modéré/à surveiller)
+  // OU niveaux de value (excellent/bon/interessant). null = non catégorisé.
+  confiance: string | null
 }
 
 export type TrackStats = {
@@ -65,8 +67,8 @@ export function bySport(entries: TrackEntry[]): Record<string, TrackEntry[]> {
   }, {})
 }
 
-// Ordre d'affichage des niveaux de confiance (force)
-export const CONF_ORDER = ['fort', 'modéré', 'à surveiller'] as const
+// Ordre d'affichage des niveaux de confiance (forces de signaux + niveaux de value)
+export const CONF_ORDER = ['fort', 'modéré', 'à surveiller', 'excellent', 'bon', 'interessant'] as const
 
 export function byConfidence(entries: TrackEntry[]): Record<string, TrackEntry[]> {
   return entries.reduce<Record<string, TrackEntry[]>>((acc, e) => {

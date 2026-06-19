@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import Header from '@/components/Header'
 import {
   getTrackRecord,
@@ -8,6 +9,9 @@ import {
   type TrackEntry,
   type TrackStats,
 } from '@/lib/track-record'
+import { getSelectionsTrackEntries } from '@/lib/track-record/selections'
+
+export const dynamic = 'force-dynamic' // lit Supabase (sélections) — jamais prérendu au build
 
 export const metadata = {
   title: 'Performance — track record public',
@@ -26,19 +30,24 @@ function fmtPct(p: number): string {
   return `${p >= 0 ? '+' : ''}${p.toFixed(1)} %`
 }
 function fmtDate(d: string): string {
-  const [y, m, day] = d.split('-')
-  return `${day}/${m}/${y.slice(2)}`
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d)
+  if (!m) return d // format non-ISO (ex. sélections) → affiché tel quel
+  return `${m[3]}/${m[2]}/${m[1].slice(2)}`
 }
 
-function ForceBadge({ c }: { c: TrackEntry['confiance'] }) {
+const CONF_META: Record<string, { label: string; cls: string }> = {
+  'fort':         { label: '⚡ Fort',                cls: 'bg-emerald-500/15 text-emerald-400' },
+  'modéré':       { label: '🔶 Modéré',             cls: 'bg-yellow-500/15 text-yellow-400' },
+  'à surveiller': { label: '👁 À surveiller',        cls: 'bg-gray-700 text-gray-400' },
+  'excellent':    { label: '⚡ Excellent (>8%)',     cls: 'bg-emerald-500/15 text-emerald-400' },
+  'bon':          { label: '✅ Bon (5-8%)',          cls: 'bg-blue-500/15 text-blue-400' },
+  'interessant':  { label: '🔍 Intéressant (3-5%)',  cls: 'bg-yellow-500/15 text-yellow-400' },
+}
+
+function ForceBadge({ c }: { c: string | null }) {
   if (!c) return <span className="text-xs text-gray-600">—</span>
-  const cls = c === 'fort'
-    ? 'bg-emerald-500/15 text-emerald-400'
-    : c === 'modéré'
-      ? 'bg-yellow-500/15 text-yellow-400'
-      : 'bg-gray-700 text-gray-400'
-  const label = c === 'fort' ? '⚡ Fort' : c === 'modéré' ? '🔶 Modéré' : '👁 À surveiller'
-  return <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>{label}</span>
+  const m = CONF_META[c] ?? { label: c, cls: 'bg-gray-700 text-gray-400' }
+  return <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${m.cls}`}>{m.label}</span>
 }
 
 function KpiCard({ label, value, color = 'text-white' }: {
@@ -168,10 +177,17 @@ function BetsByConfidence({ entries }: { entries: TrackEntry[] }) {
   )
 }
 
-export default function PerformancePage() {
-  const all = getTrackRecord()
-  const global = computeStats(all)
-  const sports = bySport(all)
+export default async function PerformancePage() {
+  let selections: TrackEntry[] = []
+  try { selections = await getSelectionsTrackEntries() } catch { /* Supabase indispo — on garde l'historique MLB */ }
+  const all = [...getTrackRecord(), ...selections]
+  // Tennis : échantillon encore trop court / variance trop élevée pour publier un yield
+  // représentatif (cf. audit). On l'exclut des chiffres publics, on affiche un message
+  // « en construction » à la place. Les signaux tennis restent dispo dans /signaux.
+  const published = all.filter(e => e.sport !== 'Tennis')
+  const tennisCount = all.length - published.length
+  const global = computeStats(published)
+  const sports = bySport(published)
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -224,6 +240,24 @@ export default function PerformancePage() {
           </section>
           )
         })}
+
+        {tennisCount > 0 && (
+          <section className="mb-10">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold mb-1">🎾 Tennis — track record en construction 🚧</h2>
+                <p className="text-sm text-gray-400 max-w-2xl">
+                  On accumule actuellement les données sur le tennis ({tennisCount} paris suivis). L&apos;échantillon est encore
+                  trop court — et à variance élevée — pour communiquer un rendement représentatif. Par souci de transparence,
+                  on publiera les chiffres tennis seulement quand ils seront solides. Les <span className="text-gray-300">signaux tennis restent disponibles</span> dès aujourd&apos;hui.
+                </p>
+              </div>
+              <Link href="/signaux?tab=tennis" className="shrink-0 text-sm font-semibold text-emerald-400 hover:text-emerald-300">
+                Voir les signaux tennis →
+              </Link>
+            </div>
+          </section>
+        )}
       </div>
     </main>
   )
