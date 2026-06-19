@@ -98,7 +98,7 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section className="px-6 py-12 max-w-4xl mx-auto">
+      <section id="tarifs" className="px-6 py-12 max-w-4xl mx-auto scroll-mt-20">
         <h2 className="text-2xl font-bold text-center mb-2">Tarifs</h2>
         <p className="text-sm text-gray-500 text-center mb-10">Commencez gratuitement. Sans engagement.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -124,8 +124,8 @@ export default function Home() {
               <li>✓ Toutes les values (EV)</li>
               <li>✓ Suivi personnel synchronisé</li>
             </ul>
-            <Link href="/signaux" className="block text-center bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2.5 rounded-xl transition-colors">
-              Commencer gratuitement
+            <Link href="/signup?plan=premium" className="block text-center bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2.5 rounded-xl transition-colors">
+              Je m&apos;abonne
             </Link>
           </div>
         </div>

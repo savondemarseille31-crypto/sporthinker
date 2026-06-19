@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import Header from '@/components/Header'
 import SignauxFilter from '@/components/SignauxFilter'
 import FollowPickButton from '@/components/FollowPickButton'
+import { getEntitlement } from '@/lib/entitlement'
 import { getSchedule, getStandings, getPitcherSeasonStats } from '@/lib/mlb-api'
 import { generateMLBSignal, type Signal, type SignalForce } from '@/lib/signals'
 import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
@@ -188,6 +189,44 @@ function SignalCard({ signal }: { signal: Signal }) {
   )
 }
 
+// ---- Carte verrouillée (paywall) : badges visibles, contenu flouté + CTA Premium ----
+function LockedSignalCard({ signal }: { signal: Signal }) {
+  const cfg = forceConfig(signal.force)
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cfg.badge}`}>
+          <span className={`inline-block w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1 align-middle`} />
+          {cfg.label}
+        </span>
+        <span className={`text-xs px-2 py-0.5 rounded-full bg-gray-800 ${sportBadge(signal.sport).className}`}>
+          {sportBadge(signal.sport).label}
+        </span>
+      </div>
+      <div className="blur-sm select-none pointer-events-none" aria-hidden>
+        <p className="text-sm text-gray-400 mb-1">██████████ vs ██████████</p>
+        <div className="mt-2 bg-gray-800 rounded-xl px-4 py-3">
+          <p className="text-xs text-gray-500 mb-0.5">Pari recommandé</p>
+          <p className="text-base font-bold text-white">████████████████</p>
+          <p className="text-xs text-gray-500 mt-0.5">Cote ████</p>
+        </div>
+        <p className="text-sm text-gray-500 mt-3">████████████████████████████████████</p>
+      </div>
+      <Link
+        href="/signup?plan=premium"
+        className="mt-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-bold py-2.5 rounded-xl transition-colors"
+      >
+        🔒 Débloquer avec Premium
+      </Link>
+    </div>
+  )
+}
+
+// Affiche la carte complète si débloquée, sinon la version verrouillée
+function CardOrLock({ signal, unlocked }: { signal: Signal; unlocked: boolean }) {
+  return unlocked ? <SignalCard signal={signal} /> : <LockedSignalCard signal={signal} />
+}
+
 // ---- Enrichissement coteRef + cotes décimales (Pinnacle via The Odds API) ----
 function addCoteRef(signals: Signal[], oddsMap: Partial<Record<Signal['sport'], OddsEvent[]>>): Signal[] {
   return signals.map(signal => {
@@ -359,6 +398,15 @@ export default async function SignauxPage() {
   const moderésCount    = signauxSignals.filter(s => s.force === 'modéré').length
   const surveillerCount = signauxSignals.filter(s => s.force === 'à surveiller').length
 
+  // Paywall (W5) — premium = admin pour l'instant (W4 ajoutera l'abonnement Stripe).
+  // Non-premium : 1 signal modéré révélé gratuitement, le reste verrouillé ; values 100% premium.
+  const { premium } = await getEntitlement()
+  const freePickId = premium ? undefined : (
+    signauxSignals.find(s => s.force === 'modéré')
+    ?? signauxSignals.find(s => s.force === 'à surveiller')
+    ?? signauxSignals[0]
+  )?.id
+
   return (
     <main className="min-h-screen bg-gray-950 text-white">
       <Header />
@@ -407,6 +455,18 @@ export default async function SignauxPage() {
           </div>
         </div>
 
+        {!premium && (
+          <div className="mb-8 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="font-bold text-white mb-1">🔒 {fortsCount} signaux forts · {moderésCount} modérés · {valueSignals.length} values verrouillés</p>
+              <p className="text-sm text-gray-400">Tu vois 1 signal gratuit aujourd&apos;hui. Débloque tout (tous sports + values) avec Premium.</p>
+            </div>
+            <Link href="/signup?plan=premium" className="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-3 rounded-xl text-sm transition-colors text-center">
+              Passe Premium →
+            </Link>
+          </div>
+        )}
+
         <Suspense fallback={<div className="h-12 bg-gray-900 rounded-2xl animate-pulse mb-8" />}>
         <SignauxFilter
           counts={{
@@ -427,7 +487,7 @@ export default async function SignauxPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {signauxSignals.filter(s => s.force === 'fort').slice(0, 3).map(s => (
-                  <SignalCard key={`top-${s.id}`} signal={s} />
+                  <CardOrLock key={`top-${s.id}`} signal={s} unlocked={premium || s.id === freePickId} />
                 ))}
               </div>
               {signauxSignals.filter(s => s.force === 'fort').length > 3 && (
@@ -451,7 +511,7 @@ export default async function SignauxPage() {
               </div>
               {tennisSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {tennisSignauxOnly.map(s => <SignalCard key={s.id} signal={s} />)}
+                  {tennisSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -478,7 +538,7 @@ export default async function SignauxPage() {
               </div>
               {mlbSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {mlbSignauxOnly.map(s => <SignalCard key={s.id} signal={s} />)}
+                  {mlbSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
 
                 </div>
               ) : (
@@ -510,7 +570,7 @@ export default async function SignauxPage() {
               </div>
               {cdmSignauxOnly.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {cdmSignauxOnly.map(s => <SignalCard key={s.id} signal={s} />)}
+                  {cdmSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -533,7 +593,7 @@ export default async function SignauxPage() {
               </div>
               {mlsSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {mlsSignauxOnly.map(s => <SignalCard key={s.id} signal={s} />)}
+                  {mlsSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -560,7 +620,7 @@ export default async function SignauxPage() {
               </div>
               {nbaSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {nbaSignauxOnly.map(s => <SignalCard key={s.id} signal={s} />)}
+                  {nbaSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
@@ -584,7 +644,7 @@ export default async function SignauxPage() {
               </div>
               {valueSignals.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {valueSignals.map(s => <SignalCard key={`val-${s.id}`} signal={s} />)}
+                  {valueSignals.map(s => <CardOrLock key={`val-${s.id}`} signal={s} unlocked={premium} />)}
                 </div>
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
