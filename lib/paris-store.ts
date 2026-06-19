@@ -19,6 +19,8 @@ export type Pari = {
   statut: StatutPari
   gain?: number          // gain net (positif ou négatif)
   notes?: string
+  sport?: string         // sport (pour l'auto-soldage) : MLB, Tennis, NBA, MLS, CdM
+  dateMatch?: string     // date du match YYYY-MM-DD (pour récupérer le résultat)
 }
 
 export type Bankroll = {
@@ -157,6 +159,8 @@ function rowToPari(r: any): Pari {
     statut: (r.statut ?? 'en_cours') as StatutPari,
     gain: r.gain != null ? Number(r.gain) : undefined,
     notes: r.notes ?? undefined,
+    sport: r.sport ?? undefined,
+    dateMatch: r.match_date ?? undefined,
   }
 }
 function pariToRow(p: Partial<Pari>): Record<string, unknown> {
@@ -171,6 +175,8 @@ function pariToRow(p: Partial<Pari>): Record<string, unknown> {
   if (p.statut !== undefined)       row.statut = p.statut
   if (p.gain !== undefined)         row.gain = p.gain
   if (p.notes !== undefined)        row.notes = p.notes
+  if (p.sport !== undefined)        row.sport = p.sport
+  if (p.dateMatch !== undefined)    row.match_date = p.dateMatch
   return row
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */

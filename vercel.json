@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/validate-selections",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/settle-bets",
+      "schedule": "30 6 * * *"
     }
   ]
 }

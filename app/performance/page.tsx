@@ -216,6 +216,26 @@ export default async function PerformancePage() {
           </p>
         </div>
 
+        {/* Légende — comprendre les niveaux */}
+        <div className="mb-8 bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <p className="font-semibold text-white mb-3">Comprendre les niveaux de signal</p>
+          <ul className="space-y-2 text-sm text-gray-400">
+            <li className="flex gap-2 items-start">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 shrink-0">⚡ Fort</span>
+              <span><span className="text-gray-200 font-medium">Nos meilleurs picks.</span> Écart statistique significatif (ERA/WHIP, classement Elo, xG) — c&apos;est là que se concentre l&apos;edge.</span>
+            </li>
+            <li className="flex gap-2 items-start">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 shrink-0">🔶 Modéré</span>
+              <span>Avantage réel détecté, mais le match reste incertain.</span>
+            </li>
+            <li className="flex gap-2 items-start">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-700 text-gray-400 shrink-0">👁 À surveiller</span>
+              <span>Match intéressant à confiance plus faible — à jouer avec prudence.</span>
+            </li>
+          </ul>
+          <p className="text-xs text-gray-600 mt-3">Chaque niveau est suivi <span className="text-gray-400">séparément</span> ci-dessous, par sport, pour une transparence totale.</p>
+        </div>
+
         {/* Stats globales */}
         <section className="mb-10">
           <h2 className="text-xl font-bold mb-4">Global</h2>

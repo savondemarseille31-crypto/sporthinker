@@ -47,6 +47,8 @@ export default function FollowPickButton({ signal }: { signal: Signal }) {
           probEstimee: prob,
           mise: 0, // l'utilisateur saisit lui-même le montant sur /paris
           statut: 'en_cours',
+          sport: signal.sport,
+          dateMatch: signal.date,
         })
       }
       setState((await isAdded(signal)) ? 'saved' : 'error')
