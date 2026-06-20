@@ -10,6 +10,7 @@ import {
   type TrackStats,
 } from '@/lib/track-record'
 import { getSelectionsTrackEntries } from '@/lib/track-record/selections'
+import { getSignalHistoryTrackEntries } from '@/lib/track-record/signal-history'
 
 export const dynamic = 'force-dynamic' // lit Supabase (sélections) — jamais prérendu au build
 
@@ -180,7 +181,9 @@ function BetsByConfidence({ entries }: { entries: TrackEntry[] }) {
 export default async function PerformancePage() {
   let selections: TrackEntry[] = []
   try { selections = await getSelectionsTrackEntries() } catch { /* Supabase indispo — on garde l'historique MLB */ }
-  const all = [...getTrackRecord(), ...selections]
+  let signalHistory: TrackEntry[] = []
+  try { signalHistory = await getSignalHistoryTrackEntries() } catch { /* idem */ }
+  const all = [...getTrackRecord(), ...selections, ...signalHistory]
   // Tennis : échantillon encore trop court / variance trop élevée pour publier un yield
   // représentatif (cf. audit). On l'exclut des chiffres publics, on affiche un message
   // « en construction » à la place. Les signaux tennis restent dispo dans /signaux.

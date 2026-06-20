@@ -4,16 +4,8 @@ import Header from '@/components/Header'
 import SignauxFilter from '@/components/SignauxFilter'
 import FollowPickButton from '@/components/FollowPickButton'
 import { getEntitlement } from '@/lib/entitlement'
-import { getSchedule, getStandings, getPitcherSeasonStats } from '@/lib/mlb-api'
-import { generateMLBSignal, type Signal, type SignalForce } from '@/lib/signals'
-import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
-import { getCdMUpcomingWithOdds, type ESPNCdMOdds } from '@/lib/espn-api'
-import { generateNBASignalsForToday } from '@/lib/nba-signals'
-import { generateFootballSignalsForToday, generateCdMSignalsForMatch } from '@/lib/football-signals'
-import { LEAGUES } from '@/lib/api-football'
-import { generateTennisSignalsForToday } from '@/lib/tennis-signals'
-import { generateMLSSignalsForToday } from '@/lib/mls-signals'
-import { getMLBOdds, getCdMOdds, getNBAOdds, getTennisOdds, getMLSOdds, findEvent, extractRealOdds, devigFromEvent, type OddsEvent } from '@/lib/odds-api'
+import { type Signal, type SignalForce } from '@/lib/signals'
+import { getTodaySignals } from '@/lib/signals/today'
 
 export const revalidate = 300 // 5 min — signaux MLB + CdM + Tennis
 
@@ -227,165 +219,10 @@ function CardOrLock({ signal, unlocked }: { signal: Signal; unlocked: boolean })
   return unlocked ? <SignalCard signal={signal} /> : <LockedSignalCard signal={signal} />
 }
 
-// ---- Enrichissement coteRef + cotes décimales (Pinnacle via The Odds API) ----
-function addCoteRef(signals: Signal[], oddsMap: Partial<Record<Signal['sport'], OddsEvent[]>>): Signal[] {
-  return signals.map(signal => {
-    const events = oddsMap[signal.sport] ?? []
-    if (!events.length) return signal
-    const parts = signal.match.split(' vs ')
-    if (parts.length < 2) return signal
-    const [t1, t2] = parts.map(p => p.trim())
-    const event = findEvent(events, t1, t2)
-    if (!event) return signal
-    const realOdds = extractRealOdds(event, signal.typePari, signal.pari)
-    if (!realOdds) return signal
-    return {
-      ...signal,
-      coteRef: realOdds.cote,
-      odds: {
-        home:      realOdds.home,
-        draw:      realOdds.draw,
-        away:      realOdds.away,
-        ou:        realOdds.ligne,
-        bookmaker: realOdds.bookmaker,
-      },
-    }
-  })
-}
-
-// ---- Match ESPN odds to CdM signal by team name ----
-function enrichSignalWithOdds(signal: Signal, espnOdds: ESPNCdMOdds[]): Signal {
-  // Try to match by team abbreviation or display name
-  const matchingOdds = espnOdds.find(odds => {
-    const homeMatch =
-      signal.match.toLowerCase().includes(odds.homeDisplayName.toLowerCase()) ||
-      signal.match.toLowerCase().includes(odds.homeTeam.toLowerCase())
-    const awayMatch =
-      signal.match.toLowerCase().includes(odds.awayDisplayName.toLowerCase()) ||
-      signal.match.toLowerCase().includes(odds.awayTeam.toLowerCase())
-    return homeMatch && awayMatch
-  })
-
-  if (!matchingOdds || !matchingOdds.hasOdds) return signal
-
-  return {
-    ...signal,
-    odds: {
-      homeMoneyLine: matchingOdds.homeMoneyLine,
-      awayMoneyLine: matchingOdds.awayMoneyLine,
-      overUnder: matchingOdds.overUnder,
-      spread: matchingOdds.spread || undefined,
-      provider: 'DraftKings',
-    },
-  }
-}
-
 // ---- Page ----
 export default async function SignauxPage() {
-  // 1. Fetch everything in parallel
-  const [games, standings, espnCdMOdds, nbaSignals, liveFootballSignals, tennisSignals, mlsSignals, mlbOdds, cdmOdds, nbaOdds, tennisOdds, mlsOdds] = await Promise.all([
-    getSchedule(),
-    getStandings(),
-    getCdMUpcomingWithOdds(14),
-    generateNBASignalsForToday().catch(() => [] as Signal[]),
-    generateFootballSignalsForToday(LEAGUES.WORLD_CUP, 2026).catch(() => [] as Signal[]),
-    generateTennisSignalsForToday().catch(() => [] as Signal[]),
-    generateMLSSignalsForToday().catch(() => [] as Signal[]),
-    getMLBOdds().catch(() => [] as OddsEvent[]),
-    getCdMOdds().catch(() => [] as OddsEvent[]),
-    getNBAOdds().catch(() => [] as OddsEvent[]),
-    getTennisOdds().catch(() => [] as OddsEvent[]),
-    getMLSOdds().catch(() => [] as OddsEvent[]),
-  ])
-
-  const oddsMap: Partial<Record<Signal['sport'], OddsEvent[]>> = {
-    MLB:    mlbOdds,
-    CdM:    cdmOdds,
-    NBA:    nbaOdds,
-    Tennis: tennisOdds,
-    MLS:    mlsOdds,
-  }
-
-  const previewGames = games.filter(g => g.status.abstractGameState === 'Preview')
-
-  // Construire la map teamId → RPG depuis les standings
-  const teamRPG: Record<number, number> = {}
-  for (const div of standings) {
-    for (const rec of div.teamRecords) {
-      const gp = rec.wins + rec.losses
-      if (gp > 0 && rec.runsScored) {
-        teamRPG[rec.team.id] = rec.runsScored / gp
-      }
-    }
-  }
-
-  // 2. Générer les signaux MLB
-  const rawMlbSignals = (
-    await Promise.all(
-      previewGames.map(async (game) => {
-        const homePitcherId = game.teams.home.probablePitcher?.id
-        const awayPitcherId = game.teams.away.probablePitcher?.id
-        const [homeStats, awayStats] = await Promise.all([
-          homePitcherId ? getPitcherSeasonStats(homePitcherId) : Promise.resolve(null),
-          awayPitcherId ? getPitcherSeasonStats(awayPitcherId) : Promise.resolve(null),
-        ])
-        return generateMLBSignal(game, homeStats, awayStats, teamRPG)
-      })
-    )
-  ).filter(Boolean) as Signal[]
-  const mlbSignals = addCoteRef(rawMlbSignals, oddsMap)
-
-  // 3. Signaux CdM — Dixon-Coles ELO pour les 14 prochains jours
-  const cdmToday = new Date()
-  const cdmLimit = new Date(cdmToday)
-  cdmLimit.setDate(cdmToday.getDate() + 14)
-  const upcomingFixtures = CDM_FIXTURES
-    .filter(f => { const d = new Date(`${f.date}T12:00:00`); return d >= cdmToday && d <= cdmLimit })
-    .slice(0, 12)
-  const rawCdMSignals = upcomingFixtures.flatMap(f => {
-    const ev = cdmOdds.length ? findEvent(cdmOdds, f.domicile, f.exterieur) : null
-    return generateCdMSignalsForMatch({
-      id: f.id, date: f.date, heure: f.heure, domicile: f.domicile, exterieur: f.exterieur,
-      devigged: ev ? devigFromEvent(ev, f.domicile, f.exterieur) : undefined,
-    })
-  })
-  const staticCdmSignals = rawCdMSignals.map(s => enrichSignalWithOdds(s, espnCdMOdds))
-  const cdmSignals = addCoteRef([...liveFootballSignals, ...staticCdmSignals], oddsMap)
-
-  // 4. Trier chaque groupe par force
-  const forceOrder: Record<SignalForce, number> = { fort: 0, modéré: 1, 'à surveiller': 2 }
-  const sortByForce = (arr: Signal[]) => [...arr].sort((a, b) => forceOrder[a.force] - forceOrder[b.force])
-
-  const enrichedTennis = addCoteRef(tennisSignals, oddsMap)
-  const enrichedNBA    = addCoteRef(nbaSignals,    oddsMap)
-  const enrichedMLS    = addCoteRef(mlsSignals,    oddsMap)
-
-  // Tous les signaux (les deux tiers)
-  const allSignals = sortByForce([...mlbSignals, ...enrichedMLS, ...enrichedNBA, ...cdmSignals, ...enrichedTennis])
-
-  // Un signal est une "value" si tagué par le moteur (CdM Dixon-Coles) ou si EV > 3% confirmé par les cotes
-  const isValue = (s: Signal) =>
-    s.tier === 'value' ||
-    (s.pImpl != null && s.coteRef != null && s.pImpl * s.coteRef - 1 > 0.03)
-
-  // Clé d'identification d'un match (un match = un seul onglet)
-  const matchKey = (s: Signal) => `${s.sport}|${s.match}|${s.date}`
-
-  // Tier Values — EV > 3% confirmé par les cotes (tous sports)
-  const valueSignals = sortByForce(
-    allSignals.filter(isValue).map(s =>
-      s.tier === 'value'
-        ? s
-        : { ...s, tier: 'value' as const, ev: parseFloat(((s.pImpl! * s.coteRef! - 1) * 100).toFixed(1)) }
-    )
-  )
-
-  // Tier Signaux — probabiliste uniquement. Séparation PAR MATCH : si un match a une value,
-  // il part entièrement dans l'onglet Values et n'apparaît plus dans Signaux (sinon doublon visuel).
-  const valueMatchKeys = new Set(valueSignals.map(matchKey))
-  const signauxSignals = sortByForce(
-    allSignals.filter(s => !isValue(s) && !valueMatchKeys.has(matchKey(s)))
-  )
+  // Génération des signaux (source unique partagée avec le cron de capture du track record)
+  const { signaux: signauxSignals, values: valueSignals, mlbPreviewCount } = await getTodaySignals()
 
   // Signaux par sport pour les sections (tier probabiliste uniquement)
   const cdmSignauxOnly    = signauxSignals.filter(s => s.sport === 'CdM')
@@ -501,15 +338,15 @@ export default async function SignauxPage() {
             <section className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <h2 className="text-xl font-bold text-orange-300">🎾 Tennis — ATP / WTA</h2>
-                {tennisSignals.length > 0
-                  ? <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full">{tennisSignals.length} signal{tennisSignals.length > 1 ? 's' : ''}</span>
+                {tennisSignauxOnly.length > 0
+                  ? <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full">{tennisSignauxOnly.length} signal{tennisSignauxOnly.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
                 <Link href="/tennis" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
                   Voir les matchs →
                 </Link>
               </div>
-              {tennisSignals.length > 0 ? (
+              {tennisSignauxOnly.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {tennisSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>
@@ -528,15 +365,15 @@ export default async function SignauxPage() {
             <section className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <h2 className="text-xl font-bold text-blue-300">⚾ MLB — Matchups du jour</h2>
-                {mlbSignals.length > 0
-                  ? <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">{mlbSignals.length} signal{mlbSignals.length > 1 ? 's' : ''}</span>
+                {mlbSignauxOnly.length > 0
+                  ? <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">{mlbSignauxOnly.length} signal{mlbSignauxOnly.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
                 <Link href="/mlb" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
                   Voir les matchs →
                 </Link>
               </div>
-              {mlbSignals.length > 0 ? (
+              {mlbSignauxOnly.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {mlbSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
 
@@ -544,8 +381,8 @@ export default async function SignauxPage() {
               ) : (
                 <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
                   <p className="text-gray-500 text-sm mb-1">
-                    {previewGames.length > 0
-                      ? `${previewGames.length} match${previewGames.length > 1 ? 's' : ''} analysé${previewGames.length > 1 ? 's' : ''} — aucun écart statistique significatif`
+                    {mlbPreviewCount > 0
+                      ? `${mlbPreviewCount} match${mlbPreviewCount > 1 ? 's' : ''} analysé${mlbPreviewCount > 1 ? 's' : ''} — aucun écart statistique significatif`
                       : 'Aucun match MLB prévu aujourd\'hui'}
                   </p>
                   <p className="text-gray-600 text-xs">Les signaux apparaissent quand un écart d&apos;ERA significatif est détecté entre les lanceurs.</p>
@@ -583,15 +420,15 @@ export default async function SignauxPage() {
             <section className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <h2 className="text-xl font-bold text-green-300">⚽ MLS — Signaux du jour</h2>
-                {mlsSignals.length > 0
-                  ? <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full">{mlsSignals.length} signal{mlsSignals.length > 1 ? 's' : ''}</span>
+                {mlsSignauxOnly.length > 0
+                  ? <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full">{mlsSignauxOnly.length} signal{mlsSignauxOnly.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
                 <Link href="/mls" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
                   Voir les matchs →
                 </Link>
               </div>
-              {mlsSignals.length > 0 ? (
+              {mlsSignauxOnly.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {mlsSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>
@@ -610,15 +447,15 @@ export default async function SignauxPage() {
             <section className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <h2 className="text-xl font-bold text-orange-300">🏀 NBA Playoffs</h2>
-                {nbaSignals.length > 0
-                  ? <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full">{nbaSignals.length} signal{nbaSignals.length > 1 ? 's' : ''}</span>
+                {nbaSignauxOnly.length > 0
+                  ? <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full">{nbaSignauxOnly.length} signal{nbaSignauxOnly.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
                 <Link href="/nba" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
                   Voir les matchs →
                 </Link>
               </div>
-              {nbaSignals.length > 0 ? (
+              {nbaSignauxOnly.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {nbaSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>

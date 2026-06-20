@@ -49,7 +49,7 @@ function parseLine(sel: string): { kind: 'under' | 'over'; line: number } | null
   return null
 }
 
-function evalMlb(bet: BetRow, games: MLBGame[]): Verdict {
+function evalMlb(bet: { match: string; selection: string }, games: MLBGame[]): Verdict {
   const parts = bet.match.split(' vs ').map(s => s.trim())
   if (parts.length < 2) return null
   const game = games.find(g => {
@@ -81,7 +81,7 @@ function evalMlb(bet: BetRow, games: MLBGame[]): Verdict {
   return null // ambigu → on ne solde pas
 }
 
-function evalTennis(bet: BetRow, results: ESPNTennisResult[]): Verdict {
+function evalTennis(bet: { match: string; selection: string }, results: ESPNTennisResult[]): Verdict {
   const res = results.find(r =>
     (nameMatch(bet.selection, r.player1) || nameMatch(bet.selection, r.player2)) &&
     (nameMatch(bet.match, r.player1) && nameMatch(bet.match, r.player2)),
@@ -127,6 +127,45 @@ export async function settleUserBets(): Promise<{ settled: number }> {
     let results: ESPNTennisResult[] = []
     try { results = await getESPNTennisResults() } catch { results = [] }
     for (const bet of tennis) await apply(bet, evalTennis(bet, results))
+  }
+
+  return { settled }
+}
+
+// Soldage du track record des signaux du modèle (signal_history). Gain en UNITÉS (mise à plat 1u).
+type HistRow = { id: string; sport: string | null; match_date: string | null; match: string; selection: string; cote: number | null }
+
+export async function settleSignalHistory(): Promise<{ settled: number }> {
+  const supa = db()
+  const { data, error } = await supa
+    .from('signal_history')
+    .select('id,sport,match_date,match,selection,cote')
+    .eq('statut', 'en_cours')
+  if (error || !data) return { settled: 0 }
+  const rows = data as HistRow[]
+  let settled = 0
+
+  async function apply(row: HistRow, v: Verdict) {
+    if (!v) return
+    const gain = v.statut === 'gagné' ? parseFloat(((row.cote ?? 1) - 1).toFixed(2)) : -1
+    await supa.from('signal_history')
+      .update({ statut: v.statut, gain, settled_at: new Date().toISOString() })
+      .eq('id', row.id)
+    settled++
+  }
+
+  const mlb = rows.filter(r => r.sport === 'MLB' && r.match_date)
+  for (const date of [...new Set(mlb.map(r => r.match_date!))]) {
+    let games: MLBGame[] = []
+    try { games = await getSchedule(date) } catch { continue }
+    for (const r of mlb.filter(x => x.match_date === date)) await apply(r, evalMlb(r, games))
+  }
+
+  const tennis = rows.filter(r => r.sport === 'Tennis')
+  if (tennis.length) {
+    let results: ESPNTennisResult[] = []
+    try { results = await getESPNTennisResults() } catch { results = [] }
+    for (const r of tennis) await apply(r, evalTennis(r, results))
   }
 
   return { settled }
