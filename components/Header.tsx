@@ -81,6 +81,7 @@ export default function Header() {
   const espaceItems: DropdownItem[] = [
     { href: '/paris', label: '💰 Mes Paris' },
     { href: '/suivi', label: '📊 Suivi' },
+    { href: '/compte', label: '⚙️ Mon compte' },
     ...(isAdmin ? [
       { href: '/selections', label: '🎯 Sélections' },
       { href: '/admin', label: '🔐 Admin' },
