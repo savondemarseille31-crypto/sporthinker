@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic' // lit Supabase (sélections) — jamais 
 export const metadata = {
   title: 'Performance — track record public',
   description:
-    'Track record 100 % public et vérifiable de SporThinker : tous les paris analysés, gagnants et perdants, en unités et yield.',
+    'Track record 100 % public et vérifiable de DeltaBet : tous les paris analysés, gagnants et perdants, en unités et yield.',
 }
 
 const SPORT_ICONS: Record<string, string> = {
@@ -214,7 +214,7 @@ export default async function PerformancePage() {
           <span className="text-lg mt-0.5">ℹ️</span>
           <p className="text-blue-400/90">
             Les <span className="font-semibold">performances passées ne préjugent pas des résultats futurs</span>.
-            SporThinker est un <span className="font-semibold">outil d&apos;analyse statistique</span>, n&apos;est pas un opérateur de jeux et ne prend aucun pari.
+            DeltaBet est un <span className="font-semibold">outil d&apos;analyse statistique</span>, n&apos;est pas un opérateur de jeux et ne prend aucun pari.
             Réservé aux <span className="font-semibold">18 ans et plus</span> — jeu responsable, Joueurs Info Service&nbsp;: 09 74 75 13 13.
           </p>
         </div>

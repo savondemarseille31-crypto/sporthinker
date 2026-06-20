@@ -24,7 +24,7 @@ export default function MentionsLegalesPage() {
 
       <h2>Nature du service</h2>
       <p>
-        SporThinker est un outil d&apos;analyse statistique. Ce n&apos;est pas un opérateur de jeux d&apos;argent agréé
+        DeltaBet est un outil d&apos;analyse statistique. Ce n&apos;est pas un opérateur de jeux d&apos;argent agréé
         et ne propose aucune prise de pari.
       </p>
 

@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <p className="max-w-2xl leading-relaxed">
-            <span className="font-semibold text-gray-400">SporThinker</span> est un{' '}
+            <span className="font-semibold text-gray-400">DeltaBet</span> est un{' '}
             <span className="text-gray-400">outil d&apos;analyse statistique</span>. Ce n&apos;est pas un opérateur de
             jeux d&apos;argent et ne prend aucun pari. Les analyses ne garantissent aucun gain — les performances
             passées ne préjugent pas des résultats futurs.
@@ -29,7 +29,7 @@ export default function Footer() {
           <Link href="/mentions-legales" className="hover:text-emerald-400">Mentions légales</Link>
         </nav>
 
-        <p className="mt-4 text-gray-600">© {new Date().getFullYear()} SporThinker</p>
+        <p className="mt-4 text-gray-600">© {new Date().getFullYear()} DeltaBet</p>
       </div>
     </footer>
   )
