@@ -6,6 +6,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { getSchedule, type MLBGame } from '@/lib/mlb-api'
 import { getESPNTennisResults, type ESPNTennisResult } from '@/lib/espn-api'
+import { getTodayPlayoffGames, type NBAGame } from '@/lib/nba-api'
+import { getFixturesByDate, type AFFixture } from '@/lib/api-football'
 
 function db() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -94,6 +96,65 @@ function evalTennis(bet: { match: string; selection: string }, results: ESPNTenn
   return { statut: won ? 'gagné' : 'perdu' }
 }
 
+function evalNba(bet: { match: string; selection: string }, games: NBAGame[]): Verdict {
+  const parts = bet.match.split(' vs ').map(s => s.trim())
+  if (parts.length < 2) return null
+  const g = games.find(x => {
+    const h = x.home_team.full_name, a = x.visitor_team.full_name
+    return (nameMatch(parts[0], h) && nameMatch(parts[1], a)) ||
+           (nameMatch(parts[0], a) && nameMatch(parts[1], h))
+  })
+  if (!g || g.status !== 'Final') return null
+  const hs = g.home_team_score, as = g.visitor_team_score
+  const line = parseLine(bet.selection)
+  if (line) {
+    const total = hs + as
+    if (total === line.line) return null
+    const isOver = total > line.line
+    return { statut: (line.kind === 'over' ? isOver : !isOver) ? 'gagné' : 'perdu' }
+  }
+  const homeWon = hs > as
+  const winner = homeWon ? g.home_team.full_name : g.visitor_team.full_name
+  const loser  = homeWon ? g.visitor_team.full_name : g.home_team.full_name
+  const selW = nameMatch(bet.selection, winner)
+  const selL = nameMatch(bet.selection, loser)
+  if (selW && !selL) return { statut: 'gagné' }
+  if (selL && !selW) return { statut: 'perdu' }
+  return null
+}
+
+// Football (CdM + MLS). Conservateur : on ne solde que les matchs terminés en temps réglementaire (FT).
+function evalFootball(bet: { match: string; selection: string }, fixtures: AFFixture[]): Verdict {
+  const parts = bet.match.split(' vs ').map(s => s.trim())
+  if (parts.length < 2) return null
+  const f = fixtures.find(x => {
+    const h = x.teams.home.name, a = x.teams.away.name
+    return (nameMatch(parts[0], h) && nameMatch(parts[1], a)) ||
+           (nameMatch(parts[0], a) && nameMatch(parts[1], h))
+  })
+  if (!f || f.fixture.status.short !== 'FT') return null
+  const hg = f.goals.home, ag = f.goals.away
+  if (hg == null || ag == null) return null
+  const line = parseLine(bet.selection)
+  if (line) {
+    const total = hg + ag
+    if (total === line.line) return null
+    const isOver = total > line.line
+    return { statut: (line.kind === 'over' ? isOver : !isOver) ? 'gagné' : 'perdu' }
+  }
+  const isDrawBet = /\bnul\b|match nul|draw/.test(norm(bet.selection))
+  if (hg === ag) return { statut: isDrawBet ? 'gagné' : 'perdu' }
+  if (isDrawBet) return { statut: 'perdu' }
+  const homeWon = hg > ag
+  const winner = homeWon ? f.teams.home.name : f.teams.away.name
+  const loser  = homeWon ? f.teams.away.name : f.teams.home.name
+  const selW = nameMatch(bet.selection, winner)
+  const selL = nameMatch(bet.selection, loser)
+  if (selW && !selL) return { statut: 'gagné' }
+  if (selL && !selW) return { statut: 'perdu' }
+  return null
+}
+
 export async function settleUserBets(): Promise<{ settled: number }> {
   const supa = db()
   const { data, error } = await supa
@@ -127,6 +188,24 @@ export async function settleUserBets(): Promise<{ settled: number }> {
     let results: ESPNTennisResult[] = []
     try { results = await getESPNTennisResults() } catch { results = [] }
     for (const bet of tennis) await apply(bet, evalTennis(bet, results))
+  }
+
+  // NBA — 1 appel par date
+  const nba = bets.filter(b => b.sport === 'NBA' && b.match_date)
+  for (const date of [...new Set(nba.map(b => b.match_date!))]) {
+    let games: NBAGame[] = []
+    try { games = await getTodayPlayoffGames(date) } catch { continue }
+    for (const bet of nba.filter(b => b.match_date === date)) await apply(bet, evalNba(bet, games))
+  }
+
+  // Football : CdM (ligue 1) + MLS (ligue 253) — 1 appel par sport/date
+  for (const [sport, league] of [['CdM', 1], ['MLS', 253]] as const) {
+    const list = bets.filter(b => b.sport === sport && b.match_date)
+    for (const date of [...new Set(list.map(b => b.match_date!))]) {
+      let fx: AFFixture[] = []
+      try { fx = await getFixturesByDate(date, league, 2026) } catch { continue }
+      for (const bet of list.filter(b => b.match_date === date)) await apply(bet, evalFootball(bet, fx))
+    }
   }
 
   return { settled }
@@ -166,6 +245,24 @@ export async function settleSignalHistory(): Promise<{ settled: number }> {
     let results: ESPNTennisResult[] = []
     try { results = await getESPNTennisResults() } catch { results = [] }
     for (const r of tennis) await apply(r, evalTennis(r, results))
+  }
+
+  // NBA
+  const nba = rows.filter(r => r.sport === 'NBA' && r.match_date)
+  for (const date of [...new Set(nba.map(r => r.match_date!))]) {
+    let games: NBAGame[] = []
+    try { games = await getTodayPlayoffGames(date) } catch { continue }
+    for (const r of nba.filter(x => x.match_date === date)) await apply(r, evalNba(r, games))
+  }
+
+  // Football : CdM (ligue 1) + MLS (ligue 253)
+  for (const [sport, league] of [['CdM', 1], ['MLS', 253]] as const) {
+    const list = rows.filter(r => r.sport === sport && r.match_date)
+    for (const date of [...new Set(list.map(r => r.match_date!))]) {
+      let fx: AFFixture[] = []
+      try { fx = await getFixturesByDate(date, league, 2026) } catch { continue }
+      for (const r of list.filter(x => x.match_date === date)) await apply(r, evalFootball(r, fx))
+    }
   }
 
   return { settled }
