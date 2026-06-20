@@ -205,7 +205,7 @@ function LockedSignalCard({ signal }: { signal: Signal }) {
         <p className="text-sm text-gray-500 mt-3">████████████████████████████████████</p>
       </div>
       <Link
-        href="/signup?plan=premium"
+        href="/abonnement"
         className="mt-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-bold py-2.5 rounded-xl transition-colors"
       >
         🔒 Débloquer avec Premium
@@ -298,7 +298,7 @@ export default async function SignauxPage() {
               <p className="font-bold text-white mb-1">🔒 {fortsCount} signaux forts · {moderésCount} modérés · {valueSignals.length} values verrouillés</p>
               <p className="text-sm text-gray-400">Tu vois 1 signal gratuit aujourd&apos;hui. Débloque tout (tous sports + values) avec Premium.</p>
             </div>
-            <Link href="/signup?plan=premium" className="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-3 rounded-xl text-sm transition-colors text-center">
+            <Link href="/abonnement" className="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-3 rounded-xl text-sm transition-colors text-center">
               Passe Premium →
             </Link>
           </div>

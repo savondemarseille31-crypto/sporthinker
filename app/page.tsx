@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
+import SubscribeButton from '@/components/SubscribeButton'
 import { getTrackRecord, computeStats } from '@/lib/track-record'
 
 export default function Home() {
@@ -124,9 +125,9 @@ export default function Home() {
               <li>✓ Toutes les values (EV)</li>
               <li>✓ Suivi personnel synchronisé</li>
             </ul>
-            <Link href="/signup?plan=premium" className="block text-center bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2.5 rounded-xl transition-colors">
+            <SubscribeButton plan="monthly" className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-bold py-2.5 rounded-xl transition-colors">
               Je m&apos;abonne
-            </Link>
+            </SubscribeButton>
           </div>
         </div>
       </section>
