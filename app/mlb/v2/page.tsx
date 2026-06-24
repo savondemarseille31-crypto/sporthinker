@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
+import { getEntitlement } from '@/lib/entitlement'
+import { PaywallPage } from '@/components/PremiumLock'
 import { getSchedule, getStandings, getPitcherSeasonStats } from '@/lib/mlb-api'
 import { generateMLBSignal, type Signal, type SignalForce } from '@/lib/signals'
 import { analyzeGameV2 } from '@/lib/mlb-v2-signals'
@@ -111,6 +113,9 @@ function EmptyState({ label, href, linkLabel }: { label: string; href: string; l
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default async function MLBv2Page() {
+  const { premium } = await getEntitlement()
+  if (!premium) return <PaywallPage title="Signaux MLB v2 réservés aux abonnés" />
+
   const [games, standings] = await Promise.all([getSchedule(), getStandings()])
   const previewGames = games.filter(g => g.status.abstractGameState === 'Preview')
 

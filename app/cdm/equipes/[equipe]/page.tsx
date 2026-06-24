@@ -185,7 +185,7 @@ export default async function EquipePage({ params }: { params: Promise<{ equipe:
 
         {/* Conseil paris */}
         <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6">
-          <h2 className="text-lg font-bold mb-3 text-emerald-400">💰 Analyse DeltaBet</h2>
+          <h2 className="text-lg font-bold mb-3 text-emerald-400">💰 Analyse Deltavyn</h2>
           <div className="space-y-2 text-sm text-gray-300">
             <p>• <strong>Cote :</strong> {team.classementFIFA <= 5 ? '⭐ Grand favori — cotes basses mais très sûre en phase de groupes' : team.classementFIFA <= 15 ? '✅ Sérieux prétendant — bon rapport qualité/cote en poules' : team.classementFIFA <= 30 ? '⚠️ Compétitif — surveiller les matchs clés du groupe' : '🎲 Outsider — cotes intéressantes si l\'effectif performe'}</p>
             <p>• <strong>Buteur :</strong> {meilleurButeur ? `${meilleurButeur.nom} (${meilleurButeur.buts} buts, ${meilleurButeur.xG} xG) — référence offensive de l'équipe` : 'Aucun joueur référencé dans notre base'}</p>

@@ -1,5 +1,7 @@
 import Header from '@/components/Header'
 import Link from 'next/link'
+import { getEntitlement } from '@/lib/entitlement'
+import { LockedSignalCard, PaywallNotice } from '@/components/PremiumLock'
 import { getESPNTennisSchedule, type ESPNMatch } from '@/lib/espn-tennis'
 import { generateSignalFromESPNMatch } from '@/lib/tennis-signals'
 import type { Signal, SignalForce } from '@/lib/signals'
@@ -106,7 +108,7 @@ function SignalCard({ signal }: { signal: Signal }) {
 
 // ── Carte match ESPN ───────────────────────────────────────────────────────────
 
-function MatchCard({ match, signals }: { match: ESPNMatch; signals: Signal[] }) {
+function MatchCard({ match, signals, premium }: { match: ESPNMatch; signals: Signal[]; premium: boolean }) {
   const st = statusLabel(match.status)
   const matchSignals = signals.filter(s =>
     s.match === `${match.p1.name} vs ${match.p2.name}` ||
@@ -139,8 +141,8 @@ function MatchCard({ match, signals }: { match: ESPNMatch; signals: Signal[] }) 
         <p className="text-xs text-gray-500 italic">{match.resultNote}</p>
       )}
 
-      {/* Signaux associés */}
-      {matchSignals.length > 0 && (
+      {/* Signaux associés — masqués hors premium (le type de pari est du contenu payant) */}
+      {premium && matchSignals.length > 0 && (
         <div className="flex gap-2 flex-wrap">
           {matchSignals.map(s => {
             const cfg = forceConfig(s.force)
@@ -160,6 +162,7 @@ function MatchCard({ match, signals }: { match: ESPNMatch; signals: Signal[] }) 
 
 export default async function TennisPage() {
   const today = new Date().toISOString().split('T')[0]
+  const { premium } = await getEntitlement()
 
   const matches = await getESPNTennisSchedule(today).catch(() => [] as ESPNMatch[])
 
@@ -235,6 +238,8 @@ export default async function TennisPage() {
           </div>
         )}
 
+        {!premium && signals.length > 0 && <PaywallNotice count={signals.length} />}
+
         {/* ── Signaux groupés par tournoi ────────────────────────────────── */}
         {signals.length > 0 && (
           <section className="mb-10">
@@ -250,7 +255,9 @@ export default async function TennisPage() {
                 <div key={name}>
                   <TournamentHeader name={name} level={level} count={sigs.length} unit="signal" />
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {sigs.map(s => <SignalCard key={s.id} signal={s} />)}
+                    {sigs.map(s => premium
+                      ? <SignalCard key={s.id} signal={s} />
+                      : <LockedSignalCard key={s.id} force={s.force} sportLabel="🎾 Tennis" />)}
                   </div>
                 </div>
               ))}
@@ -272,7 +279,7 @@ export default async function TennisPage() {
                     unit="match"
                   />
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {ms.map(m => <MatchCard key={m.id} match={m} signals={signals} />)}
+                    {ms.map(m => <MatchCard key={m.id} match={m} signals={signals} premium={premium} />)}
                   </div>
                 </div>
               ))}

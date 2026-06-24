@@ -68,9 +68,12 @@ export async function handleWebhookEvent(event: Stripe.Event): Promise<void> {
 }
 
 async function upsertSub(userId: string, sub: Stripe.Subscription): Promise<void> {
-  const plan = sub.items.data[0]?.price.id === process.env.STRIPE_PRICE_ANNUAL ? 'annual' : 'monthly'
+  const item = sub.items.data[0]
+  const plan = item?.price.id === process.env.STRIPE_PRICE_ANNUAL ? 'annual' : 'monthly'
+  // current_period_end : au niveau abonnement (anciennes API) ou au niveau item (API récentes).
   const periodEnd = (sub as unknown as { current_period_end?: number }).current_period_end
-  await adminDb().from('subscriptions').upsert({
+    ?? (item as unknown as { current_period_end?: number })?.current_period_end
+  const { error } = await adminDb().from('subscriptions').upsert({
     user_id: userId,
     stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer.id,
     stripe_subscription_id: sub.id,
@@ -79,4 +82,6 @@ async function upsertSub(userId: string, sub: Stripe.Subscription): Promise<void
     current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
     updated_at: new Date().toISOString(),
   })
+  // On lève l'erreur pour qu'elle remonte (webhook 500 → Stripe réessaie, et c'est visible dans les logs).
+  if (error) throw new Error(`upsert subscriptions a échoué: ${error.message}`)
 }

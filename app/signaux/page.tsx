@@ -238,9 +238,15 @@ export default async function SignauxPage() {
   // Paywall (W5) — premium = admin pour l'instant (W4 ajoutera l'abonnement Stripe).
   // Non-premium : 1 signal modéré révélé gratuitement, le reste verrouillé ; values 100% premium.
   const { premium } = await getEntitlement()
+  // Pick offert (non-premium) : on évite les gros favoris (cote < 1.50, zéro intérêt
+  // marketing) et les longshots. Cible « attractive mais crédible » : cote 1.50–2.50,
+  // de préférence un signal modéré (on ne brade pas un signal fort).
+  const attractiveFreePick = (s: Signal) => s.coteRef != null && s.coteRef >= 1.5 && s.coteRef <= 2.5
   const freePickId = premium ? undefined : (
-    signauxSignals.find(s => s.force === 'modéré')
-    ?? signauxSignals.find(s => s.force === 'à surveiller')
+    signauxSignals.find(s => s.force === 'modéré'       && attractiveFreePick(s))
+    ?? signauxSignals.find(s => s.force === 'à surveiller' && attractiveFreePick(s))
+    ?? signauxSignals.find(s => attractiveFreePick(s))
+    ?? signauxSignals.find(s => s.force === 'modéré')
     ?? signauxSignals[0]
   )?.id
 

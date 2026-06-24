@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
+import { getEntitlement } from '@/lib/entitlement'
+import { PaywallPage } from '@/components/PremiumLock'
 import { getFixtureById, getPlayerStats, getH2H } from '@/lib/tennis-api'
 import { generateTennisSignals, type TennisSignalInput } from '@/lib/tennis-signals'
 import type { Signal, SignalForce } from '@/lib/signals'
@@ -97,6 +99,8 @@ function SignalCard({ signal }: { signal: Signal }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function TennisMatchupPage({ params }: { params: Promise<{ fixtureId: string }> }) {
+  const { premium } = await getEntitlement()
+  if (!premium) return <PaywallPage title="Analyse du match réservée aux abonnés" />
   const { fixtureId } = await params
   const id = parseInt(fixtureId)
   if (isNaN(id)) notFound()

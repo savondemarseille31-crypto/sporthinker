@@ -11,6 +11,8 @@ import {
   type MLBRecentGame,
 } from '@/lib/mlb-api'
 import { generateMLBSignal, reliableERA, reliableWHIP, isSmallSample } from '@/lib/signals'
+import { getEntitlement } from '@/lib/entitlement'
+import { PaywallPage } from '@/components/PremiumLock'
 import { notFound } from 'next/navigation'
 
 export const revalidate = 60 // 1 min — données matchup live
@@ -70,6 +72,8 @@ function RecentGamesRow({ games, abbr }: { games: MLBRecentGame[]; abbr: string 
 
 // ---- Page ----
 export default async function MatchupPage({ params }: { params: Promise<{ gamePk: string }> }) {
+  const { premium } = await getEntitlement()
+  if (!premium) return <PaywallPage title="Analyse du match réservée aux abonnés" />
   const { gamePk: gamePkStr } = await params
   const gamePk = parseInt(gamePkStr)
   if (isNaN(gamePk)) notFound()

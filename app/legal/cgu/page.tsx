@@ -7,9 +7,9 @@ export default function CGUPage() {
     <LegalShell title="Conditions Générales d'Utilisation et de Vente" updated="juin 2026">
       <h2>1. Objet</h2>
       <p>
-        Les présentes conditions régissent l&apos;accès et l&apos;utilisation du service <strong>DeltaBet</strong>{' '}
+        Les présentes conditions régissent l&apos;accès et l&apos;utilisation du service <strong>Deltavyn</strong>{' '}
         (le « Service »), un <strong>outil d&apos;analyse statistique</strong> à destination des paris sportifs.
-        DeltaBet n&apos;est pas un opérateur de jeux d&apos;argent, ne prend aucun pari et ne reçoit aucune mise.
+        Deltavyn n&apos;est pas un opérateur de jeux d&apos;argent, ne prend aucun pari et ne reçoit aucune mise.
       </p>
 
       <h2>2. Nature du Service — absence de garantie</h2>
@@ -45,7 +45,7 @@ export default function CGUPage() {
 
       <h2>6. Responsabilité</h2>
       <p>
-        Le Service est fourni « en l&apos;état ». DeltaBet ne saurait être tenu responsable des pertes liées aux
+        Le Service est fourni « en l&apos;état ». Deltavyn ne saurait être tenu responsable des pertes liées aux
         paris de l&apos;utilisateur, ni de l&apos;indisponibilité de données fournies par des tiers.
       </p>
 

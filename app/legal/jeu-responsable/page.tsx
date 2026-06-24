@@ -7,7 +7,7 @@ export default function JeuResponsablePage() {
     <LegalShell title="Jeu responsable" updated="juin 2026">
       <p>
         Les paris sportifs comportent un <strong>risque de perte d&apos;argent</strong> et peuvent entraîner une
-        dépendance. DeltaBet est un outil d&apos;analyse&nbsp;: il ne garantit aucun gain et n&apos;encourage pas à
+        dépendance. Deltavyn est un outil d&apos;analyse&nbsp;: il ne garantit aucun gain et n&apos;encourage pas à
         jouer au-delà de ses moyens.
       </p>
 
@@ -35,7 +35,7 @@ export default function JeuResponsablePage() {
       </ul>
 
       <p>
-        DeltaBet n&apos;est pas un opérateur de jeux d&apos;argent et ne prend aucun pari.
+        Deltavyn n&apos;est pas un opérateur de jeux d&apos;argent et ne prend aucun pari.
       </p>
     </LegalShell>
   )

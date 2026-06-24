@@ -358,7 +358,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
 
         {/* ── CONSEIL PARIS ── */}
         <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6">
-          <h2 className="text-lg font-bold mb-3 text-emerald-400">💰 Conseil Paris DeltaBet</h2>
+          <h2 className="text-lg font-bold mb-3 text-emerald-400">💰 Conseil Paris Deltavyn</h2>
           <div className="space-y-2 text-sm text-gray-300">
             <p>• <strong>Buteur du match :</strong> {player.buts > player.xG ? 'Excellent finisseur, cote souvent sous-évaluée' : 'Peut être en manque de réalisme, surveiller les occasions créées'}</p>
             <p>• <strong>Tirs cadrés :</strong> {player.tirsCadres != null && player.matchsJoues > 0 ? `${(player.tirsCadres / player.matchsJoues).toFixed(1)} cadrés/match en moyenne — ${(player.tirsCadres / player.matchsJoues) >= 2 ? 'marché "tirs cadrés" intéressant' : 'volume insuffisant pour ce marché'}` : 'Données insuffisantes'}</p>

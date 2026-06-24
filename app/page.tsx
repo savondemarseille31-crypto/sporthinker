@@ -138,7 +138,7 @@ export default function Home() {
         <div className="space-y-3">
           {[
             { q: 'Garantissez-vous des gains ?', a: 'Non. Aucun outil ne peut garantir de gains. Nous fournissons des analyses statistiques et un track record transparent ; les performances passées ne préjugent pas des résultats futurs.' },
-            { q: 'Est-ce un site de paris ?', a: 'Non. DeltaBet est un outil d’analyse. Nous ne sommes pas un opérateur de jeux et ne prenons aucun pari.' },
+            { q: 'Est-ce un site de paris ?', a: 'Non. Deltavyn est un outil d’analyse. Nous ne sommes pas un opérateur de jeux et ne prenons aucun pari.' },
             { q: 'Comment sont calculés les signaux ?', a: 'Via des modèles statistiques (Dixon-Coles, Elo, xG, FIP/ERA selon le sport) comparés aux cotes du marché pour identifier la value.' },
             { q: 'Puis-je résilier à tout moment ?', a: 'Oui. L’abonnement est sans engagement et résiliable depuis votre espace client.' },
           ].map(f => (

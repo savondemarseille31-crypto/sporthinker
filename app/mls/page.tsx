@@ -1,5 +1,7 @@
 import Header from '@/components/Header'
 import Link from 'next/link'
+import { getEntitlement } from '@/lib/entitlement'
+import { LockedSignalCard, PaywallNotice } from '@/components/PremiumLock'
 import {
   generateMLSSignalsForToday,
   getMLSFixturesByDate,
@@ -85,7 +87,7 @@ function SignalCard({ signal }: { signal: Signal }) {
 
 // ── Carte match ────────────────────────────────────────────────────────────────
 
-function MatchCard({ fixture, signals }: { fixture: MLSFixture; signals: Signal[] }) {
+function MatchCard({ fixture, signals, premium }: { fixture: MLSFixture; signals: Signal[]; premium: boolean }) {
   const st = statusLabel(fixture.fixture.status.short)
   const heure = new Date(fixture.fixture.date).toLocaleTimeString('fr-FR', {
     hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris',
@@ -129,8 +131,8 @@ function MatchCard({ fixture, signals }: { fixture: MLSFixture; signals: Signal[
         ))}
       </div>
 
-      {/* Signal badge si présent */}
-      {matchSignals.length > 0 && (
+      {/* Signal badge si présent — masqué hors premium (le pari est du contenu payant) */}
+      {premium && matchSignals.length > 0 && (
         <div className="flex gap-2 flex-wrap">
           {matchSignals.map(s => {
             const cfg = forceConfig(s.force)
@@ -150,6 +152,7 @@ function MatchCard({ fixture, signals }: { fixture: MLSFixture; signals: Signal[
 
 export default async function MLSPage() {
   const today = new Date().toISOString().split('T')[0]
+  const { premium } = await getEntitlement()
 
   const [signals, fixtures, standings] = await Promise.all([
     generateMLSSignalsForToday().catch(() => [] as Signal[]),
@@ -218,6 +221,8 @@ export default async function MLSPage() {
           </div>
         )}
 
+        {!premium && signals.length > 0 && <PaywallNotice count={signals.length} />}
+
         {/* ── Signaux du jour ──────────────────────────────────────────────── */}
         {signals.length > 0 && (
           <section className="mb-10">
@@ -228,7 +233,9 @@ export default async function MLSPage() {
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {signals.map(s => <SignalCard key={s.id} signal={s} />)}
+              {signals.map(s => premium
+                ? <SignalCard key={s.id} signal={s} />
+                : <LockedSignalCard key={s.id} force={s.force} sportLabel="⚽ MLS" />)}
             </div>
           </section>
         )}
@@ -242,7 +249,7 @@ export default async function MLSPage() {
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-emerald-400 mb-3">● En direct</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {live.map(f => <MatchCard key={f.fixture.id} fixture={f} signals={signals} />)}
+                  {live.map(f => <MatchCard key={f.fixture.id} fixture={f} signals={signals} premium={premium} />)}
                 </div>
               </div>
             )}
@@ -251,7 +258,7 @@ export default async function MLSPage() {
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-400 mb-3">À venir</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {upcoming.map(f => <MatchCard key={f.fixture.id} fixture={f} signals={signals} />)}
+                  {upcoming.map(f => <MatchCard key={f.fixture.id} fixture={f} signals={signals} premium={premium} />)}
                 </div>
               </div>
             )}
@@ -260,7 +267,7 @@ export default async function MLSPage() {
               <div>
                 <h3 className="text-sm font-semibold text-gray-600 mb-3">Terminés</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {finished.map(f => <MatchCard key={f.fixture.id} fixture={f} signals={signals} />)}
+                  {finished.map(f => <MatchCard key={f.fixture.id} fixture={f} signals={signals} premium={premium} />)}
                 </div>
               </div>
             )}

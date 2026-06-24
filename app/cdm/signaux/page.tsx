@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
+import { getEntitlement } from '@/lib/entitlement'
+import { PaywallNotice } from '@/components/PremiumLock'
 import { type PlayerSignal } from '@/lib/cdm-player-signals'
 import { getTopByMarketWithBlend } from '@/lib/cdm-signals-blend'
 import { getCdMEventsList, getCdMPlayerProps, extractPlayerCote, getCdMOdds, findEvent, extractRealOdds, devigFromEvent } from '@/lib/odds-api'
@@ -184,6 +186,7 @@ function MatchSignalCard({ signal }: { signal: Signal }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function CdmSignauxPage() {
+  const { premium } = await getEntitlement()
   // Signaux joueurs (blend club + sélection + WC, 30 par marché pour le filtre date client-side)
   const [buteurs, tirsCadrés, cartons, passeurs] = await Promise.all([
     enrichWithCotes(await getTopByMarketWithBlend('buteur', 30)),
@@ -273,11 +276,18 @@ export default async function CdmSignauxPage() {
           ))}
         </div>
 
-        {/* Conseils du jour — onglets Signaux / Values */}
-        <ConseillsMatchClient signaux={signaux} values={values} />
+        {premium ? (
+          <>
+            {/* Conseils du jour — onglets Signaux / Values */}
+            <ConseillsMatchClient signaux={signaux} values={values} />
 
-        {/* Signaux joueurs (avec filtre date client-side) */}
-        <CdmSignauxClient signals={{ buteurs, tirsCadrés, cartons, passeurs }} />
+            {/* Signaux joueurs (avec filtre date client-side) */}
+            <CdmSignauxClient signals={{ buteurs, tirsCadrés, cartons, passeurs }} />
+          </>
+        ) : (
+          /* Non-premium : aucune donnée de pari envoyée au client, juste l'incitation. */
+          <PaywallNotice count={top8.length} />
+        )}
 
         {/* Lien signaux généraux */}
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex items-center justify-between gap-4">

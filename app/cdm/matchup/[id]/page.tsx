@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { notFound } from 'next/navigation'
+import { getEntitlement } from '@/lib/entitlement'
+import { PaywallPage } from '@/components/PremiumLock'
 import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 import { CDM_TEAM_PROFILES } from '@/lib/cdm-teams'
 import { getTopPlayerSignals, type PlayerSignal } from '@/lib/cdm-player-signals'
@@ -94,6 +96,8 @@ function PlayerRow({ signal }: { signal: PlayerSignal }) {
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function CdmMatchupPage({ params }: { params: Promise<{ id: string }> }) {
+  const { premium } = await getEntitlement()
+  if (!premium) return <PaywallPage title="Analyse du match réservée aux abonnés" />
   const { id } = await params
   const match = CDM_FIXTURES.find(f => f.id === Number(id))
   if (!match) notFound()

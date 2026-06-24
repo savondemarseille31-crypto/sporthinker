@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { notFound } from 'next/navigation'
+import { getEntitlement } from '@/lib/entitlement'
+import { PaywallPage } from '@/components/PremiumLock'
 import {
   getTodayPlayoffGames,
   getSeriesGames,
@@ -309,6 +311,8 @@ function bdlAbbrToESPN(abbr: string): string {
 
 // ---- Page ----
 export default async function NBAMatchupPage({ params }: { params: Promise<{ gameId: string }> }) {
+  const { premium } = await getEntitlement()
+  if (!premium) return <PaywallPage title="Analyse du match réservée aux abonnés" />
   const { gameId: gameIdStr } = await params
   const gameId = parseInt(gameIdStr)
   if (isNaN(gameId)) notFound()
