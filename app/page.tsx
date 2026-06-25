@@ -118,8 +118,8 @@ export default function Home() {
           <div className="bg-gray-900 border border-emerald-500/40 rounded-2xl p-6 relative">
             <span className="absolute -top-3 left-6 text-xs font-semibold bg-emerald-500 text-black px-2 py-0.5 rounded-full">Recommandé</span>
             <h3 className="font-bold text-white mb-1">Premium</h3>
-            <p className="text-3xl font-bold mb-1">24,90 € <span className="text-base font-normal text-gray-500">/ mois</span></p>
-            <p className="text-xs text-gray-500 mb-4">ou 199 €/an · membres fondateurs : 9,99 €/mois à vie (offre limitée)</p>
+            <p className="text-3xl font-bold mb-1">19,99 € <span className="text-base font-normal text-gray-500">/ mois</span></p>
+            <p className="text-xs text-gray-500 mb-4">ou 199,90 €/an · membres fondateurs : 9,99 €/mois à vie (offre limitée)</p>
             <ul className="text-sm text-gray-400 space-y-2 mb-6">
               <li>✓ Tous les signaux du jour, tous sports</li>
               <li>✓ Toutes les values (EV)</li>
