@@ -114,13 +114,18 @@ export async function getTodaySignals(): Promise<TodaySignals> {
   ).filter(Boolean) as Signal[]
   const mlbSignals = addCoteRef(rawMlbSignals, oddsMap)
 
-  // CdM — Dixon-Coles ELO sur 14 jours
-  const cdmToday = new Date()
-  const cdmLimit = new Date(cdmToday)
-  cdmLimit.setDate(cdmToday.getDate() + 14)
+  // CdM — Dixon-Coles ELO sur 14 jours. On filtre sur l'heure RÉELLE du coup d'envoi
+  // (et non une heure fixe à midi) pour ne pas exclure les matchs du jour qui se jouent
+  // le soir : un match à 21:00 reste "à venir" même si on est l'après-midi.
+  const cdmNow = new Date()
+  const cdmLimit = new Date(cdmNow)
+  cdmLimit.setDate(cdmNow.getDate() + 14)
   const upcomingFixtures = CDM_FIXTURES
-    .filter(f => { const d = new Date(`${f.date}T12:00:00`); return d >= cdmToday && d <= cdmLimit })
-    .slice(0, 12)
+    .filter(f => {
+      const kickoff = new Date(`${f.date}T${f.heure}:00+02:00`) // heure Europe/Paris
+      return kickoff >= cdmNow && kickoff <= cdmLimit
+    })
+    .slice(0, 30)
   const rawCdMSignals = upcomingFixtures.flatMap(f => {
     const ev = cdmOdds.length ? findEvent(cdmOdds, f.domicile, f.exterieur) : null
     return generateCdMSignalsForMatch({
