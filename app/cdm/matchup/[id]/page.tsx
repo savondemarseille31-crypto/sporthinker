@@ -7,6 +7,7 @@ import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 import { CDM_TEAM_PROFILES } from '@/lib/cdm-teams'
 import { getTopPlayerSignals, type PlayerSignal } from '@/lib/cdm-player-signals'
 import { generateCdMSignalsForMatch } from '@/lib/football-signals'
+import { getCdMOdds, findEvent, devigFromEvent } from '@/lib/odds-api'
 import type { Signal, SignalForce } from '@/lib/signals'
 
 export async function generateStaticParams() {
@@ -108,12 +109,17 @@ export default async function CdmMatchupPage({ params }: { params: Promise<{ id:
   const homeSignals = getTopPlayerSignals({ pays: match.domicile, n: 4, forceMin: 'modéré' })
   const awaySignals = getTopPlayerSignals({ pays: match.exterieur, n: 4, forceMin: 'modéré' })
 
+  // Cotes réelles (Pinnacle via The Odds API) → permet de classer en "value" si EV+,
+  // exactement comme la liste /signaux (sinon le même match aurait 2 étiquettes).
+  const cdmOdds = await getCdMOdds().catch(() => [] as import('@/lib/odds-api').OddsEvent[])
+  const cdmEvent = cdmOdds.length ? findEvent(cdmOdds, match.domicile, match.exterieur) : null
   const matchSignals = generateCdMSignalsForMatch({
     id: match.id,
     date: match.date,
     heure: match.heure,
     domicile: match.domicile,
     exterieur: match.exterieur,
+    devigged: cdmEvent ? devigFromEvent(cdmEvent, match.domicile, match.exterieur) : undefined,
   })
 
   const dateStr = new Date(`${match.date}T12:00:00`).toLocaleDateString('fr-FR', {
