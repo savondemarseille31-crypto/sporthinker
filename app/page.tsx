@@ -102,8 +102,8 @@ export default function Home() {
       <section id="tarifs" className="px-6 py-12 max-w-4xl mx-auto scroll-mt-20">
         <h2 className="text-2xl font-bold text-center mb-2">Tarifs</h2>
         <p className="text-sm text-gray-500 text-center mb-10">Commencez gratuitement. Sans engagement.</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col">
             <h3 className="font-bold text-white mb-1">Gratuit</h3>
             <p className="text-3xl font-bold mb-4">0 €</p>
             <ul className="text-sm text-gray-400 space-y-2 mb-6">
@@ -111,21 +111,27 @@ export default function Home() {
               <li>✓ 1 signal gratuit par jour</li>
               <li>✓ Calculateur de value (Kelly)</li>
             </ul>
-            <Link href="/signaux" className="block text-center bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-xl transition-colors">
+            <Link href="/signaux" className="block text-center mt-auto bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-xl transition-colors">
               Commencer gratuitement
             </Link>
           </div>
-          <div className="bg-gray-900 border border-emerald-500/40 rounded-2xl p-6 relative">
+          <div className="bg-gray-900 border border-emerald-500/40 rounded-2xl p-6 relative flex flex-col">
             <span className="absolute -top-3 left-6 text-xs font-semibold bg-emerald-500 text-black px-2 py-0.5 rounded-full">Recommandé</span>
             <h3 className="font-bold text-white mb-1">Premium</h3>
-            <p className="text-3xl font-bold mb-1">19,99 € <span className="text-base font-normal text-gray-500">/ mois</span></p>
-            <p className="text-xs text-gray-500 mb-4">ou 199,90 €/an · membres fondateurs : 9,99 €/mois à vie (offre limitée)</p>
+            <div className="flex items-start justify-between gap-3 mb-1">
+              <p className="text-3xl font-bold">19,99 € <span className="text-base font-normal text-gray-500">/ mois</span></p>
+              <div className="text-right shrink-0">
+                <p className="text-xl font-bold text-white">199,90 € <span className="text-sm font-normal text-gray-500">/ an</span></p>
+                <p className="text-xs font-semibold text-emerald-400">2 mois offerts</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">Membres fondateurs : 9,99 €/mois à vie (offre limitée)</p>
             <ul className="text-sm text-gray-400 space-y-2 mb-6">
               <li>✓ Tous les signaux du jour, tous sports</li>
               <li>✓ Toutes les values (EV)</li>
               <li>✓ Suivi personnel synchronisé</li>
             </ul>
-            <SubscribeButton plan="monthly" className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-bold py-2.5 rounded-xl transition-colors">
+            <SubscribeButton plan="monthly" className="w-full mt-auto bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-bold py-2.5 rounded-xl transition-colors">
               Je m&apos;abonne
             </SubscribeButton>
           </div>
