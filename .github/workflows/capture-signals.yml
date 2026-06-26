@@ -1,0 +1,24 @@
+name: Capture signaux (track record)
+
+# Capture pluri-quotidienne des signaux du jour (tous sports) dans signal_history,
+# pour attraper les signaux qui apparaissent en cours de journée (ex. lanceurs MLB
+# confirmés l'après-midi). La dédup côté serveur (1re capture par id fait foi)
+# rend les exécutions répétées sûres. Le cron Vercel quotidien reste en filet.
+
+on:
+  schedule:
+    - cron: '30 6 * * *'   # 06:30 UTC
+    - cron: '30 12 * * *'  # 12:30 UTC
+    - cron: '30 18 * * *'  # 18:30 UTC
+  workflow_dispatch: {}     # déclenchement manuel possible
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Déclencher capture + settle (endpoint protégé par CRON_SECRET)
+        run: |
+          curl -sS --fail-with-body -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -w '\nHTTP %{http_code}\n' \
+            https://sporthinker.vercel.app/api/cron/settle-bets
