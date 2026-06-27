@@ -6,6 +6,7 @@ import {
   bySport,
   byConfidence,
   statsByMonth,
+  equityCurve,
   CONF_ORDER,
   type TrackEntry,
   type TrackStats,
@@ -61,6 +62,35 @@ function KpiCard({ label, value, color = 'text-white' }: {
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
       <p className="text-xs text-gray-500 mt-1">{label}</p>
     </div>
+  )
+}
+
+// Courbe de capital (profit cumulé en unités) — SVG léger, rendu serveur.
+function EquityCurve({ points }: { points: { date: string; cumUnits: number }[] }) {
+  if (points.length < 2) return null
+  const W = 1000, H = 240, PAD = 10
+  const ys = points.map(p => p.cumUnits)
+  const minY = Math.min(0, ...ys)
+  const maxY = Math.max(0, ...ys)
+  const range = maxY - minY || 1
+  const X = (i: number) => PAD + (i / (points.length - 1)) * (W - 2 * PAD)
+  const Y = (v: number) => H - PAD - ((v - minY) / range) * (H - 2 * PAD)
+  const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${X(i).toFixed(1)},${Y(p.cumUnits).toFixed(1)}`).join('')
+  const area = `${line}L${X(points.length - 1).toFixed(1)},${Y(minY).toFixed(1)}L${X(0).toFixed(1)},${Y(minY).toFixed(1)}Z`
+  const up = points[points.length - 1].cumUnits >= 0
+  const color = up ? '#34d399' : '#f87171'
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-44 sm:h-52" role="img" aria-label="Courbe de capital cumulé">
+      <defs>
+        <linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <line x1={PAD} x2={W - PAD} y1={Y(0)} y2={Y(0)} stroke="#475569" strokeWidth="1" strokeDasharray="6 6" vectorEffect="non-scaling-stroke" />
+      <path d={area} fill="url(#eqfill)" />
+      <path d={line} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+    </svg>
   )
 }
 
@@ -187,7 +217,9 @@ export default async function PerformancePage() {
   const tennisCount = all.length - published.length
   // Global = signaux FORTS uniquement (nos meilleurs picks). Inclure modéré / à surveiller
   // tirerait les stats vers le bas ; ces niveaux sont suivis séparément par sport ci-dessous.
-  const global = computeStats(published.filter(e => e.confiance === 'fort'))
+  const fort = published.filter(e => e.confiance === 'fort')
+  const global = computeStats(fort)
+  const equity = equityCurve(fort)
   const sports = bySport(published)
   const months = statsByMonth(published).filter(m => m.stats.n > 0) // tous niveaux, mois avec ≥1 pari soldé
   let propStats: Awaited<ReturnType<typeof getPropStats>> = { markets: [], total: 0 }
@@ -250,6 +282,25 @@ export default async function PerformancePage() {
             Ces chiffres ne comptent que les signaux <span className="text-emerald-400 font-medium">forts</span> (nos meilleurs picks).
             Les niveaux <span className="text-yellow-400">modéré</span> et <span className="text-gray-400">à surveiller</span> sont suivis séparément, par sport, ci-dessous.
           </p>
+
+          {equity.length >= 2 && (
+            <div className="mb-5 rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/[0.07] to-gray-900 p-5 overflow-hidden">
+              <div className="flex items-end justify-between gap-4 mb-3">
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider text-gray-500 mb-0.5">📈 Capital cumulé · signaux forts</p>
+                  <p className={`text-3xl sm:text-4xl font-extrabold tabular-nums ${global.profitUnits >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {fmtUnits(global.profitUnits)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] uppercase tracking-wider text-gray-500">Yield</p>
+                  <p className={`text-xl font-bold tabular-nums ${global.yield >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{fmtPct(global.yield)}</p>
+                </div>
+              </div>
+              <EquityCurve points={equity} />
+            </div>
+          )}
+
           <StatsGrid stats={global} />
         </section>
 
