@@ -65,18 +65,12 @@ function KpiCard({ label, value, color = 'text-white' }: {
 function StatsGrid({ stats }: { stats: TrackStats }) {
   const yieldColor = stats.yield >= 0 ? 'text-emerald-400' : 'text-red-400'
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       <KpiCard label="Paris soldés" value={String(stats.n)} />
       <KpiCard label="Réussite" value={`${stats.winRate.toFixed(1)} %`} />
       <KpiCard label="Yield" value={fmtPct(stats.yield)} color={yieldColor} />
       <KpiCard label="Profit (unités)" value={fmtUnits(stats.profitUnits)} color={yieldColor} />
       <KpiCard label="Cote moyenne" value={stats.avgOdds.toFixed(2)} />
-      <KpiCard
-        label="Période"
-        value={stats.periodStart && stats.periodEnd
-          ? `${fmtDate(stats.periodStart)} → ${fmtDate(stats.periodEnd)}`
-          : '—'}
-      />
     </div>
   )
 }
@@ -189,7 +183,9 @@ export default async function PerformancePage() {
   // « en construction » à la place. Les signaux tennis restent dispo dans /signaux.
   const published = all.filter(e => e.sport !== 'Tennis')
   const tennisCount = all.length - published.length
-  const global = computeStats(published)
+  // Global = signaux FORTS uniquement (nos meilleurs picks). Inclure modéré / à surveiller
+  // tirerait les stats vers le bas ; ces niveaux sont suivis séparément par sport ci-dessous.
+  const global = computeStats(published.filter(e => e.confiance === 'fort'))
   const sports = bySport(published)
 
   return (
@@ -239,9 +235,16 @@ export default async function PerformancePage() {
           <p className="text-xs text-gray-600 mt-3">Chaque niveau est suivi <span className="text-gray-400">séparément</span> ci-dessous, par sport, pour une transparence totale.</p>
         </div>
 
-        {/* Stats globales */}
+        {/* Stats globales — signaux forts uniquement */}
         <section className="mb-10">
-          <h2 className="text-xl font-bold mb-4">Global</h2>
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h2 className="text-xl font-bold">Global</h2>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">⚡ Signaux forts uniquement</span>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Ces chiffres ne comptent que les signaux <span className="text-emerald-400 font-medium">forts</span> (nos meilleurs picks).
+            Les niveaux <span className="text-yellow-400">modéré</span> et <span className="text-gray-400">à surveiller</span> sont suivis séparément, par sport, ci-dessous.
+          </p>
           <StatsGrid stats={global} />
         </section>
 
