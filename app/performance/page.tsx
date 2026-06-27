@@ -12,6 +12,7 @@ import {
 } from '@/lib/track-record'
 import { getSelectionsTrackEntries } from '@/lib/track-record/selections'
 import { getSignalHistoryTrackEntries } from '@/lib/track-record/signal-history'
+import { getPropStats } from '@/lib/track-record/prop-history'
 
 export const dynamic = 'force-dynamic' // lit Supabase (sélections) — jamais prérendu au build
 
@@ -189,6 +190,8 @@ export default async function PerformancePage() {
   const global = computeStats(published.filter(e => e.confiance === 'fort'))
   const sports = bySport(published)
   const months = statsByMonth(published).filter(m => m.stats.n > 0) // tous niveaux, mois avec ≥1 pari soldé
+  let propStats: Awaited<ReturnType<typeof getPropStats>> = { markets: [], total: 0 }
+  try { propStats = await getPropStats() } catch { /* table indispo */ }
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -308,6 +311,38 @@ export default async function PerformancePage() {
           </section>
           )
         })}
+
+        {/* Props joueurs CdM — en construction */}
+        <section className="mb-10">
+          <div className="flex items-center gap-2 flex-wrap mb-3">
+            <h2 className="text-xl font-bold">🎯 Props joueurs CdM</h2>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400">🚧 en construction</span>
+          </div>
+          {propStats.total > 0 ? (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {propStats.markets.map(m => (
+                  <div key={m.market} className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+                    <p className="text-sm text-gray-400 mb-1">{m.label}</p>
+                    <p className="text-2xl font-bold text-white">{m.winRate} %</p>
+                    <p className="text-xs text-gray-500 mt-1">réussite · {m.n} pari{m.n > 1 ? 's' : ''}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                Taux de réussite des props (buteur, tirs cadrés, cartons, passes déc.), soldés sur les stats joueurs réelles.
+                Échantillon en cours de constitution — le yield sera publié quand il sera représentatif.
+              </p>
+            </>
+          ) : (
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+              <p className="text-sm text-gray-400">
+                On accumule les résultats des props joueurs (buteur, tirs cadrés, cartons, passeurs).
+                Les premiers chiffres apparaîtront ici dès que des matchs suivis seront terminés.
+              </p>
+            </div>
+          )}
+        </section>
 
         {tennisCount > 0 && (
           <section className="mb-10">
