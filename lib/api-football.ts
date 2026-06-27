@@ -131,6 +131,11 @@ export async function getAllFixturePlayers(fixtureId: number): Promise<AFFixture
   return apiFetch(`/fixtures/players?fixture=${fixtureId}`, 3600)
 }
 
+// Tous les matchs de la Coupe du Monde 2026 (avec scores + statut) — 1 appel, caché 10 min.
+export async function getWcResults(): Promise<AFFixture[]> {
+  return apiFetch(`/fixtures?league=${LEAGUES.WORLD_CUP}&season=2026`, 600)
+}
+
 export async function getFixtureStats(fixtureId: number): Promise<{ home: AFTeamMatchStats; away: AFTeamMatchStats } | null> {
   type Raw = { team: { id: number }; statistics: RawStat[] }[]
   const raw = await apiFetch<Raw>(`/fixtures/statistics?fixture=${fixtureId}`, 3600)

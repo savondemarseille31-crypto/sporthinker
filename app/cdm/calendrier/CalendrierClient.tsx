@@ -1,17 +1,20 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 
 const GROUPES = ['Tous', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
 
+const LIVE_STATUSES = ['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE', 'INT']
+const isLive = (s?: string) => !!s && LIVE_STATUSES.includes(s)
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export default function CalendrierClient({ fixtures }: { fixtures: any[] }) {
   const [filtreGroupe, setFiltreGroupe] = useState('Tous')
 
   const matchsFiltres = (filtreGroupe === 'Tous'
-    ? CDM_FIXTURES
-    : CDM_FIXTURES.filter(m => m.groupe === filtreGroupe)
-  ).slice().sort((a, b) => {
+    ? fixtures
+    : fixtures.filter((m: any) => m.groupe === filtreGroupe)
+  ).slice().sort((a: any, b: any) => {
     const da = new Date(`${a.date}T${a.heure}:00`)
     const db = new Date(`${b.date}T${b.heure}:00`)
     return da.getTime() - db.getTime()
@@ -59,7 +62,16 @@ export default function CalendrierClient({ fixtures }: { fixtures: any[] }) {
                 <span className="text-xl shrink-0">{match.flagD}</span>
                 <span className="font-semibold text-white group-hover:text-violet-400 transition-colors truncate">{match.domicile}</span>
               </div>
-              <span className="text-violet-400 font-bold text-sm w-8 text-center shrink-0">VS</span>
+              {(match.scoreDom != null && match.scoreExt != null) ? (
+                <div className="flex flex-col items-center justify-center min-w-[3.25rem] shrink-0">
+                  <span className="font-bold text-lg text-white tabular-nums">{match.scoreDom} <span className="text-gray-600 font-normal">–</span> {match.scoreExt}</span>
+                  {isLive(match.statut)
+                    ? <span className="text-[10px] font-semibold text-red-400 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />{match.statut}</span>
+                    : <span className="text-[10px] text-gray-600 uppercase tracking-wide">terminé</span>}
+                </div>
+              ) : (
+                <span className="text-violet-400 font-bold text-sm w-12 text-center shrink-0">VS</span>
+              )}
               <div className="flex items-center gap-2 justify-end">
                 <span className="font-semibold text-white group-hover:text-violet-400 transition-colors truncate">{match.exterieur}</span>
                 <span className="text-xl shrink-0">{match.flagE}</span>
