@@ -8,6 +8,7 @@ import { getSchedule, type MLBGame } from '@/lib/mlb-api'
 import { getESPNTennisResults, type ESPNTennisResult } from '@/lib/espn-api'
 import { getTodayPlayoffGames, type NBAGame } from '@/lib/nba-api'
 import { getCdMScores, getMLSScores, type OddsScore } from '@/lib/odds-api'
+import { getFixturesByDate, getAllFixturePlayers, type AFFixture, type AFFixturePlayers } from '@/lib/api-football'
 
 function db() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -281,3 +282,55 @@ export async function settleSignalHistory(): Promise<{ settled: number }> {
 
   return { settled }
 }
+
+// ── Soldage des props joueurs (prop_history) via stats joueurs API-Football ──
+function evalProp(market: string, playerName: string, teams: AFFixturePlayers[]): 'gagné' | 'perdu' | null {
+  let stat: AFFixturePlayers['players'][number]['statistics'][number] | undefined
+  for (const t of teams) {
+    const pl = t.players?.find(pp => nameMatch(pp.player.name, playerName))
+    if (pl) { stat = pl.statistics?.[0]; break }
+  }
+  if (!stat) return null // joueur introuvable (n'a pas joué / nom différent) → void, on ne solde pas
+  switch (market) {
+    case 'buteur':       return (stat.goals?.total ?? 0)   >= 1 ? 'gagné' : 'perdu'
+    case 'passeur':      return (stat.goals?.assists ?? 0) >= 1 ? 'gagné' : 'perdu'
+    case 'tirs-cadrés':  return (stat.shots?.on ?? 0)      >= 1 ? 'gagné' : 'perdu'
+    case 'carton-jaune': return (stat.cards?.yellow ?? 0)  >= 1 ? 'gagné' : 'perdu'
+    default: return null
+  }
+}
+
+type PropRow = { id: string; fixture_date: string; pays: string; player_name: string; market: string; cote: number | null }
+
+export async function settleProps(): Promise<{ settled: number }> {
+  const supa = db()
+  const { data, error } = await supa
+    .from('prop_history')
+    .select('id,fixture_date,pays,player_name,market,cote')
+    .or('statut.eq.en_cours,statut.is.null')
+  if (error || !data) return { settled: 0 }
+  const rows = data as PropRow[]
+  let settled = 0
+
+  for (const date of [...new Set(rows.map(r => r.fixture_date))]) {
+    let fixtures: AFFixture[] = []
+    try { fixtures = await getFixturesByDate(date, 1, 2026) } catch { continue }
+    const playersCache = new Map<number, AFFixturePlayers[] | null>()
+    for (const r of rows.filter(x => x.fixture_date === date)) {
+      const fx = fixtures.find(f => nameMatch(f.teams.home.name, r.pays) || nameMatch(f.teams.away.name, r.pays))
+      if (!fx || fx.fixture.status.short !== 'FT') continue
+      if (!playersCache.has(fx.fixture.id)) {
+        try { playersCache.set(fx.fixture.id, await getAllFixturePlayers(fx.fixture.id)) } catch { playersCache.set(fx.fixture.id, null) }
+      }
+      const teams = playersCache.get(fx.fixture.id)
+      if (!teams) continue
+      const verdict = evalProp(r.market, r.player_name, teams)
+      if (!verdict) continue
+      const gain = verdict === 'gagné' ? parseFloat(((r.cote ?? 1) - 1).toFixed(2)) : -1
+      await supa.from('prop_history').update({ statut: verdict, gain, settled_at: new Date().toISOString() }).eq('id', r.id)
+      settled++
+    }
+  }
+  return { settled }
+}
+

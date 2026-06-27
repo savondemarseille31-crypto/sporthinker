@@ -116,6 +116,21 @@ export async function getFixturesByDate(date: string, leagueId: number, season: 
   return apiFetch(`/fixtures?date=${date}&league=${leagueId}&season=${season}`, 300)
 }
 
+// Stats joueurs d'un match terminé — pour solder les props (buteur, tirs cadrés, cartons, passes).
+export type AFFixturePlayerStat = {
+  games: { minutes: number | null }
+  goals: { total: number | null; assists: number | null }
+  shots: { total: number | null; on: number | null }
+  cards: { yellow: number | null; red: number | null }
+}
+export type AFFixturePlayers = {
+  team: { id: number; name: string }
+  players: { player: { id: number; name: string }; statistics: AFFixturePlayerStat[] }[]
+}
+export async function getAllFixturePlayers(fixtureId: number): Promise<AFFixturePlayers[]> {
+  return apiFetch(`/fixtures/players?fixture=${fixtureId}`, 3600)
+}
+
 export async function getFixtureStats(fixtureId: number): Promise<{ home: AFTeamMatchStats; away: AFTeamMatchStats } | null> {
   type Raw = { team: { id: number }; statistics: RawStat[] }[]
   const raw = await apiFetch<Raw>(`/fixtures/statistics?fixture=${fixtureId}`, 3600)
