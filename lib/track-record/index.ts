@@ -67,6 +67,23 @@ export function bySport(entries: TrackEntry[]): Record<string, TrackEntry[]> {
   }, {})
 }
 
+const MONTH_LABELS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+
+// Stats par mois (tous niveaux), du plus récent au plus ancien.
+export function statsByMonth(entries: TrackEntry[]): { month: string; label: string; stats: TrackStats }[] {
+  const groups = entries.reduce<Record<string, TrackEntry[]>>((acc, e) => {
+    const ym = (e.date ?? '').slice(0, 7) // YYYY-MM
+    if (ym.length === 7) (acc[ym] ??= []).push(e)
+    return acc
+  }, {})
+  return Object.entries(groups)
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([month, es]) => {
+      const [y, m] = month.split('-')
+      return { month, label: `${MONTH_LABELS[parseInt(m, 10) - 1]} ${y}`, stats: computeStats(es) }
+    })
+}
+
 // Ordre d'affichage des niveaux de confiance (forces de signaux + niveaux de value)
 export const CONF_ORDER = ['fort', 'modéré', 'à surveiller', 'excellent', 'bon', 'interessant'] as const
 

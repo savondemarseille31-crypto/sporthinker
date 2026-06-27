@@ -5,6 +5,7 @@ import {
   computeStats,
   bySport,
   byConfidence,
+  statsByMonth,
   CONF_ORDER,
   type TrackEntry,
   type TrackStats,
@@ -187,6 +188,7 @@ export default async function PerformancePage() {
   // tirerait les stats vers le bas ; ces niveaux sont suivis séparément par sport ci-dessous.
   const global = computeStats(published.filter(e => e.confiance === 'fort'))
   const sports = bySport(published)
+  const months = statsByMonth(published).filter(m => m.stats.n > 0) // tous niveaux, mois avec ≥1 pari soldé
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -247,6 +249,46 @@ export default async function PerformancePage() {
           </p>
           <StatsGrid stats={global} />
         </section>
+
+        {/* Performance par mois — tous niveaux confondus */}
+        {months.length > 0 && (
+          <section className="mb-10">
+            <div className="flex items-center gap-2 flex-wrap mb-4">
+              <h2 className="text-xl font-bold">Performance par mois</h2>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-700 text-gray-300">tous niveaux</span>
+            </div>
+            <div className="overflow-x-auto rounded-2xl border border-gray-800">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-900 text-gray-400">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium">Mois</th>
+                    <th className="px-4 py-3 text-right font-medium">Paris</th>
+                    <th className="px-4 py-3 text-right font-medium">Réussite</th>
+                    <th className="px-4 py-3 text-right font-medium">Yield</th>
+                    <th className="px-4 py-3 text-right font-medium">Profit</th>
+                    <th className="px-4 py-3 text-right font-medium">Cote moy.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {months.map(({ month, label, stats }) => {
+                    const yc = stats.yield >= 0 ? 'text-emerald-400' : 'text-red-400'
+                    return (
+                      <tr key={month} className="border-t border-gray-800">
+                        <td className="px-4 py-3 font-medium text-white capitalize">{label}</td>
+                        <td className="px-4 py-3 text-right text-gray-300">{stats.n}</td>
+                        <td className="px-4 py-3 text-right text-gray-300">{stats.winRate.toFixed(1)} %</td>
+                        <td className={`px-4 py-3 text-right font-semibold ${yc}`}>{fmtPct(stats.yield)}</td>
+                        <td className={`px-4 py-3 text-right font-semibold ${yc}`}>{fmtUnits(stats.profitUnits)}</td>
+                        <td className="px-4 py-3 text-right text-gray-300">{stats.avgOdds.toFixed(2)}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-gray-600 mt-2">Tous niveaux de confiance confondus (fort · modéré · à surveiller), hors Tennis.</p>
+          </section>
+        )}
 
         {/* Par sport */}
         {Object.entries(sports).map(([sport, entries]) => {
