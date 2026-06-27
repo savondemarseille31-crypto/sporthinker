@@ -53,6 +53,28 @@ export function getNBAOdds()  { return fetchOdds('basketball_nba',         'h2h,
 export function getMLSOdds()  { return fetchOdds('soccer_usa_mls',         'h2h',        21600) }
 export function getCdMOdds()  { return fetchOdds('soccer_fifa_world_cup',  'h2h',        86400) } // 24h
 
+// ── Scores / résultats terminés — pour la solde foot (API-Football free n'a pas 2026) ──
+export type OddsScore = {
+  id: string
+  completed: boolean
+  home_team: string
+  away_team: string
+  scores: { name: string; score: string }[] | null
+}
+
+async function fetchScores(sportKey: string): Promise<OddsScore[]> {
+  if (!API_KEY) return []
+  try {
+    const res = await fetch(`${BASE}/sports/${sportKey}/scores/?daysFrom=3&apiKey=${API_KEY}`, { next: { revalidate: 1800 } })
+    if (!res.ok) return []
+    const data = await res.json()
+    return Array.isArray(data) ? data : []
+  } catch { return [] }
+}
+
+export function getCdMScores() { return fetchScores('soccer_fifa_world_cup') }
+export function getMLSScores() { return fetchScores('soccer_usa_mls') }
+
 // ── Player props CdM ─────────────────────────────────────────────────────────
 
 type PropsOutcome  = { name: string; description: string; price: number; point?: number }
