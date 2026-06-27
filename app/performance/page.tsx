@@ -65,31 +65,59 @@ function KpiCard({ label, value, color = 'text-white' }: {
   )
 }
 
-// Courbe de capital (profit cumulé en unités) — SVG léger, rendu serveur.
+// Graduations « rondes » pour l'axe Y.
+function niceTicks(min: number, max: number, count = 4): number[] {
+  const span = (max - min) || 1
+  const rawStep = span / count
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)))
+  const norm = rawStep / mag
+  const step = (norm >= 5 ? 5 : norm >= 2 ? 2 : 1) * mag
+  const start = Math.ceil(min / step) * step
+  const ticks: number[] = []
+  for (let v = start; v <= max + 1e-9; v += step) ticks.push(parseFloat(v.toFixed(2)))
+  return ticks
+}
+
+// Courbe de capital cumulé EN UNITÉS — SVG léger (rendu serveur), avec axes X (dates) et Y (unités).
 function EquityCurve({ points }: { points: { date: string; cumUnits: number }[] }) {
   if (points.length < 2) return null
-  const W = 1000, H = 240, PAD = 10
+  const W = 1000, H = 320, ML = 52, MR = 16, MT = 16, MB = 30
+  const plotW = W - ML - MR, plotH = H - MT - MB
   const ys = points.map(p => p.cumUnits)
   const minY = Math.min(0, ...ys)
-  const maxY = Math.max(0, ...ys)
-  const range = maxY - minY || 1
-  const X = (i: number) => PAD + (i / (points.length - 1)) * (W - 2 * PAD)
-  const Y = (v: number) => H - PAD - ((v - minY) / range) * (H - 2 * PAD)
+  const maxY = Math.max(0, ...ys) + (Math.max(...ys) - Math.min(0, ...ys)) * 0.08 || 1
+  const range = (maxY - minY) || 1
+  const X = (i: number) => ML + (i / (points.length - 1)) * plotW
+  const Y = (v: number) => MT + (1 - (v - minY) / range) * plotH
   const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${X(i).toFixed(1)},${Y(p.cumUnits).toFixed(1)}`).join('')
   const area = `${line}L${X(points.length - 1).toFixed(1)},${Y(minY).toFixed(1)}L${X(0).toFixed(1)},${Y(minY).toFixed(1)}Z`
   const up = points[points.length - 1].cumUnits >= 0
   const color = up ? '#34d399' : '#f87171'
+  const yTicks = niceTicks(minY, maxY, 4)
+  const last = points.length - 1
+  const xIdx = [...new Set([0, Math.round(last / 3), Math.round((2 * last) / 3), last])]
+  const fmtDate = (d: string) => { const [, m, dd] = d.split('-'); return `${dd}/${m}` }
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-44 sm:h-52" role="img" aria-label="Courbe de capital cumulé">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Capital cumulé en unités au fil du temps">
       <defs>
         <linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.28" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <line x1={PAD} x2={W - PAD} y1={Y(0)} y2={Y(0)} stroke="#475569" strokeWidth="1" strokeDasharray="6 6" vectorEffect="non-scaling-stroke" />
+      {/* Grille + échelle Y (unités) */}
+      {yTicks.map(t => (
+        <g key={t}>
+          <line x1={ML} x2={W - MR} y1={Y(t)} y2={Y(t)} stroke={t === 0 ? '#475569' : '#1f2937'} strokeWidth="1" strokeDasharray={t === 0 ? '6 6' : undefined} />
+          <text x={ML - 8} y={Y(t) + 4} textAnchor="end" fontSize="13" fill="#6b7280">{t > 0 ? `+${t}` : t} u</text>
+        </g>
+      ))}
+      {/* Échelle X (dates) */}
+      {xIdx.map(i => (
+        <text key={i} x={X(i)} y={H - 8} textAnchor="middle" fontSize="12" fill="#6b7280">{fmtDate(points[i].date)}</text>
+      ))}
       <path d={area} fill="url(#eqfill)" />
-      <path d={line} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <path d={line} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   )
 }
@@ -285,17 +313,14 @@ export default async function PerformancePage() {
 
           {equity.length >= 2 && (
             <div className="mb-5 rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/[0.07] to-gray-900 p-5 overflow-hidden">
-              <div className="flex items-end justify-between gap-4 mb-3">
-                <div>
-                  <p className="text-[11px] uppercase tracking-wider text-gray-500 mb-0.5">📈 Capital cumulé · signaux forts</p>
-                  <p className={`text-3xl sm:text-4xl font-extrabold tabular-nums ${global.profitUnits >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {fmtUnits(global.profitUnits)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[11px] uppercase tracking-wider text-gray-500">Yield</p>
-                  <p className={`text-xl font-bold tabular-nums ${global.yield >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{fmtPct(global.yield)}</p>
-                </div>
+              <div className="mb-3">
+                <p className="text-[11px] uppercase tracking-wider text-gray-500 mb-0.5">📈 Capital cumulé · signaux forts</p>
+                <p className={`text-3xl sm:text-4xl font-extrabold tabular-nums ${global.profitUnits >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {fmtUnits(global.profitUnits)} <span className="text-base font-semibold text-gray-500">au total</span>
+                </p>
+                <p className="text-xs text-gray-500">
+                  Profit cumulé en <span className="text-gray-400 font-medium">unités</span> (mise à plat, 1&nbsp;u/pari) sur {global.n} paris soldés — pas le ROI.
+                </p>
               </div>
               <EquityCurve points={equity} />
             </div>
