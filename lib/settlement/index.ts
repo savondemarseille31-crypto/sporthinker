@@ -218,8 +218,10 @@ export async function settleSignalHistory(): Promise<{ settled: number }> {
   const supa = db()
   const { data, error } = await supa
     .from('signal_history')
-    .select('id,sport,match_date,match,selection,cote')
-    .eq('statut', 'en_cours')
+    // alias date_match -> match_date (colonne réelle = date_match) ; on solde les non-encore-soldés
+    // (statut 'en_cours' OU null, car les captures historiques n'avaient pas de statut).
+    .select('id,sport,match_date:date_match,match,selection,cote')
+    .or('statut.eq.en_cours,statut.is.null')
   if (error || !data) return { settled: 0 }
   const rows = data as HistRow[]
   let settled = 0

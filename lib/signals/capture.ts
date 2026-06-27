@@ -21,6 +21,7 @@ export async function captureTodaySignals(): Promise<{ captured: number }> {
       match:      s.match,
       selection:  s.pari,
       cote:       s.coteRef ?? null,
+      statut:     'en_cours',
     }))
   if (!rows.length) return { captured: 0 }
 
