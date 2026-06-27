@@ -35,7 +35,7 @@ function MiseInput({ pari, devise, onCommit }: { pari: Pari; devise: string; onC
         placeholder="0"
         maxLength={12}
         aria-label="Montant misé"
-        className="w-20 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-right text-white focus:outline-none focus:border-emerald-500"
+        className="w-20 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-right text-white focus:outline-none focus:border-violet-500"
       />
       <span className="text-sm text-gray-400">{devise}</span>
     </div>
@@ -62,7 +62,7 @@ function CoteInput({ pari, onCommit }: { pari: Pari; onCommit: () => void }) {
       onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
       maxLength={7}
       aria-label="Cote réelle"
-      className="w-16 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-right text-white focus:outline-none focus:border-emerald-500"
+      className="w-16 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-right text-white focus:outline-none focus:border-violet-500"
     />
   )
 }
@@ -96,7 +96,7 @@ export default function ParisPage() {
   const derniersParis = paris.slice(0, 5)
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
@@ -106,11 +106,11 @@ export default function ParisPage() {
         </div>
 
         {/* Bankroll */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-emerald-400">💼 Bankroll</h2>
+            <h2 className="text-lg font-bold text-violet-400">💼 Bankroll</h2>
             <button onClick={() => { setEditBankroll(!editBankroll); setInputBankroll(String(bankroll.montantInitial)) }}
-              className="text-xs text-gray-500 hover:text-emerald-400 transition-colors">
+              className="text-xs text-gray-500 hover:text-violet-400 transition-colors">
               {editBankroll ? 'Annuler' : 'Modifier'}
             </button>
           </div>
@@ -122,7 +122,7 @@ export default function ParisPage() {
                 value={inputBankroll}
                 onChange={e => setInputBankroll(e.target.value)}
                 placeholder="Ex: 1000"
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
+                className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500"
               />
               <select
                 value={bankroll.devise}
@@ -131,7 +131,7 @@ export default function ParisPage() {
                 <option>€</option><option>$</option><option>U</option>
               </select>
               <button onClick={handleSaveBankroll}
-                className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-3 rounded-xl transition-colors">
+                className="bg-violet-500 hover:bg-violet-400 text-black font-bold px-5 py-3 rounded-xl transition-colors">
                 Sauvegarder
               </button>
             </div>
@@ -167,11 +167,11 @@ export default function ParisPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
             { label: '📋 Paris total', val: stats.total, sub: `${stats.enCours} en cours` },
-            { label: '✅ Gagnés', val: stats.gagnes, sub: `${stats.txReussite}% réussite`, color: 'text-emerald-400' },
+            { label: '✅ Gagnés', val: stats.gagnes, sub: `${stats.txReussite}% réussite`, color: 'text-violet-400' },
             { label: '❌ Perdus', val: stats.perdus, sub: `${stats.termines} terminés`, color: 'text-red-400' },
             { label: '📊 Cote moyenne', val: stats.coteMoyenne || '—', sub: 'sur paris terminés' },
           ].map(s => (
-            <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+            <div key={s.label} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 text-center">
               <p className="text-xs text-gray-500 mb-1">{s.label}</p>
               <p className={`text-3xl font-bold mb-1 ${s.color ?? 'text-white'}`}>{s.val}</p>
               <p className="text-xs text-gray-500">{s.sub}</p>
@@ -182,16 +182,16 @@ export default function ParisPage() {
         {/* Raccourcis actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <Link href="/paris/calculateur"
-            className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6 hover:border-emerald-500 transition-colors">
+            className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-6 hover:border-violet-500 transition-colors">
             <div className="text-3xl mb-3">🎯</div>
-            <h3 className="font-bold text-lg text-emerald-400 mb-1">Calculateur ValueBet</h3>
+            <h3 className="font-bold text-lg text-violet-400 mb-1">Calculateur ValueBet</h3>
             <p className="text-gray-400 text-sm">Entre ta cote Stake + probabilité → EV, Kelly, mise optimale</p>
-            <div className="mt-4 text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg inline-block">
+            <div className="mt-4 text-xs bg-violet-500/20 text-violet-400 px-3 py-1.5 rounded-lg inline-block">
               Ouvrir le calculateur →
             </div>
           </Link>
           <Link href="/paris/historique"
-            className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-emerald-500 transition-colors">
+            className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 hover:border-violet-500 transition-colors">
             <div className="text-3xl mb-3">📊</div>
             <h3 className="font-bold text-lg mb-1">Historique des paris</h3>
             <p className="text-gray-400 text-sm">Ajoute un pari, suis tes résultats et ton évolution bankroll</p>
@@ -203,10 +203,10 @@ export default function ParisPage() {
 
         {/* Derniers paris */}
         {derniersParis.length > 0 && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-emerald-400">🕐 Derniers paris</h2>
-              <Link href="/paris/historique" className="text-xs text-gray-500 hover:text-emerald-400 transition-colors">
+              <h2 className="text-lg font-bold text-violet-400">🕐 Derniers paris</h2>
+              <Link href="/paris/historique" className="text-xs text-gray-500 hover:text-violet-400 transition-colors">
                 Voir tout →
               </Link>
             </div>
@@ -227,7 +227,7 @@ export default function ParisPage() {
                       <p className="text-sm font-bold">Cote {pari.coteStake} · {pari.mise}{bankroll.devise}</p>
                     )}
                     <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                      pari.statut === 'gagné' ? 'bg-emerald-500/20 text-emerald-400' :
+                      pari.statut === 'gagné' ? 'bg-violet-500/20 text-violet-400' :
                       pari.statut === 'perdu' ? 'bg-red-500/20 text-red-400' :
                       pari.statut === 'annulé' ? 'bg-gray-700 text-gray-400' :
                       'bg-yellow-500/20 text-yellow-400'
@@ -249,7 +249,7 @@ export default function ParisPage() {
             <p className="text-lg font-semibold mb-1">Aucun pari enregistré</p>
             <p className="text-sm mb-4">Commence par calculer ta première value bet</p>
             <Link href="/paris/calculateur"
-              className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-3 rounded-xl transition-colors text-sm">
+              className="bg-violet-500 hover:bg-violet-400 text-black font-bold px-6 py-3 rounded-xl transition-colors text-sm">
               Ouvrir le calculateur
             </Link>
           </div>

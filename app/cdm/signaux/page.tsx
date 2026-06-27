@@ -108,11 +108,11 @@ async function enrichMatchSignalsWithOdds(signals: Signal[]): Promise<Signal[]> 
 
 function forceConfig(force: SignalForce, tier?: Signal['tier']) {
   if (tier === 'value') {
-    const colors = { fort: 'bg-emerald-500/30 text-emerald-300 border-emerald-400', modéré: 'bg-blue-500/20 text-blue-300 border-blue-400', 'à surveiller': 'bg-indigo-500/20 text-indigo-300 border-indigo-500' }
-    return { dot: 'bg-emerald-400', badge: `${colors[force]} border`, label: '💰 Value' }
+    const colors = { fort: 'bg-violet-500/30 text-violet-300 border-violet-400', modéré: 'bg-blue-500/20 text-blue-300 border-blue-400', 'à surveiller': 'bg-indigo-500/20 text-indigo-300 border-indigo-500' }
+    return { dot: 'bg-violet-400', badge: `${colors[force]} border`, label: '💰 Value' }
   }
   switch (force) {
-    case 'fort':         return { dot: 'bg-emerald-400', badge: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', label: '⚡ Fort' }
+    case 'fort':         return { dot: 'bg-violet-400', badge: 'bg-violet-500/20 text-violet-400 border border-violet-500/30', label: '⚡ Fort' }
     case 'modéré':       return { dot: 'bg-yellow-400',  badge: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',   label: '🔶 Modéré' }
     case 'à surveiller': return { dot: 'bg-gray-400',    badge: 'bg-gray-700 text-gray-400 border border-gray-600',               label: '👁 Modèle' }
   }
@@ -121,7 +121,7 @@ function forceConfig(force: SignalForce, tier?: Signal['tier']) {
 function typeColor(typePari: string) {
   if (typePari.includes('Under'))  return 'text-blue-400'
   if (typePari.includes('Over'))   return 'text-orange-400'
-  if (typePari.includes('1x2'))    return 'text-emerald-400'
+  if (typePari.includes('1x2'))    return 'text-violet-400'
   if (typePari.includes('BTTS'))   return 'text-pink-400'
   return 'text-gray-300'
 }
@@ -137,7 +137,7 @@ function MatchSignalCard({ signal }: { signal: Signal }) {
   return (
     <Link
       href={`/cdm/matchup/${signal.id.split('-')[1]}`}
-      className={`block bg-gray-900 rounded-2xl p-4 hover:border-gray-600 transition-colors border ${isValue ? 'border-emerald-500/40' : 'border-gray-800'}`}
+      className={`block bg-[#14171f] rounded-2xl p-4 hover:border-gray-600 transition-colors border ${isValue ? 'border-violet-500/40' : 'border-[#262b36]'}`}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -165,7 +165,7 @@ function MatchSignalCard({ signal }: { signal: Signal }) {
         )}
         {ev != null && (
           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-            ev > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/10 text-red-400'
+            ev > 0 ? 'bg-violet-500/20 text-violet-400' : 'bg-red-500/10 text-red-400'
           }`}>
             EV {ev > 0 ? '+' : ''}{(ev * 100).toFixed(1)}%
           </span>
@@ -212,14 +212,14 @@ export default async function CdmSignauxPage() {
   const values  = allMatchSignals.filter(s => s.tier === 'value')
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-7xl mx-auto">
 
         {/* Titre */}
         <div className="mb-2">
-          <Link href="/cdm" className="text-gray-500 text-sm hover:text-emerald-400 transition-colors">← CdM 2026</Link>
+          <Link href="/cdm" className="text-gray-500 text-sm hover:text-violet-400 transition-colors">← CdM 2026</Link>
         </div>
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-1">🌍 Signaux CdM 2026</h1>
@@ -230,12 +230,12 @@ export default async function CdmSignauxPage() {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 text-center">
             <p className="text-2xl font-bold text-white">{top8.length}</p>
             <p className="text-xs text-gray-500 mt-1">Signaux actifs</p>
           </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-400">{totalForts}</p>
+          <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-4 text-center">
+            <p className="text-2xl font-bold text-violet-400">{totalForts}</p>
             <p className="text-xs text-gray-500 mt-1">⚡ Forts</p>
           </div>
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 text-center">
@@ -269,7 +269,7 @@ export default async function CdmSignauxPage() {
             { label: '🟨 Carton élevé', val: '≥ 22% des matchs' },
             { label: '🎯 Passeur fort', val: '≥ 0.33 xA/match' },
           ].map(t => (
-            <div key={t.label} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3">
+            <div key={t.label} className="bg-[#14171f] border border-[#262b36] rounded-xl px-4 py-3">
               <p className="text-xs text-gray-500 mb-0.5">{t.label}</p>
               <p className="text-sm font-bold text-white">{t.val}</p>
             </div>
@@ -290,13 +290,13 @@ export default async function CdmSignauxPage() {
         )}
 
         {/* Lien signaux généraux */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 flex items-center justify-between gap-4">
           <div>
             <p className="font-bold text-white mb-1">⚡ Signaux matchs (Toutes ligues)</p>
             <p className="text-sm text-gray-400">Moneyline, Over/Under, BTTS — MLB, NBA, MLS, Tennis.</p>
           </div>
           <Link href="/signaux"
-            className="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-3 rounded-xl transition-colors text-sm">
+            className="shrink-0 bg-violet-500 hover:bg-violet-400 text-black font-bold px-5 py-3 rounded-xl transition-colors text-sm">
             Voir →
           </Link>
         </div>

@@ -21,7 +21,7 @@ type SignalsByMarket = {
 
 function forceConfig(force: PlayerSignalForce) {
   switch (force) {
-    case 'fort':   return { dot: 'bg-emerald-400', badge: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', label: '⚡ Fort' }
+    case 'fort':   return { dot: 'bg-violet-400', badge: 'bg-violet-500/20 text-violet-400 border border-violet-500/30', label: '⚡ Fort' }
     case 'modéré': return { dot: 'bg-yellow-400',  badge: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',   label: '🔶 Modéré' }
     default:       return { dot: 'bg-gray-400',    badge: 'bg-gray-700 text-gray-400 border border-gray-600',               label: 'Faible' }
   }
@@ -29,7 +29,7 @@ function forceConfig(force: PlayerSignalForce) {
 
 function confianceLabel(c: PlayerSignal['confiance']) {
   switch (c) {
-    case 'haute':   return { text: 'text-emerald-400', label: '● Haute confiance' }
+    case 'haute':   return { text: 'text-violet-400', label: '● Haute confiance' }
     case 'moyenne': return { text: 'text-yellow-400',  label: '● Confiance moyenne' }
     default:        return { text: 'text-gray-500',    label: '● Petit échantillon' }
   }
@@ -37,7 +37,7 @@ function confianceLabel(c: PlayerSignal['confiance']) {
 
 function marketColor(marché: PlayerMarket) {
   switch (marché) {
-    case 'buteur':       return 'text-emerald-400'
+    case 'buteur':       return 'text-violet-400'
     case 'tirs-cadrés':  return 'text-blue-400'
     case 'tirs-tentés':  return 'text-cyan-400'
     case 'carton-jaune': return 'text-yellow-400'
@@ -86,10 +86,10 @@ function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
   }
 
   return (
-    <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-gray-600 transition-colors">
+    <div className="relative bg-[#14171f] border border-[#262b36] rounded-2xl p-4 hover:border-gray-600 transition-colors">
       {/* Toast */}
       {toast && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-emerald-500 text-black text-xs font-bold px-3 py-1.5 rounded-full shadow-lg pointer-events-none">
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-violet-500 text-black text-xs font-bold px-3 py-1.5 rounded-full shadow-lg pointer-events-none">
           ✓ Signal enregistré
         </div>
       )}
@@ -112,7 +112,7 @@ function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
               return (
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-lg border ${
                   pos
-                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                    ? 'bg-violet-500/20 text-violet-400 border-violet-500/30'
                     : 'bg-red-500/10 text-red-400 border-red-500/20'
                 }`}>
                   EV {pos ? '+' : ''}{ev.toFixed(1)}%
@@ -129,7 +129,7 @@ function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
         </div>
 
         <div className="mb-2">
-          <p className="font-bold text-white text-base group-hover:text-emerald-400 transition-colors">
+          <p className="font-bold text-white text-base group-hover:text-violet-400 transition-colors">
             {signal.playerName}
           </p>
           <p className="text-xs text-gray-500">{signal.poste} · {signal.club}</p>
@@ -144,8 +144,8 @@ function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
 
         <div className="grid grid-cols-2 gap-1.5">
           {signal.stats.map((s, i) => (
-            <div key={i} className={`rounded-lg px-2 py-1.5 text-center ${s.highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
-              <p className={`text-sm font-bold ${s.highlight ? 'text-emerald-400' : 'text-white'}`}>{s.val}</p>
+            <div key={i} className={`rounded-lg px-2 py-1.5 text-center ${s.highlight ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-gray-800'}`}>
+              <p className={`text-sm font-bold ${s.highlight ? 'text-violet-400' : 'text-white'}`}>{s.val}</p>
               <p className="text-xs text-gray-500 leading-tight">{s.label}</p>
             </div>
           ))}
@@ -160,10 +160,10 @@ function PlayerSignalCard({ signal }: { signal: PlayerSignal }) {
         disabled={saved || !fixture}
         className={`mt-3 w-full py-2 rounded-xl text-xs font-semibold transition-colors ${
           saved
-            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default'
+            ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20 cursor-default'
             : !fixture
             ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
-            : 'bg-gray-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-gray-400 border border-gray-700 hover:border-emerald-500/30'
+            : 'bg-gray-800 hover:bg-violet-500/20 hover:text-violet-400 text-gray-400 border border-gray-700 hover:border-violet-500/30'
         }`}
       >
         {saved ? '✓ Dans le suivi' : !fixture ? 'Pas de match prévu' : '+ Suivre ce signal'}
@@ -191,7 +191,7 @@ function MarketSection({
           {signals.length} signal{signals.length > 1 ? 's' : ''}
         </span>
         {forts > 0 && (
-          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400">
             {forts} ⚡ fort{forts > 1 ? 's' : ''}
           </span>
         )}
@@ -201,7 +201,7 @@ function MarketSection({
           {signals.map(s => <PlayerSignalCard key={`${s.playerId}-${s.marché}`} signal={s} />)}
         </div>
       ) : (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 text-center">
           <p className="text-gray-500 text-sm">{emptyMsg}</p>
         </div>
       )}
@@ -228,25 +228,25 @@ function MatchSection({
         href={`/cdm/matchup/${fixture.id}`}
         className="flex items-center gap-3 mb-4 group"
       >
-        <div className="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3 hover:border-emerald-500 transition-colors">
-          <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full shrink-0">
+        <div className="flex-1 bg-[#14171f] border border-[#262b36] rounded-xl px-4 py-3 flex items-center gap-3 hover:border-violet-500 transition-colors">
+          <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full shrink-0">
             Gr. {fixture.groupe}
           </span>
-          <span className="text-xs text-emerald-400 font-medium shrink-0">{fixture.heure}</span>
+          <span className="text-xs text-violet-400 font-medium shrink-0">{fixture.heure}</span>
           <div className="flex items-center gap-2 flex-1 justify-center min-w-0">
             <span>{fixture.flagD}</span>
-            <span className="font-semibold text-white group-hover:text-emerald-400 transition-colors truncate text-sm">
+            <span className="font-semibold text-white group-hover:text-violet-400 transition-colors truncate text-sm">
               {fixture.domicile}
             </span>
             <span className="text-gray-500 text-xs">vs</span>
-            <span className="font-semibold text-white group-hover:text-emerald-400 transition-colors truncate text-sm">
+            <span className="font-semibold text-white group-hover:text-violet-400 transition-colors truncate text-sm">
               {fixture.exterieur}
             </span>
             <span>{fixture.flagE}</span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {fortCount > 0 && (
-              <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full">
                 {fortCount} ⚡
               </span>
             )}
@@ -281,7 +281,7 @@ function ByMatchView({
 
   if (!fixtures.length) {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+      <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-8 text-center">
         <p className="text-gray-400 text-base mb-1">Aucun match ce jour</p>
         <p className="text-gray-600 text-sm">La compétition débute le 11 juin 2026.</p>
       </div>
@@ -294,7 +294,7 @@ function ByMatchView({
 
   if (!hasAny) {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+      <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-8 text-center">
         <p className="text-gray-400 text-sm">Aucun signal joueur pour les {fixtures.length} matchs de ce jour.</p>
       </div>
     )
@@ -341,8 +341,8 @@ export default function CdmSignauxClient({ signals }: { signals: SignalsByMarket
               onClick={() => setFilter(f)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 filter === f
-                  ? 'bg-emerald-500 text-black'
-                  : 'bg-gray-900 border border-gray-800 text-gray-400 hover:border-emerald-500'
+                  ? 'bg-violet-500 text-black'
+                  : 'bg-[#14171f] border border-[#262b36] text-gray-400 hover:border-violet-500'
               }`}
             >
               {f}
@@ -370,7 +370,7 @@ export default function CdmSignauxClient({ signals }: { signals: SignalsByMarket
       {/* Vue "Tous" — groupée par marché */}
       {filter === 'Tous' && (
         <>
-          <MarketSection title="⚽ Buteur du match"    signals={signals.buteurs.slice(0, 8)}    accentClass="text-emerald-300" emptyMsg="Aucun signal sur ce marché." />
+          <MarketSection title="⚽ Buteur du match"    signals={signals.buteurs.slice(0, 8)}    accentClass="text-violet-300" emptyMsg="Aucun signal sur ce marché." />
           <MarketSection title="🎯 Tirs cadrés (≥ 1)" signals={signals.tirsCadrés.slice(0, 8)} accentClass="text-blue-300"    emptyMsg="Aucun signal sur ce marché." />
           <MarketSection title="🎯 Passeur décisif"   signals={signals.passeurs.slice(0, 8)}   accentClass="text-purple-300"  emptyMsg="Aucun signal sur ce marché." />
           <MarketSection title="🟨 Carton jaune"      signals={signals.cartons.slice(0, 8)}    accentClass="text-yellow-300"  emptyMsg="Aucun signal sur ce marché." />

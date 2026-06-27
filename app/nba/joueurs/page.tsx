@@ -37,13 +37,13 @@ export default async function NBAJoueursPage() {
   const allPlayers = Array.from(playerMap.values())
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link href="/nba" className="hover:text-emerald-400 transition-colors">
+          <Link href="/nba" className="hover:text-violet-400 transition-colors">
             ← NBA Playoffs
           </Link>
           <span>/</span>
@@ -54,7 +54,7 @@ export default async function NBAJoueursPage() {
           <h1 className="text-3xl font-bold mb-1">📊 Stats Joueurs — Playoffs 2026</h1>
           <p className="text-gray-400 text-sm">
             Moyennes playoffs · Données ESPN en temps réel ·{' '}
-            <span className="text-emerald-400">{allPlayers.length} joueurs</span>{' '}
+            <span className="text-violet-400">{allPlayers.length} joueurs</span>{' '}
             de{' '}
             <span className="text-white font-semibold">{teams.length} équipes</span>
           </p>
@@ -75,7 +75,7 @@ export default async function NBAJoueursPage() {
                 joueur avec les lignes proposées par ton bookmaker.
               </p>
               <ul className="mt-3 space-y-1.5 text-sm text-gray-400">
-                <li>• Si un joueur est en forme et que la ligne est inférieure à sa moyenne récente → <span className="text-emerald-400 font-semibold">value OVER</span></li>
+                <li>• Si un joueur est en forme et que la ligne est inférieure à sa moyenne récente → <span className="text-violet-400 font-semibold">value OVER</span></li>
                 <li>• Préfère les joueurs avec ≥ 5 matchs pour une moyenne fiable</li>
                 <li>• En playoffs, le rythme ralentit souvent → totaux par équipe plus bas qu&apos;en saison régulière</li>
                 <li>• Surveille les matchups défensifs : un bon défenseur en face peut faire baisser la performance</li>
@@ -88,7 +88,7 @@ export default async function NBAJoueursPage() {
         <div className="flex gap-3">
           <Link
             href="/paris/calculateur"
-            className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-center py-3 rounded-xl transition-colors"
+            className="flex-1 bg-violet-500 hover:bg-violet-400 text-black font-bold text-center py-3 rounded-xl transition-colors"
           >
             💰 Calculateur de value
           </Link>

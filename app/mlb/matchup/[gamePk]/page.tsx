@@ -19,7 +19,7 @@ export const revalidate = 60 // 1 min — données matchup live
 
 // ---- Helpers ----
 function eraColor(era: number) {
-  if (era < 2.50) return 'text-emerald-400'
+  if (era < 2.50) return 'text-violet-400'
   if (era < 3.50) return 'text-yellow-400'
   if (era < 4.50) return 'text-orange-400'
   return 'text-red-400'
@@ -34,8 +34,8 @@ function eraLabel(era: number) {
 
 function StatBox({ label, value, sub, highlight }: { label: string; value: string; sub?: string; highlight?: boolean }) {
   return (
-    <div className={`rounded-xl p-3 text-center ${highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
-      <p className={`text-lg font-bold ${highlight ? 'text-emerald-400' : 'text-white'}`}>{value}</p>
+    <div className={`rounded-xl p-3 text-center ${highlight ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-gray-800'}`}>
+      <p className={`text-lg font-bold ${highlight ? 'text-violet-400' : 'text-white'}`}>{value}</p>
       <p className="text-xs text-gray-500 mt-0.5">{label}</p>
       {sub && <p className="text-xs text-gray-600">{sub}</p>}
     </div>
@@ -54,7 +54,7 @@ function RecentGamesRow({ games, abbr }: { games: MLBRecentGame[]; abbr: string 
         return (
           <div key={i} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${g.won ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${g.won ? 'bg-violet-500/20 text-violet-400' : 'bg-red-500/20 text-red-400'}`}>
                 {g.won ? 'V' : 'D'}
               </span>
               <span className="text-gray-400 text-xs">{g.isHome ? 'vs' : '@'} {opponent}</span>
@@ -153,21 +153,21 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
   })
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link href="/mlb" className="hover:text-emerald-400 transition-colors">⚾ MLB</Link>
+          <Link href="/mlb" className="hover:text-violet-400 transition-colors">⚾ MLB</Link>
           <span>/</span>
-          <Link href="/mlb/calendrier" className="hover:text-emerald-400 transition-colors">Calendrier</Link>
+          <Link href="/mlb/calendrier" className="hover:text-violet-400 transition-colors">Calendrier</Link>
           <span>/</span>
           <span className="text-white">{home.team.abbreviation} vs {away.team.abbreviation}</span>
         </div>
 
         {/* Header match */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             {isLive && (
               <span className="flex items-center gap-1.5 text-sm bg-red-500/20 text-red-400 px-3 py-1 rounded-full">
@@ -195,7 +195,7 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
               <p className="text-xs text-gray-500">{home.team.name}</p>
               <p className="text-xs text-gray-600 mt-1">{home.leagueRecord.wins}-{home.leagueRecord.losses}</p>
               {(isLive || isFinal) && (
-                <p className={`text-3xl font-bold mt-2 ${home.isWinner ? 'text-emerald-400' : 'text-white'}`}>
+                <p className={`text-3xl font-bold mt-2 ${home.isWinner ? 'text-violet-400' : 'text-white'}`}>
                   {home.score ?? 0}
                 </p>
               )}
@@ -216,7 +216,7 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
               <p className="text-xs text-gray-500">{away.team.name}</p>
               <p className="text-xs text-gray-600 mt-1">{away.leagueRecord.wins}-{away.leagueRecord.losses}</p>
               {(isLive || isFinal) && (
-                <p className={`text-3xl font-bold mt-2 ${away.isWinner ? 'text-emerald-400' : 'text-white'}`}>
+                <p className={`text-3xl font-bold mt-2 ${away.isWinner ? 'text-violet-400' : 'text-white'}`}>
                   {away.score ?? 0}
                 </p>
               )}
@@ -227,9 +227,9 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
         {/* Signal du match */}
         {signal ? (
           <div className={`rounded-2xl p-5 mb-6 border ${
-            signal.force === 'fort' ? 'bg-emerald-500/10 border-emerald-500/30' :
+            signal.force === 'fort' ? 'bg-violet-500/10 border-violet-500/30' :
             signal.force === 'modéré' ? 'bg-yellow-500/10 border-yellow-500/30' :
-            'bg-gray-900 border-gray-700'
+            'bg-[#14171f] border-gray-700'
           }`}>
             <div className="flex items-center gap-2 mb-3">
               <span className="font-bold text-sm">
@@ -238,7 +238,7 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
               <span className="text-xs text-gray-500">— {signal.typePari}</span>
             </div>
             <p className={`text-xl font-bold mb-2 ${
-              signal.force === 'fort' ? 'text-emerald-400' : signal.force === 'modéré' ? 'text-yellow-400' : 'text-gray-300'
+              signal.force === 'fort' ? 'text-violet-400' : signal.force === 'modéré' ? 'text-yellow-400' : 'text-gray-300'
             }`}>{signal.pari}</p>
             <p className="text-sm text-gray-400 mb-4">{signal.raisonnement}</p>
             <Link href="/paris/calculateur"
@@ -247,7 +247,7 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
             </Link>
           </div>
         ) : (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 mb-6 text-center text-sm text-gray-500">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 mb-6 text-center text-sm text-gray-500">
             Aucun signal détecté — les lanceurs sont trop proches statistiquement pour identifier un avantage clair.
           </div>
         )}
@@ -255,8 +255,8 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* ---- LANCEURS ---- */}
-          <section className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-            <h2 className="text-base font-bold text-emerald-400 mb-4">🥎 Lanceurs probables</h2>
+          <section className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
+            <h2 className="text-base font-bold text-violet-400 mb-4">🥎 Lanceurs probables</h2>
 
             {/* Home pitcher — Domicile en premier */}
             <div className="mb-5">
@@ -286,7 +286,7 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
               )}
             </div>
 
-            <div className="border-t border-gray-800 my-4" />
+            <div className="border-t border-[#262b36] my-4" />
 
             {/* Away pitcher */}
             <div>
@@ -318,8 +318,8 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
           </section>
 
           {/* ---- OFFENSES ---- */}
-          <section className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-            <h2 className="text-base font-bold text-emerald-400 mb-4">🏏 Offenses (saison)</h2>
+          <section className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
+            <h2 className="text-base font-bold text-violet-400 mb-4">🏏 Offenses (saison)</h2>
 
             <div className="space-y-5">
               {/* Home offense — Domicile en premier */}
@@ -337,7 +337,7 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
                 ) : <p className="text-xs text-gray-600">Stats indisponibles</p>}
               </div>
 
-              <div className="border-t border-gray-800" />
+              <div className="border-t border-[#262b36]" />
 
               {/* Away offense */}
               <div>
@@ -366,16 +366,16 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
           </section>
 
           {/* ---- FORME RÉCENTE Home — Domicile en premier ---- */}
-          <section className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <section className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-emerald-400">
+              <h2 className="text-base font-bold text-violet-400">
                 {homeInfo?.emoji} {homeInfo?.shortName} — Forme récente <span className="text-xs text-gray-600">(dom.)</span>
               </h2>
               {homeRecent.length > 0 && (
                 <div className="flex items-center gap-1">
                   <span className="text-xs text-gray-500">{homeWins10}/{homeRecent.length} victoires</span>
                   <span className={`ml-2 text-xs font-bold px-2 py-0.5 rounded-full ${
-                    homeWins10 >= 7 ? 'bg-emerald-500/20 text-emerald-400' :
+                    homeWins10 >= 7 ? 'bg-violet-500/20 text-violet-400' :
                     homeWins10 >= 4 ? 'bg-yellow-500/20 text-yellow-400' :
                     'bg-red-500/20 text-red-400'
                   }`}>
@@ -394,16 +394,16 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
           </section>
 
           {/* ---- FORME RÉCENTE Away ---- */}
-          <section className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <section className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-emerald-400">
+              <h2 className="text-base font-bold text-violet-400">
                 {awayInfo?.emoji} {awayInfo?.shortName} — Forme récente <span className="text-xs text-gray-600">(ext.)</span>
               </h2>
               {awayRecent.length > 0 && (
                 <div className="flex items-center gap-1">
                   <span className="text-xs text-gray-500">{awayWins10}/{awayRecent.length} victoires</span>
                   <span className={`ml-2 text-xs font-bold px-2 py-0.5 rounded-full ${
-                    awayWins10 >= 7 ? 'bg-emerald-500/20 text-emerald-400' :
+                    awayWins10 >= 7 ? 'bg-violet-500/20 text-violet-400' :
                     awayWins10 >= 4 ? 'bg-yellow-500/20 text-yellow-400' :
                     'bg-red-500/20 text-red-400'
                   }`}>
@@ -423,8 +423,8 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
 
           {/* ---- H2H ---- */}
           {h2h.length > 0 && (
-            <section className="bg-gray-900 border border-gray-800 rounded-2xl p-5 lg:col-span-2">
-              <h2 className="text-base font-bold text-emerald-400 mb-4">
+            <section className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 lg:col-span-2">
+              <h2 className="text-base font-bold text-violet-400 mb-4">
                 ⚔️ H2H cette saison — {homeInfo?.shortName} vs {awayInfo?.shortName}
               </h2>
               <div className="space-y-2">
@@ -454,7 +454,7 @@ export default async function MatchupPage({ params }: { params: Promise<{ gamePk
         {/* CTA */}
         <div className="mt-6 flex gap-3">
           <Link href="/paris/calculateur"
-            className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-center py-3 rounded-xl transition-colors">
+            className="flex-1 bg-violet-500 hover:bg-violet-400 text-black font-bold text-center py-3 rounded-xl transition-colors">
             💰 Calculateur de value
           </Link>
           <Link href="/signaux"

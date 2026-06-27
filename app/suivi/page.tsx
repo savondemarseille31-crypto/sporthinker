@@ -25,7 +25,7 @@ const SPORT_ICONS: Record<string, string> = {
 }
 const SPORT_COLORS: Record<string, string> = {
   MLB:    'text-blue-400 border-blue-500/30 bg-blue-500/10',
-  CdM:    'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
+  CdM:    'text-violet-400 border-violet-500/30 bg-violet-500/10',
   NBA:    'text-orange-400 border-orange-500/30 bg-orange-500/10',
   Tennis: 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10',
   MLS:    'text-green-400 border-green-500/30 bg-green-500/10',
@@ -56,7 +56,7 @@ function KpiCard({ label, value, sub, color = 'text-white' }: {
   label: string; value: string | number; sub?: string; color?: string
 }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 text-center">
       <p className="text-xs text-gray-500 mb-1">{label}</p>
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
       {sub && <p className="text-xs text-gray-600 mt-0.5">{sub}</p>}
@@ -68,10 +68,10 @@ function StatRow({ label, stats, accentColor }: { label: string; stats: TrackerS
   const roiColor  = stats.roi >= 0 ? 'text-emerald-400' : 'text-red-400'
   const gainColor = stats.totalGain >= 0 ? 'text-emerald-400' : 'text-red-400'
   return (
-    <div className="grid grid-cols-[1fr_repeat(6,_minmax(0,_1fr))] items-center gap-2 px-4 py-3 border-b border-gray-800/50 last:border-0 text-sm">
+    <div className="grid grid-cols-[1fr_repeat(6,_minmax(0,_1fr))] items-center gap-2 px-4 py-3 border-b border-[#262b36]/50 last:border-0 text-sm">
       <span className={`font-semibold ${accentColor}`}>{label}</span>
       <span className="text-center text-gray-300">{stats.total}</span>
-      <span className="text-center text-emerald-400">{stats.gagnes}</span>
+      <span className="text-center text-violet-400">{stats.gagnes}</span>
       <span className="text-center text-red-400">{stats.perdus}</span>
       <span className="text-center text-yellow-400">{stats.enCours}</span>
       <span className={`text-center font-bold ${gainColor}`}>
@@ -107,7 +107,7 @@ function TabDashboard({ signals, paris }: { signals: TrackedSignal[]; paris: Par
       {/* KPIs globaux */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         <KpiCard label="Signaux suivis"  value={globalStats.total}     sub={`${globalStats.enCours} en cours`} />
-        <KpiCard label="✅ Gagnés"       value={globalStats.gagnes}    color="text-emerald-400" />
+        <KpiCard label="✅ Gagnés"       value={globalStats.gagnes}    color="text-violet-400" />
         <KpiCard label="❌ Perdus"       value={globalStats.perdus}    color="text-red-400" />
         <KpiCard label="P&L (unités)"    value={`${globalStats.totalGain >= 0 ? '+' : ''}${globalStats.totalGain.toFixed(1)}u`} color={gainColor} />
         <KpiCard label="ROI"             value={`${globalStats.roi >= 0 ? '+' : ''}${globalStats.roi}%`} color={roiColor} sub={`${globalStats.txReussite}% réussite`} />
@@ -116,7 +116,7 @@ function TabDashboard({ signals, paris }: { signals: TrackedSignal[]; paris: Par
       {/* Fort vs Modéré */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {[
-          { title: '⚡ Signaux forts',   stats: fortsStats,   accent: 'border-emerald-500/30 bg-emerald-500/5' },
+          { title: '⚡ Signaux forts',   stats: fortsStats,   accent: 'border-violet-500/30 bg-violet-500/5' },
           { title: '🔶 Signaux modérés', stats: moderésStats, accent: 'border-yellow-500/30  bg-yellow-500/5'  },
         ].map(({ title, stats, accent }) => (
           <div key={title} className={`border ${accent} rounded-2xl p-5`}>
@@ -142,9 +142,9 @@ function TabDashboard({ signals, paris }: { signals: TrackedSignal[]; paris: Par
 
       {/* P&L évolution */}
       {evolution.length > 1 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-6">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-emerald-400">📈 Évolution P&L (signaux)</h3>
+            <h3 className="text-sm font-bold text-violet-400">📈 Évolution P&L (signaux)</h3>
             <span className={`text-sm font-bold ${cumul >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               {cumul >= 0 ? '+' : ''}{cumul.toFixed(2)}u
             </span>
@@ -154,7 +154,7 @@ function TabDashboard({ signals, paris }: { signals: TrackedSignal[]; paris: Par
               const max = Math.max(...evolution.map(Math.abs), 1)
               return (
                 <div key={i} className="flex-1 flex flex-col justify-end" title={`${val >= 0 ? '+' : ''}${val.toFixed(2)}u`}>
-                  <div className={`rounded-sm ${val >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`}
+                  <div className={`rounded-sm ${val >= 0 ? 'bg-violet-500' : 'bg-red-500'}`}
                     style={{ height: `${Math.max(Math.abs(val) / max * 100, 4)}%` }} />
                 </div>
               )
@@ -169,10 +169,10 @@ function TabDashboard({ signals, paris }: { signals: TrackedSignal[]; paris: Par
 
       {/* Paris perso résumé */}
       {paris.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-white">💰 Paris personnels</h3>
-            <Link href="/paris/historique" className="text-xs text-gray-500 hover:text-emerald-400 transition-colors">
+            <Link href="/paris/historique" className="text-xs text-gray-500 hover:text-violet-400 transition-colors">
               Détail →
             </Link>
           </div>
@@ -200,7 +200,7 @@ function TabDashboard({ signals, paris }: { signals: TrackedSignal[]; paris: Par
             Clique sur "Suivre ce signal" sur les cartes de la page Signaux ou CdM pour commencer.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
-            <Link href="/signaux" className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-2.5 rounded-xl text-sm transition-colors">
+            <Link href="/signaux" className="bg-violet-500 hover:bg-violet-400 text-black font-bold px-5 py-2.5 rounded-xl text-sm transition-colors">
               Signaux matchs →
             </Link>
             <Link href="/cdm/signaux" className="bg-gray-800 hover:bg-gray-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors">
@@ -320,7 +320,7 @@ function TabParMarché({ signals }: { signals: TrackedSignal[] }) {
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl overflow-hidden">
       {/* En-tête */}
       <div className="grid grid-cols-[1fr_repeat(6,_minmax(0,_1fr))] gap-2 px-4 py-3 bg-gray-800/50 text-xs text-gray-500 font-medium uppercase tracking-wide">
         <span>Marché</span>
@@ -392,20 +392,20 @@ function TabHistorique({ signals, onRefresh }: { signals: TrackedSignal[]; onRef
       <div className="flex gap-2 flex-wrap mb-6">
         {/* Sport */}
         <select value={sport} onChange={e => setSport(e.target.value)}
-          className="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-emerald-500">
+          className="bg-[#14171f] border border-[#262b36] rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-violet-500">
           <option>Tous</option>
           {SPORTS.map(s => <option key={s}>{s}</option>)}
         </select>
         {/* Force */}
         <select value={force} onChange={e => setForce(e.target.value)}
-          className="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-emerald-500">
+          className="bg-[#14171f] border border-[#262b36] rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-violet-500">
           <option>Tous</option>
           <option value="fort">⚡ Forts</option>
           <option value="modéré">🔶 Modérés</option>
         </select>
         {/* Statut */}
         <select value={statut} onChange={e => setStatut(e.target.value)}
-          className="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-emerald-500">
+          className="bg-[#14171f] border border-[#262b36] rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-violet-500">
           <option>Tous</option>
           <option value="en_cours">⏳ En cours</option>
           <option value="gagné">✅ Gagnés</option>
@@ -429,7 +429,7 @@ function TabHistorique({ signals, onRefresh }: { signals: TrackedSignal[]; onRef
                   const order = { fort: 0, modéré: 1, 'à surveiller': 2 }
                   return (order[a.force] ?? 2) - (order[b.force] ?? 2)
                 }).map(signal => (
-                  <div key={signal.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+                  <div key={signal.id} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-1.5">
@@ -437,7 +437,7 @@ function TabHistorique({ signals, onRefresh }: { signals: TrackedSignal[]; onRef
                             {SPORT_ICONS[signal.sport] ?? ''} {signal.sport}
                           </span>
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                            signal.force === 'fort'   ? 'bg-emerald-500/20 text-emerald-400' :
+                            signal.force === 'fort'   ? 'bg-violet-500/20 text-violet-400' :
                             signal.force === 'modéré' ? 'bg-yellow-500/20 text-yellow-400' :
                             'bg-gray-700 text-gray-400'
                           }`}>
@@ -459,7 +459,7 @@ function TabHistorique({ signals, onRefresh }: { signals: TrackedSignal[]; onRef
                               {(['gagné', 'perdu', 'annulé'] as SignalStatut[]).map(s => (
                                 <button key={s} onClick={() => handleStatut(signal.id, s)}
                                   className={`text-xs px-2.5 py-1 rounded-lg font-semibold transition-colors ${
-                                    s === 'gagné'  ? 'bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-400' :
+                                    s === 'gagné'  ? 'bg-violet-500/20 hover:bg-violet-500/40 text-violet-400' :
                                     s === 'perdu'  ? 'bg-red-500/20 hover:bg-red-500/40 text-red-400' :
                                     'bg-gray-700 hover:bg-gray-600 text-gray-400'
                                   }`}>
@@ -477,7 +477,7 @@ function TabHistorique({ signals, onRefresh }: { signals: TrackedSignal[]; onRef
                         ) : (
                           <div className="flex items-center gap-2">
                             <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
-                              signal.statut === 'gagné'  ? 'bg-emerald-500/20 text-emerald-400' :
+                              signal.statut === 'gagné'  ? 'bg-violet-500/20 text-violet-400' :
                               signal.statut === 'perdu'  ? 'bg-red-500/20 text-red-400' :
                               'bg-gray-700 text-gray-400'
                             }`}>
@@ -492,12 +492,12 @@ function TabHistorique({ signals, onRefresh }: { signals: TrackedSignal[]; onRef
                         )}
                       </div>
                     </div>
-                    <div className="mt-3 pt-2 border-t border-gray-800 flex items-center justify-between gap-3">
+                    <div className="mt-3 pt-2 border-t border-[#262b36] flex items-center justify-between gap-3">
                       {/* CLV — Closing Line Value */}
                       <div className="flex items-center gap-2">
                         {signal.clv != null ? (
                           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                            signal.clv > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                            signal.clv > 0 ? 'bg-violet-500/20 text-violet-400' : 'bg-red-500/10 text-red-400'
                           }`} title={`Cote ouv. ${signal.cote.toFixed(2)} / Cote clôt. ${signal.coteCloture?.toFixed(2)}`}>
                             CLV {signal.clv > 0 ? '+' : ''}{(signal.clv * 100).toFixed(1)}%
                           </span>
@@ -508,11 +508,11 @@ function TabHistorique({ signals, onRefresh }: { signals: TrackedSignal[]; onRef
                                 type="number" step="0.01" min="1.01" placeholder="Cote clôture"
                                 value={clvInput} onChange={e => setClvInput(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && handleCLV(signal.id)}
-                                className="w-28 bg-gray-800 border border-gray-600 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500"
+                                className="w-28 bg-gray-800 border border-gray-600 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-violet-500"
                                 autoFocus
                               />
                               <button onClick={() => handleCLV(signal.id)}
-                                className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-lg hover:bg-emerald-500/40 transition-colors">
+                                className="text-xs bg-violet-500/20 text-violet-400 px-2 py-1 rounded-lg hover:bg-violet-500/40 transition-colors">
                                 OK
                               </button>
                               <button onClick={() => { setClvEditId(null); setClvInput('') }}
@@ -565,7 +565,7 @@ export default function SuiviPage() {
   ]
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-6xl mx-auto">
@@ -578,15 +578,15 @@ export default function SuiviPage() {
         </div>
 
         {/* Onglets */}
-        <div className="flex gap-2 flex-wrap mb-8 border-b border-gray-800 pb-4">
+        <div className="flex gap-2 flex-wrap mb-8 border-b border-[#262b36] pb-4">
           {TABS.map(t => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 tab === t.id
-                  ? 'bg-emerald-500 text-black'
-                  : 'bg-gray-900 border border-gray-800 text-gray-400 hover:border-emerald-500 hover:text-white'
+                  ? 'bg-violet-500 text-black'
+                  : 'bg-[#14171f] border border-[#262b36] text-gray-400 hover:border-violet-500 hover:text-white'
               }`}
             >
               {t.label}
@@ -601,16 +601,16 @@ export default function SuiviPage() {
         {tab === 'historique' && <TabHistorique signals={signals} onRefresh={refresh} />}
 
         {/* Liens utiles */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-800 pt-8">
-          <Link href="/signaux" className="bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-emerald-500 transition-colors">
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-[#262b36] pt-8">
+          <Link href="/signaux" className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 hover:border-violet-500 transition-colors">
             <p className="font-semibold mb-1">⚡ Signaux matchs</p>
             <p className="text-xs text-gray-500">MLB, NBA, Tennis, MLS, CdM</p>
           </Link>
-          <Link href="/cdm/signaux" className="bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-emerald-500 transition-colors">
+          <Link href="/cdm/signaux" className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 hover:border-violet-500 transition-colors">
             <p className="font-semibold mb-1">🌍 Signaux CdM</p>
             <p className="text-xs text-gray-500">Props joueurs · buteur, tirs, cartons</p>
           </Link>
-          <Link href="/paris/historique" className="bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-emerald-500 transition-colors">
+          <Link href="/paris/historique" className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 hover:border-violet-500 transition-colors">
             <p className="font-semibold mb-1">💰 Paris personnels</p>
             <p className="text-xs text-gray-500">Historique · bankroll · ROI €</p>
           </Link>

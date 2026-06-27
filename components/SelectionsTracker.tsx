@@ -5,14 +5,14 @@ import { type TrackedBet, type LevelStats } from '@/lib/selections-db'
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const NIVEAU_CFG = {
-  excellent:   { label: '⚡ Excellent',   color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+  excellent:   { label: '⚡ Excellent',   color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/30' },
   bon:         { label: '✅ Bon',         color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/30'    },
   interessant: { label: '🔍 Intéressant', color: 'text-yellow-400',  bg: 'bg-yellow-500/10',  border: 'border-yellow-500/30'  },
 } as const
 
 const STATUT_CFG = {
   en_cours: { label: '⏳ En cours',   color: 'text-yellow-400'  },
-  'gagné':  { label: '✅ Gagné',      color: 'text-emerald-400' },
+  'gagné':  { label: '✅ Gagné',      color: 'text-violet-400' },
   perdu:    { label: '❌ Perdu',      color: 'text-red-400'     },
 } as const
 
@@ -24,21 +24,21 @@ function NiveauCard({ niveau, stats }: { niveau: keyof typeof NIVEAU_CFG; stats:
     <div className={`${cfg.bg} border ${cfg.border} rounded-2xl p-4`}>
       <p className={`text-sm font-bold ${cfg.color} mb-3`}>{cfg.label}</p>
       <div className="grid grid-cols-2 gap-2 text-center">
-        <div className="bg-gray-900/60 rounded-xl p-2">
+        <div className="bg-[#14171f]/60 rounded-xl p-2">
           <p className="text-lg font-bold text-white">{stats.total}</p>
           <p className="text-xs text-gray-500">Suivis</p>
         </div>
-        <div className="bg-gray-900/60 rounded-xl p-2">
+        <div className="bg-[#14171f]/60 rounded-xl p-2">
           <p className={`text-lg font-bold ${stats.roi === null ? 'text-gray-500' : stats.roi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {stats.roi === null ? '—' : `${stats.roi >= 0 ? '+' : ''}${stats.roi}%`}
           </p>
           <p className="text-xs text-gray-500">ROI</p>
         </div>
-        <div className="bg-gray-900/60 rounded-xl p-2">
+        <div className="bg-[#14171f]/60 rounded-xl p-2">
           <p className="text-sm font-bold text-white">{stats.gagnes}W / {stats.perdus}L</p>
           <p className="text-xs text-gray-500">Résultats</p>
         </div>
-        <div className="bg-gray-900/60 rounded-xl p-2">
+        <div className="bg-[#14171f]/60 rounded-xl p-2">
           <p className={`text-sm font-bold ${stats.unitesNettes >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {stats.unitesNettes >= 0 ? '+' : ''}{stats.unitesNettes}u
           </p>
@@ -67,7 +67,7 @@ function BetRow({ bet, onUpdate }: { bet: TrackedBet; onUpdate: () => void }) {
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-xl p-4 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -78,7 +78,7 @@ function BetRow({ bet, onUpdate }: { bet: TrackedBet; onUpdate: () => void }) {
             {auto && <span className="text-xs text-gray-600">· validé auto</span>}
           </div>
           <p className="text-sm font-semibold text-white truncate">{bet.match_str}</p>
-          <p className="text-sm text-emerald-300">{bet.pari}</p>
+          <p className="text-sm text-violet-300">{bet.pari}</p>
           <p className="text-xs text-gray-500 mt-0.5">{bet.date_match} · {bet.heure} · Cote {bet.cote_ref.toFixed(2)}</p>
         </div>
         <div className="text-right shrink-0">
@@ -90,7 +90,7 @@ function BetRow({ bet, onUpdate }: { bet: TrackedBet; onUpdate: () => void }) {
       {bet.statut === 'en_cours' && (
         <div className="flex gap-2">
           <button onClick={() => mark('gagné')}
-            className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-bold py-2 rounded-lg transition-colors">
+            className="flex-1 bg-violet-500/20 hover:bg-violet-500/30 text-violet-400 text-xs font-bold py-2 rounded-lg transition-colors">
             ✅ Gagné
           </button>
           <button onClick={() => mark('perdu')}
@@ -150,7 +150,7 @@ export default function SelectionsTracker({
 
       {/* Bilan global */}
       {totalTermines > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
           <div>
             <p className="text-sm text-gray-400">Bilan global</p>
             <p className="text-lg font-bold text-white">{totalTermines} pari{totalTermines > 1 ? 's' : ''} terminés</p>

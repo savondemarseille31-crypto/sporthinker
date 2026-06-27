@@ -13,7 +13,7 @@ export const revalidate = 120 // 2 min — stats h2h + signaux match
 
 function forceConfig(force: SignalForce) {
   switch (force) {
-    case 'fort':         return { dot: 'bg-emerald-400', badge: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', label: '⚡ Fort' }
+    case 'fort':         return { dot: 'bg-violet-400', badge: 'bg-violet-500/20 text-violet-400 border border-violet-500/30', label: '⚡ Fort' }
     case 'modéré':       return { dot: 'bg-yellow-400',  badge: 'bg-yellow-500/20  text-yellow-400  border border-yellow-500/30',  label: '🔶 Modéré' }
     case 'à surveiller': return { dot: 'bg-gray-400',    badge: 'bg-gray-700       text-gray-400    border border-gray-600',       label: '👁 À surveiller' }
   }
@@ -42,7 +42,7 @@ function surfaceBadge(surface: string) {
 function typeColor(type: string) {
   if (type.includes('Under'))   return 'text-blue-400'
   if (type.includes('Over'))    return 'text-orange-400'
-  if (type.includes('Vainqueur')) return 'text-emerald-400'
+  if (type.includes('Vainqueur')) return 'text-violet-400'
   if (type.includes('Handicap')) return 'text-purple-400'
   if (type.includes('Value'))    return 'text-yellow-400'
   return 'text-white'
@@ -50,8 +50,8 @@ function typeColor(type: string) {
 
 function StatBox({ label, value, sub, highlight }: { label: string; value: string; sub?: string; highlight?: boolean }) {
   return (
-    <div className={`rounded-xl p-3 text-center ${highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
-      <p className={`text-lg font-bold ${highlight ? 'text-emerald-400' : 'text-white'}`}>{value}</p>
+    <div className={`rounded-xl p-3 text-center ${highlight ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-gray-800'}`}>
+      <p className={`text-lg font-bold ${highlight ? 'text-violet-400' : 'text-white'}`}>{value}</p>
       <p className="text-xs text-gray-500 mt-0.5">{label}</p>
       {sub && <p className="text-xs text-gray-600">{sub}</p>}
     </div>
@@ -61,7 +61,7 @@ function StatBox({ label, value, sub, highlight }: { label: string; value: strin
 function SignalCard({ signal }: { signal: Signal }) {
   const cfg = forceConfig(signal.force)
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-3">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cfg.badge}`}>
           <span className={`inline-block w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1 align-middle`} />
@@ -79,8 +79,8 @@ function SignalCard({ signal }: { signal: Signal }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {signal.stats.map((s, i) => (
-          <div key={i} className={`text-center rounded-lg p-2 ${s.highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
-            <p className={`text-sm font-bold ${s.highlight ? 'text-emerald-400' : 'text-white'}`}>{s.val}</p>
+          <div key={i} className={`text-center rounded-lg p-2 ${s.highlight ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-gray-800'}`}>
+            <p className={`text-sm font-bold ${s.highlight ? 'text-violet-400' : 'text-white'}`}>{s.val}</p>
             <p className="text-xs text-gray-500 leading-tight mt-0.5">{s.label}</p>
           </div>
         ))}
@@ -134,24 +134,24 @@ export default async function TennisMatchupPage({ params }: { params: Promise<{ 
   const clayH2H  = h2h ? h2h.clayP1Wins + h2h.clayP2Wins  : 0
 
   const statusLabel = status.short === 'NS'   ? { text: 'À venir',  cls: 'text-gray-400' }
-                    : status.short === 'LIVE' ? { text: '● LIVE',   cls: 'text-emerald-400 animate-pulse' }
+                    : status.short === 'LIVE' ? { text: '● LIVE',   cls: 'text-violet-400 animate-pulse' }
                     : status.short === 'FT'   ? { text: 'Terminé',  cls: 'text-gray-500' }
                     : { text: status.long, cls: 'text-gray-500' }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link href="/tennis" className="hover:text-emerald-400 transition-colors">🎾 Tennis</Link>
+          <Link href="/tennis" className="hover:text-violet-400 transition-colors">🎾 Tennis</Link>
           <span>/</span>
           <span className="text-gray-300">{home.name} vs {away.name}</span>
         </div>
 
         {/* Header match */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${surfaceBadge(league.surface)}`}>
@@ -171,7 +171,7 @@ export default async function TennisMatchupPage({ params }: { params: Promise<{ 
             {/* Joueur Home */}
             <div className="text-center">
               <p className="text-2xl font-bold text-white mb-1">{home.name}</p>
-              <p className="text-lg text-emerald-400 font-semibold">#{home.ranking}</p>
+              <p className="text-lg text-violet-400 font-semibold">#{home.ranking}</p>
               {home.nationality && <p className="text-xs text-gray-500 mt-1">{home.nationality}</p>}
               {home.hand && <p className="text-xs text-gray-600">{home.hand === 'Right' ? 'Droitier' : 'Gaucher'}</p>}
               {status.short === 'FT' && (
@@ -203,9 +203,9 @@ export default async function TennisMatchupPage({ params }: { params: Promise<{ 
           {/* ── Signaux ── */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-xl font-bold text-emerald-300">⚡ Signaux</h2>
+              <h2 className="text-xl font-bold text-violet-300">⚡ Signaux</h2>
               {sortedSignals.length > 0
-                ? <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">{sortedSignals.length}</span>
+                ? <span className="text-xs bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full">{sortedSignals.length}</span>
                 : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun</span>
               }
             </div>
@@ -215,7 +215,7 @@ export default async function TennisMatchupPage({ params }: { params: Promise<{ 
                 {sortedSignals.map(s => <SignalCard key={s.id} signal={s} />)}
               </div>
             ) : (
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center">
+              <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 text-center">
                 <p className="text-gray-500 text-sm">Aucun signal détecté pour ce match.</p>
                 <p className="text-gray-600 text-xs mt-1">L&apos;écart de ranking n&apos;est pas suffisant ou le match est terminé.</p>
               </div>
@@ -223,12 +223,12 @@ export default async function TennisMatchupPage({ params }: { params: Promise<{ 
 
             {/* H2H */}
             {h2h && totalH2H > 0 && (
-              <div className="mt-4 bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <div className="mt-4 bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
                 <h3 className="text-sm font-bold text-gray-300 mb-4">📊 Historique H2H</h3>
 
                 <div className="grid grid-cols-3 gap-3 text-center mb-4">
                   <div>
-                    <p className="text-2xl font-bold text-emerald-400">{h2h.player1Wins}</p>
+                    <p className="text-2xl font-bold text-violet-400">{h2h.player1Wins}</p>
                     <p className="text-xs text-gray-500">{home.name.split(' ').pop()}</p>
                   </div>
                   <div>
@@ -245,7 +245,7 @@ export default async function TennisMatchupPage({ params }: { params: Promise<{ 
                   <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl px-4 py-3 mb-3 text-center">
                     <p className="text-xs text-orange-400 font-semibold mb-1">Sur terre battue</p>
                     <p className="text-sm text-white">
-                      {home.name.split(' ').pop()} <span className="font-bold text-emerald-400">{h2h.clayP1Wins}</span>
+                      {home.name.split(' ').pop()} <span className="font-bold text-violet-400">{h2h.clayP1Wins}</span>
                       {' – '}
                       <span className="font-bold text-orange-400">{h2h.clayP2Wins}</span> {away.name.split(' ').pop()}
                     </p>
@@ -257,7 +257,7 @@ export default async function TennisMatchupPage({ params }: { params: Promise<{ 
                     {h2h.lastMatches.slice(0, 5).map((m, i) => (
                       <div key={i} className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
-                          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${m.winner === 1 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${m.winner === 1 ? 'bg-violet-500/20 text-violet-400' : 'bg-orange-500/20 text-orange-400'}`}>
                             {m.winner === 1 ? home.name[0] : away.name[0]}
                           </span>
                           <span className="text-gray-400">{m.surface}</span>
@@ -279,9 +279,9 @@ export default async function TennisMatchupPage({ params }: { params: Promise<{ 
             <h2 className="text-xl font-bold mb-4 text-gray-200">📈 Stats joueurs</h2>
 
             {/* Stats Home */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-4">
+            <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 mb-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-emerald-300">{home.name}</h3>
+                <h3 className="text-sm font-bold text-violet-300">{home.name}</h3>
                 <span className="text-xs text-gray-500">#{home.ranking} ATP/WTA</span>
               </div>
 
@@ -330,7 +330,7 @@ export default async function TennisMatchupPage({ params }: { params: Promise<{ 
             </div>
 
             {/* Stats Away */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-orange-300">{away.name}</h3>
                 <span className="text-xs text-gray-500">#{away.ranking} ATP/WTA</span>

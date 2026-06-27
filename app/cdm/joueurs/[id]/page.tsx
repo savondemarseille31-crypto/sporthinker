@@ -20,7 +20,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const { blended, selStats, wcStats } = await getBlendedStats(player)
 
   const getFormeColor = (f: string) => {
-    if (f === 'V') return 'bg-emerald-500'
+    if (f === 'V') return 'bg-violet-500'
     if (f === 'N') return 'bg-gray-500'
     return 'bg-red-500'
   }
@@ -30,13 +30,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const surperformance = xGDiffNum > 0
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-4xl mx-auto">
-        <Link href="/cdm/joueurs" className="text-gray-500 text-sm hover:text-emerald-400 transition-colors">← Retour joueurs</Link>
+        <Link href="/cdm/joueurs" className="text-gray-500 text-sm hover:text-violet-400 transition-colors">← Retour joueurs</Link>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mt-4 mb-6">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-8 mt-4 mb-6">
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -49,7 +49,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
               <p className="text-gray-300 mt-4 max-w-xl">{player.description}</p>
             </div>
             <div className="text-center">
-              <p className="text-5xl font-bold text-emerald-400">{player.note}</p>
+              <p className="text-5xl font-bold text-violet-400">{player.note}</p>
               <p className="text-sm text-gray-500">Note saison</p>
             </div>
           </div>
@@ -62,7 +62,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
             { label: '🎯 Tirs', val: player.tirs, sub: `${(player.buts / player.tirs * 100).toFixed(0)}% conversion` },
             { label: '⏱️ Minutes', val: player.minutesJouees, sub: `${player.matchsJoues} matchs` },
           ].map(s => (
-            <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+            <div key={s.label} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 text-center">
               <p className="text-xs text-gray-500 mb-1">{s.label}</p>
               <p className="text-3xl font-bold text-white mb-1">{s.val}</p>
               <p className="text-xs text-gray-500">{s.sub}</p>
@@ -70,8 +70,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           ))}
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
-          <h2 className="text-lg font-bold mb-4 text-emerald-400">📊 Analyse xG — Efficacité devant le but</h2>
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-6">
+          <h2 className="text-lg font-bold mb-4 text-violet-400">📊 Analyse xG — Efficacité devant le but</h2>
           <div className="grid grid-cols-3 gap-4 mb-4">
             <div className="text-center">
               <p className="text-xs text-gray-500 mb-1">Buts réels</p>
@@ -88,7 +88,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
               </p>
             </div>
           </div>
-          <div className={`rounded-xl p-4 ${surperformance ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
+          <div className={`rounded-xl p-4 ${surperformance ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
             <p className={`text-sm font-medium ${surperformance ? 'text-emerald-400' : 'text-red-400'}`}>
               {surperformance
                 ? `✅ ${player.nom} surperforme son xG de +${xGDiff} buts — finisseur exceptionnel, fiable pour les paris buteur.`
@@ -116,11 +116,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           const tendance = avgRecent > avgOlder ? 'hausse' : avgRecent < avgOlder ? 'baisse' : 'stable'
 
           return (
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+            <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-emerald-400">🔥 Forme récente en club</h2>
+                <h2 className="text-lg font-bold text-violet-400">🔥 Forme récente en club</h2>
                 <span className={`text-sm font-semibold px-3 py-1 rounded-full ${
-                  tendance === 'hausse' ? 'bg-emerald-500/20 text-emerald-400' :
+                  tendance === 'hausse' ? 'bg-violet-500/20 text-violet-400' :
                   tendance === 'baisse' ? 'bg-red-500/20 text-red-400' :
                   'bg-gray-700 text-gray-400'
                 }`}>
@@ -143,7 +143,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
               {/* Stats de forme */}
               <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="bg-gray-800 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-emerald-400">{wins}</p>
+                  <p className="text-2xl font-bold text-violet-400">{wins}</p>
                   <p className="text-xs text-gray-500">Victoires</p>
                 </div>
                 <div className="bg-gray-800 rounded-xl p-3 text-center">
@@ -163,7 +163,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                   <span className="font-semibold text-white">{winRate}%</span>
                 </div>
                 <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${winRate}%` }} />
+                  <div className="h-full bg-violet-500 rounded-full transition-all" style={{ width: `${winRate}%` }} />
                 </div>
               </div>
 
@@ -182,7 +182,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           const hasData = player.poste !== 'Gardien'
 
           const chipColor = (force: string) =>
-            force === 'fort'   ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+            force === 'fort'   ? 'bg-violet-500/20 text-violet-400 border-violet-500/30'
             : force === 'modéré' ? 'bg-yellow-500/20  text-yellow-400  border-yellow-500/30'
             : 'bg-gray-700/50 text-gray-400 border-gray-600'
 
@@ -192,12 +192,12 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           const passeurSig = signals.find(s => s.marché === 'passeur')
 
           const sourceColor = (c: typeof blended.confiance) =>
-            c === 'haute' ? 'text-emerald-400' : c === 'moyenne' ? 'text-yellow-400' : 'text-gray-500'
+            c === 'haute' ? 'text-violet-400' : c === 'moyenne' ? 'text-yellow-400' : 'text-gray-500'
 
           return (
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+            <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-6">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-bold text-emerald-400">🎰 Stats par match — Marchés disponibles</h2>
+                <h2 className="text-lg font-bold text-violet-400">🎰 Stats par match — Marchés disponibles</h2>
               </div>
 
               {/* Source badge */}
@@ -213,7 +213,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                   </span>
                 )}
                 {wcStats && (
-                  <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-violet-500/10 text-violet-400 border border-violet-500/20 px-2 py-0.5 rounded-full">
                     + stats WC live
                   </span>
                 )}
@@ -237,7 +237,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-400">xG/match</span>
-                        <span className="font-bold text-emerald-400">{blended.xGParMatch.toFixed(2)}</span>
+                        <span className="font-bold text-violet-400">{blended.xGParMatch.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Tirs/match</span>
@@ -301,7 +301,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-400">xA/match</span>
-                        <span className="font-bold text-emerald-400">{blended.xAParMatch.toFixed(2)}</span>
+                        <span className="font-bold text-violet-400">{blended.xAParMatch.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Passes clés/match</span>
@@ -327,13 +327,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Cadrés/match</span>
-                        <span className="font-bold text-emerald-400">{blended.tirsCadrésParMatch.toFixed(2)}</span>
+                        <span className="font-bold text-violet-400">{blended.tirsCadrésParMatch.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">% précision</span>
                         <span className={`font-bold ${
                           blended.tirsParMatch > 0 && (blended.tirsCadrésParMatch / blended.tirsParMatch) >= 0.40
-                            ? 'text-emerald-400'
+                            ? 'text-violet-400'
                             : (blended.tirsCadrésParMatch / blended.tirsParMatch) >= 0.30
                             ? 'text-yellow-400'
                             : 'text-gray-300'
@@ -357,8 +357,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         })()}
 
         {/* ── CONSEIL PARIS ── */}
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6">
-          <h2 className="text-lg font-bold mb-3 text-emerald-400">💰 Conseil Paris Deltavyn</h2>
+        <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-6">
+          <h2 className="text-lg font-bold mb-3 text-violet-400">💰 Conseil Paris Deltavyn</h2>
           <div className="space-y-2 text-sm text-gray-300">
             <p>• <strong>Buteur du match :</strong> {player.buts > player.xG ? 'Excellent finisseur, cote souvent sous-évaluée' : 'Peut être en manque de réalisme, surveiller les occasions créées'}</p>
             <p>• <strong>Tirs cadrés :</strong> {player.tirsCadres != null && player.matchsJoues > 0 ? `${(player.tirsCadres / player.matchsJoues).toFixed(1)} cadrés/match en moyenne — ${(player.tirsCadres / player.matchsJoues) >= 2 ? 'marché "tirs cadrés" intéressant' : 'volume insuffisant pour ce marché'}` : 'Données insuffisantes'}</p>

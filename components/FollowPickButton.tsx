@@ -62,7 +62,7 @@ export default function FollowPickButton({ signal }: { signal: Signal }) {
     return (
       <Link
         href="/paris"
-        className="flex items-center justify-center gap-2 text-sm font-semibold py-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors"
+        className="flex items-center justify-center gap-2 text-sm font-semibold py-2.5 rounded-xl bg-violet-500/15 text-violet-400 hover:bg-violet-500/25 transition-colors"
       >
         ✓ Voir dans Mes Paris →
       </Link>
@@ -75,7 +75,7 @@ export default function FollowPickButton({ signal }: { signal: Signal }) {
       className={`flex items-center justify-center gap-2 text-sm font-semibold py-2.5 rounded-xl transition-colors ${
         state === 'error'
           ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
-          : 'bg-emerald-500 hover:bg-emerald-400 text-black'
+          : 'bg-violet-500 hover:bg-violet-400 text-black'
       }`}
     >
       {state === 'error' ? '⚠️ Échec — réessayer' : '+ Je suis ce pick'}

@@ -20,7 +20,7 @@ function countryFlag(acr: string): string {
 }
 
 function progressBadge(progress: number) {
-  if (progress > 0)  return <span className="text-[10px] text-emerald-400">▲{progress}</span>
+  if (progress > 0)  return <span className="text-[10px] text-violet-400">▲{progress}</span>
   if (progress < 0)  return <span className="text-[10px] text-red-400">▼{Math.abs(progress)}</span>
   return <span className="text-[10px] text-gray-600">—</span>
 }
@@ -37,15 +37,15 @@ function medalColor(pos: number): string {
 function RankingTable({ entries, label }: { entries: RankingEntry[]; label: string }) {
   if (!entries.length) {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center text-gray-500 text-sm">
+      <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-8 text-center text-gray-500 text-sm">
         Classement {label} indisponible
       </div>
     )
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-[#262b36] flex items-center justify-between">
         <h2 className="text-lg font-bold text-white">{label}</h2>
         <span className="text-xs text-gray-500">Top {entries.length} · Live Race</span>
       </div>
@@ -94,13 +94,13 @@ export default async function ClassementsPage() {
   ])
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link href="/tennis" className="hover:text-emerald-400 transition-colors">🎾 Tennis</Link>
+          <Link href="/tennis" className="hover:text-violet-400 transition-colors">🎾 Tennis</Link>
           <span>/</span>
           <span className="text-gray-300">Classements</span>
         </div>
@@ -128,7 +128,7 @@ export default async function ClassementsPage() {
         <div className="mt-8 text-center">
           <Link
             href="/tennis"
-            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-emerald-400 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-violet-400 transition-colors"
           >
             ← Retour aux matchs du jour
           </Link>

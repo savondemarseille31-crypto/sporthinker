@@ -12,7 +12,7 @@ export const revalidate = 300 // 5 min — signaux MLB + CdM + Tennis
 // ---- Helpers visuels ----
 function forceConfig(force: SignalForce) {
   switch (force) {
-    case 'fort':        return { dot: 'bg-emerald-400',  badge: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', label: '⚡ Fort' }
+    case 'fort':        return { dot: 'bg-violet-400',  badge: 'bg-violet-500/20 text-violet-400 border border-violet-500/30', label: '⚡ Fort' }
     case 'modéré':      return { dot: 'bg-yellow-400',   badge: 'bg-yellow-500/20  text-yellow-400  border border-yellow-500/30',  label: '🔶 Modéré' }
     case 'à surveiller': return { dot: 'bg-gray-400',   badge: 'bg-gray-700       text-gray-400    border border-gray-600',        label: '👁 À surveiller' }
   }
@@ -21,7 +21,7 @@ function forceConfig(force: SignalForce) {
 function typeColor(type: string) {
   if (type.includes('Under'))   return 'text-blue-400'
   if (type.includes('Over'))    return 'text-orange-400'
-  if (type.includes('Money'))   return 'text-emerald-400'
+  if (type.includes('Money'))   return 'text-violet-400'
   if (type.includes('First 5')) return 'text-purple-400'
   if (type.includes('Double'))  return 'text-yellow-400'
   if (type.includes('BTTS'))    return 'text-pink-400'
@@ -33,7 +33,7 @@ function sportBadge(sport: Signal['sport']) {
   switch (sport) {
     case 'MLB':    return { label: '⚾ MLB',       className: 'text-blue-300' }
     case 'NBA':    return { label: '🏀 NBA Playoffs', className: 'text-orange-300' }
-    case 'CdM':    return { label: '🌍 CdM 2026',  className: 'text-emerald-300' }
+    case 'CdM':    return { label: '🌍 CdM 2026',  className: 'text-violet-300' }
     case 'Tennis':  return { label: '🎾 Tennis',    className: 'text-orange-300'  }
     case 'MLS':     return { label: '⚽ MLS',       className: 'text-green-300'   }
   }
@@ -61,7 +61,7 @@ function SignalCard({ signal }: { signal: Signal }) {
   const hasOdds = signal.odds && (signal.odds.home || signal.odds.away || signal.odds.homeMoneyLine || signal.odds.awayMoneyLine)
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4 hover:border-gray-700 transition-colors">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 flex flex-col gap-4 hover:border-gray-700 transition-colors">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
@@ -160,8 +160,8 @@ function SignalCard({ signal }: { signal: Signal }) {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {signal.stats.map((s, i) => (
-          <div key={i} className={`text-center rounded-lg p-2 ${s.highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
-            <p className={`text-sm font-bold ${s.highlight ? 'text-emerald-400' : 'text-white'}`}>{s.val}</p>
+          <div key={i} className={`text-center rounded-lg p-2 ${s.highlight ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-gray-800'}`}>
+            <p className={`text-sm font-bold ${s.highlight ? 'text-violet-400' : 'text-white'}`}>{s.val}</p>
             <p className="text-xs text-gray-500 leading-tight mt-0.5">{s.label}</p>
           </div>
         ))}
@@ -185,7 +185,7 @@ function SignalCard({ signal }: { signal: Signal }) {
 function LockedSignalCard({ signal }: { signal: Signal }) {
   const cfg = forceConfig(signal.force)
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 flex flex-col gap-4">
       <div className="flex items-center gap-2 flex-wrap">
         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cfg.badge}`}>
           <span className={`inline-block w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1 align-middle`} />
@@ -206,7 +206,7 @@ function LockedSignalCard({ signal }: { signal: Signal }) {
       </div>
       <Link
         href="/abonnement"
-        className="mt-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-bold py-2.5 rounded-xl transition-colors"
+        className="mt-auto flex items-center justify-center gap-2 bg-violet-500 hover:bg-violet-400 text-black text-sm font-bold py-2.5 rounded-xl transition-colors"
       >
         🔒 Débloquer avec Premium
       </Link>
@@ -251,7 +251,7 @@ export default async function SignauxPage() {
   )?.id
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-6xl mx-auto">
@@ -267,12 +267,12 @@ export default async function SignauxPage() {
 
         {/* Résumé stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 text-center">
             <p className="text-2xl font-bold text-white">{signauxSignals.length}</p>
             <p className="text-xs text-gray-500 mt-1">Signaux totaux</p>
           </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-400">{fortsCount}</p>
+          <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-4 text-center">
+            <p className="text-2xl font-bold text-violet-400">{fortsCount}</p>
             <p className="text-xs text-gray-500 mt-1">⚡ Forts</p>
           </div>
           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4 text-center">
@@ -291,7 +291,7 @@ export default async function SignauxPage() {
           <div>
             <p className="font-semibold mb-1">Comment lire ces signaux ?</p>
             <p className="text-blue-400/80">
-              Les signaux <span className="text-emerald-400 font-semibold">forts</span> sont basés sur des écarts statistiques significatifs (ERA, WHIP, classements Elo).
+              Les signaux <span className="text-violet-400 font-semibold">forts</span> sont basés sur des écarts statistiques significatifs (ERA, WHIP, classements Elo).
               Les signaux <span className="text-yellow-400 font-semibold">modérés</span> indiquent un avantage réel mais le match reste incertain.
               Les <span className="text-blue-400 font-semibold">cotes ESPN</span> (DraftKings) apparaissent sur les matchs CdM disponibles.
             </p>
@@ -299,18 +299,18 @@ export default async function SignauxPage() {
         </div>
 
         {!premium && (
-          <div className="mb-8 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="mb-8 bg-violet-500/10 border border-violet-500/30 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <p className="font-bold text-white mb-1">🔒 {fortsCount} signaux forts · {moderésCount} modérés · {valueSignals.length} values verrouillés</p>
               <p className="text-sm text-gray-400">Tu vois 1 signal gratuit aujourd&apos;hui. Débloque tout (tous sports + values) avec Premium.</p>
             </div>
-            <Link href="/abonnement" className="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-3 rounded-xl text-sm transition-colors text-center">
+            <Link href="/abonnement" className="shrink-0 bg-violet-500 hover:bg-violet-400 text-black font-bold px-5 py-3 rounded-xl text-sm transition-colors text-center">
               Passe Premium →
             </Link>
           </div>
         )}
 
-        <Suspense fallback={<div className="h-12 bg-gray-900 rounded-2xl animate-pulse mb-8" />}>
+        <Suspense fallback={<div className="h-12 bg-[#14171f] rounded-2xl animate-pulse mb-8" />}>
         <SignauxFilter
           counts={{
             mlb:    mlbSignauxOnly.length,
@@ -324,7 +324,7 @@ export default async function SignauxPage() {
             <section className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <h2 className="text-xl font-bold text-white">À ne pas rater aujourd&apos;hui</h2>
-                <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+                <span className="text-xs bg-violet-500/20 text-violet-400 border border-violet-500/30 px-2 py-0.5 rounded-full font-semibold">
                   ⚡ Top signaux
                 </span>
               </div>
@@ -348,7 +348,7 @@ export default async function SignauxPage() {
                   ? <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full">{tennisSignauxOnly.length} signal{tennisSignauxOnly.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
-                <Link href="/tennis" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
+                <Link href="/tennis" className="ml-auto text-sm text-gray-500 hover:text-violet-400 transition-colors">
                   Voir les matchs →
                 </Link>
               </div>
@@ -357,7 +357,7 @@ export default async function SignauxPage() {
                   {tennisSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>
               ) : (
-                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+                <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 text-center">
                   <p className="text-gray-500 text-sm mb-1">Pas de signal tennis aujourd&apos;hui</p>
                   <p className="text-gray-600 text-xs">Les signaux apparaissent quand un écart de classement ou de stats de service est significatif.</p>
                   <Link href="/tennis" className="inline-block mt-3 text-sm text-orange-400 hover:text-orange-300 transition-colors">
@@ -375,7 +375,7 @@ export default async function SignauxPage() {
                   ? <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">{mlbSignauxOnly.length} signal{mlbSignauxOnly.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
-                <Link href="/mlb" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
+                <Link href="/mlb" className="ml-auto text-sm text-gray-500 hover:text-violet-400 transition-colors">
                   Voir les matchs →
                 </Link>
               </div>
@@ -385,7 +385,7 @@ export default async function SignauxPage() {
 
                 </div>
               ) : (
-                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+                <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 text-center">
                   <p className="text-gray-500 text-sm mb-1">
                     {mlbPreviewCount > 0
                       ? `${mlbPreviewCount} match${mlbPreviewCount > 1 ? 's' : ''} analysé${mlbPreviewCount > 1 ? 's' : ''} — aucun écart statistique significatif`
@@ -402,12 +402,12 @@ export default async function SignauxPage() {
           cdm={(
             <section className="mb-10">
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-xl font-bold text-emerald-300">🌍 CdM 2026 — À venir</h2>
+                <h2 className="text-xl font-bold text-violet-300">🌍 CdM 2026 — À venir</h2>
                 {cdmSignauxOnly.length > 0
-                  ? <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">{cdmSignauxOnly.length} signal{cdmSignauxOnly.length > 1 ? 's' : ''}</span>
+                  ? <span className="text-xs bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full">{cdmSignauxOnly.length} signal{cdmSignauxOnly.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
-                <Link href="/cdm" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
+                <Link href="/cdm" className="ml-auto text-sm text-gray-500 hover:text-violet-400 transition-colors">
                   Voir le calendrier →
                 </Link>
               </div>
@@ -416,7 +416,7 @@ export default async function SignauxPage() {
                   {cdmSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>
               ) : (
-                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+                <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 text-center">
                   <p className="text-gray-500 text-sm">Aucun signal CdM détecté sur les 14 prochains jours.</p>
                 </div>
               )}
@@ -430,7 +430,7 @@ export default async function SignauxPage() {
                   ? <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full">{mlsSignauxOnly.length} signal{mlsSignauxOnly.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
-                <Link href="/mls" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
+                <Link href="/mls" className="ml-auto text-sm text-gray-500 hover:text-violet-400 transition-colors">
                   Voir les matchs →
                 </Link>
               </div>
@@ -439,7 +439,7 @@ export default async function SignauxPage() {
                   {mlsSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>
               ) : (
-                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+                <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 text-center">
                   <p className="text-gray-500 text-sm mb-1">Pas de signal MLS aujourd&apos;hui</p>
                   <p className="text-gray-600 text-xs">Les signaux apparaissent quand un écart de win rate contextuel (domicile/extérieur) ou un total de buts hors norme est détecté.</p>
                   <Link href="/mls" className="inline-block mt-3 text-sm text-green-400 hover:text-green-300 transition-colors">
@@ -457,7 +457,7 @@ export default async function SignauxPage() {
                   ? <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full">{nbaSignauxOnly.length} signal{nbaSignauxOnly.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
-                <Link href="/nba" className="ml-auto text-sm text-gray-500 hover:text-emerald-400 transition-colors">
+                <Link href="/nba" className="ml-auto text-sm text-gray-500 hover:text-violet-400 transition-colors">
                   Voir les matchs →
                 </Link>
               </div>
@@ -466,7 +466,7 @@ export default async function SignauxPage() {
                   {nbaSignauxOnly.map(s => <CardOrLock key={s.id} signal={s} unlocked={premium || s.id === freePickId} />)}
                 </div>
               ) : (
-                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+                <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 text-center">
                   <p className="text-gray-500 text-sm mb-1">Pas de signal NBA aujourd&apos;hui</p>
                   <p className="text-gray-600 text-xs">Les signaux apparaissent quand la série présente un écart de total ou une domination claire (≥ 3-1 dans la série).</p>
                   <Link href="/nba" className="inline-block mt-3 text-sm text-orange-400 hover:text-orange-300 transition-colors">
@@ -490,7 +490,7 @@ export default async function SignauxPage() {
                   {valueSignals.map(s => <CardOrLock key={`val-${s.id}`} signal={s} unlocked={premium} />)}
                 </div>
               ) : (
-                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+                <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-8 text-center">
                   <p className="text-gray-500 text-sm mb-1">Aucune value détectée pour l&apos;instant</p>
                   <p className="text-gray-600 text-xs">Les values apparaissent quand P_modèle × cote_marché − 1 &gt; 3% (edge confirmé).</p>
                 </div>
@@ -508,13 +508,13 @@ export default async function SignauxPage() {
           </div>
         )}
 
-        <div className="mt-4 bg-gray-900 border border-gray-800 rounded-2xl p-5 flex items-center justify-between gap-4">
+        <div className="mt-4 bg-[#14171f] border border-[#262b36] rounded-2xl p-5 flex items-center justify-between gap-4">
           <div>
             <p className="font-bold text-white mb-1">💰 Calculateur de Value Bet</p>
             <p className="text-sm text-gray-400">Entre ta cote, notre probabilité estimée et calcule ton edge avec le critère de Kelly.</p>
           </div>
           <Link href="/paris/calculateur"
-            className="shrink-0 bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-3 rounded-xl transition-colors text-sm">
+            className="shrink-0 bg-violet-500 hover:bg-violet-400 text-black font-bold px-5 py-3 rounded-xl transition-colors text-sm">
             Calculer →
           </Link>
         </div>

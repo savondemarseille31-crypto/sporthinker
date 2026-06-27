@@ -26,8 +26,8 @@ export const revalidate = 60 // 1 min — boxscore + stats matchup live
 // ---- Helpers ----
 function StatBox({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`rounded-xl p-3 text-center ${highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
-      <p className={`text-base font-bold ${highlight ? 'text-emerald-400' : 'text-white'}`}>{value}</p>
+    <div className={`rounded-xl p-3 text-center ${highlight ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-gray-800'}`}>
+      <p className={`text-base font-bold ${highlight ? 'text-violet-400' : 'text-white'}`}>{value}</p>
       <p className="text-xs text-gray-500 mt-0.5">{label}</p>
     </div>
   )
@@ -118,7 +118,7 @@ const PLAYER_GRID = 'grid grid-cols-[20px_1fr_44px_40px_40px] sm:grid-cols-[20px
 
 function PlayerTableHeader() {
   return (
-    <div className={`${PLAYER_GRID} text-xs text-gray-600 pb-2 border-b border-gray-800 mb-1`}>
+    <div className={`${PLAYER_GRID} text-xs text-gray-600 pb-2 border-b border-[#262b36] mb-1`}>
       <span></span>
       <span>Joueur</span>
       <span className="text-right">PTS</span>
@@ -144,19 +144,19 @@ function ESPNPlayerRow({
   const trendPts = trend?.pts
   const trendColor =
     trendPts == null ? 'text-gray-600'
-    : trendPts > 2 ? 'text-emerald-400'
+    : trendPts > 2 ? 'text-violet-400'
     : trendPts < -2 ? 'text-red-400'
     : 'text-gray-400'
 
   // Comparaison saison régulière : différence pts playoffs vs saison
   const regDiff = regSeason ? player.pts - regSeason.pts : null
   const regDiffColor = regDiff == null ? ''
-    : regDiff > 2 ? 'text-emerald-400'
+    : regDiff > 2 ? 'text-violet-400'
     : regDiff < -2 ? 'text-red-400'
     : 'text-gray-400'
 
   return (
-    <div className={`${PLAYER_GRID} py-2.5 border-b border-gray-800 last:border-0 text-xs`}>
+    <div className={`${PLAYER_GRID} py-2.5 border-b border-[#262b36] last:border-0 text-xs`}>
       <span className="text-gray-600">{rank}</span>
       <span className="text-sm font-medium text-white truncate">{player.displayName}</span>
       <span className="text-right font-bold text-white">{fmt(player.pts)}</span>
@@ -431,13 +431,13 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
   )
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link href="/nba" className="hover:text-emerald-400 transition-colors">🏀 NBA</Link>
+          <Link href="/nba" className="hover:text-violet-400 transition-colors">🏀 NBA</Link>
           <span>/</span>
           <span className="text-white">
             {game.home_team.abbreviation} vs {game.visitor_team.abbreviation}
@@ -445,14 +445,14 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
         </div>
 
         {/* Header match */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             {isFinal ? (
               <span className="text-sm bg-gray-700 text-gray-400 px-3 py-1 rounded-full">Final</span>
             ) : (
               <span className="text-sm text-gray-500">🕐 {statusStr}</span>
             )}
-            <span className="text-sm text-emerald-400 font-semibold">{seriesHeader}</span>
+            <span className="text-sm text-violet-400 font-semibold">{seriesHeader}</span>
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center">
@@ -464,7 +464,7 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
               </p>
               <p className="text-xs text-gray-500">{game.visitor_team.full_name}</p>
               {isFinal && (
-                <p className={`text-3xl font-bold mt-2 ${game.visitor_team_score > game.home_team_score ? 'text-emerald-400' : 'text-white'}`}>
+                <p className={`text-3xl font-bold mt-2 ${game.visitor_team_score > game.home_team_score ? 'text-violet-400' : 'text-white'}`}>
                   {game.visitor_team_score}
                 </p>
               )}
@@ -489,7 +489,7 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
               </p>
               <p className="text-xs text-gray-500">{game.home_team.full_name}</p>
               {isFinal && (
-                <p className={`text-3xl font-bold mt-2 ${game.home_team_score > game.visitor_team_score ? 'text-emerald-400' : 'text-white'}`}>
+                <p className={`text-3xl font-bold mt-2 ${game.home_team_score > game.visitor_team_score ? 'text-violet-400' : 'text-white'}`}>
                   {game.home_team_score}
                 </p>
               )}
@@ -500,9 +500,9 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
         {/* Signal équipe */}
         {signal ? (
           <div className={`rounded-2xl p-5 mb-6 border ${
-            signal.force === 'fort' ? 'bg-emerald-500/10 border-emerald-500/30' :
+            signal.force === 'fort' ? 'bg-violet-500/10 border-violet-500/30' :
             signal.force === 'modéré' ? 'bg-yellow-500/10 border-yellow-500/30' :
-            'bg-gray-900 border-gray-700'
+            'bg-[#14171f] border-gray-700'
           }`}>
             <div className="flex items-center gap-2 mb-3">
               <span className="font-bold text-sm">
@@ -511,7 +511,7 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
               <span className="text-xs text-gray-500">— {signal.typePari}</span>
             </div>
             <p className={`text-xl font-bold mb-2 ${
-              signal.force === 'fort' ? 'text-emerald-400' :
+              signal.force === 'fort' ? 'text-violet-400' :
               signal.force === 'modéré' ? 'text-yellow-400' : 'text-gray-300'
             }`}>{signal.pari}</p>
             <p className="text-sm text-gray-400 mb-4">{signal.raisonnement}</p>
@@ -523,15 +523,15 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
             </Link>
           </div>
         ) : (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 mb-6 text-center text-sm text-gray-500">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 mb-6 text-center text-sm text-gray-500">
             Pas assez de données de série pour générer un signal équipe.
           </div>
         )}
 
         {/* Signaux Props Joueurs */}
         {allPropSignals.length > 0 ? (
-          <section className="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-6">
-            <h2 className="text-base font-bold text-emerald-400 mb-1">🎯 Signaux Props Joueurs</h2>
+          <section className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 mb-6">
+            <h2 className="text-base font-bold text-violet-400 mb-1">🎯 Signaux Props Joueurs</h2>
             <p className="text-xs text-gray-600 mb-4">
               Basés sur les 3 derniers matchs de série vs moyenne playoffs · Seuil : ±2.5 pts / ±1.5 reb-ast
             </p>
@@ -543,14 +543,14 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
                     key={i}
                     className={`flex items-center justify-between rounded-xl px-4 py-3 border ${
                       isFort
-                        ? 'bg-emerald-500/10 border-emerald-500/30'
+                        ? 'bg-violet-500/10 border-violet-500/30'
                         : 'bg-yellow-500/5 border-yellow-500/20'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
                         s.direction === 'OVER'
-                          ? 'bg-emerald-500/20 text-emerald-400'
+                          ? 'bg-violet-500/20 text-violet-400'
                           : 'bg-red-500/20 text-red-400'
                       }`}>
                         {s.direction}
@@ -568,7 +568,7 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
                       <p className={`text-sm font-bold ${s.trendValue > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {s.trendValue > 0 ? '+' : ''}{fmt(s.trendValue)}
                       </p>
-                      <p className={`text-xs ${isFort ? 'text-emerald-500' : 'text-yellow-500'}`}>
+                      <p className={`text-xs ${isFort ? 'text-violet-500' : 'text-yellow-500'}`}>
                         {isFort ? '⚡ fort' : '🔶 modéré'}
                       </p>
                     </div>
@@ -581,7 +581,7 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
             </p>
           </section>
         ) : (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 mb-6 text-sm text-gray-500 text-center">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 mb-6 text-sm text-gray-500 text-center">
             Pas encore de signaux props — données insuffisantes (moins de 2 matchs de série joués).
           </div>
         )}
@@ -590,7 +590,7 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
           {/* Visiteur */}
-          <section className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <section className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
             <h2 className="text-base font-bold mb-0.5">
               {awayInfo?.emoji} {awayAbbr} — Top joueurs playoffs
             </h2>
@@ -612,7 +612,7 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
           </section>
 
           {/* Domicile */}
-          <section className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <section className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
             <h2 className="text-base font-bold mb-0.5">
               {homeInfo?.emoji} {homeAbbr} — Top joueurs playoffs
             </h2>
@@ -636,16 +636,16 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
         </div>
 
         {/* Légende */}
-        <div className="mb-6 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-gray-500">
+        <div className="mb-6 bg-[#14171f] border border-[#262b36] rounded-xl px-4 py-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-gray-500">
           <span>PTS · REB · AST = moyennes playoffs ESPN</span>
           <span><span className="text-gray-400 font-semibold">Saison</span> = moy. saison régulière · delta en-dessous</span>
-          <span><span className="text-emerald-400 font-semibold">+X.X</span> = meilleur en playoffs vs saison</span>
+          <span><span className="text-violet-400 font-semibold">+X.X</span> = meilleur en playoffs vs saison</span>
           <span><span className="text-red-400 font-semibold">−X.X</span> = moins bon en playoffs vs saison</span>
         </div>
 
         {/* Historique de la série */}
-        <section className="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-6">
-          <h2 className="text-base font-bold text-emerald-400 mb-4">
+        <section className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 mb-6">
+          <h2 className="text-base font-bold text-violet-400 mb-4">
             ⚔️ Matchs de la série ({finalGames.length} joués)
           </h2>
 
@@ -665,7 +665,7 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
                   <div
                     key={g.id}
                     className={`flex items-center justify-between text-sm rounded-xl px-4 py-2.5 ${
-                      isCurrentGame ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'
+                      isCurrentGame ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-gray-800'
                     }`}
                   >
                     <span className="text-gray-500 text-xs w-8">G{i + 1}</span>
@@ -679,7 +679,7 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
                         <span className="font-bold text-white">
                           {g.visitor_team_score}–{g.home_team_score}
                         </span>
-                        <span className="text-emerald-400 text-xs font-semibold">{winnerName}</span>
+                        <span className="text-violet-400 text-xs font-semibold">{winnerName}</span>
                       </>
                     ) : (
                       <span className="text-gray-600 text-xs">{formatGameStatus(g)}</span>
@@ -700,8 +700,8 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
 
         {/* Stats de série */}
         {finalGames.length > 0 && (
-          <section className="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-6">
-            <h2 className="text-base font-bold text-emerald-400 mb-4">📊 Stats de la série</h2>
+          <section className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 mb-6">
+            <h2 className="text-base font-bold text-violet-400 mb-4">📊 Stats de la série</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <StatBox label="Matchs joués" value={String(finalGames.length)} />
               <StatBox
@@ -727,7 +727,7 @@ export default async function NBAMatchupPage({ params }: { params: Promise<{ gam
         <div className="flex gap-3">
           <Link
             href="/paris/calculateur"
-            className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-center py-3 rounded-xl transition-colors"
+            className="flex-1 bg-violet-500 hover:bg-violet-400 text-black font-bold text-center py-3 rounded-xl transition-colors"
           >
             💰 Calculateur de value
           </Link>

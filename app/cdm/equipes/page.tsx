@@ -33,29 +33,29 @@ export default function EquipesPage() {
     .filter(t => t.pays.toLowerCase().includes(recherche.toLowerCase()))
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-6xl mx-auto">
         <div className="mb-8">
-          <Link href="/cdm" className="text-gray-500 text-sm hover:text-emerald-400 transition-colors">← Retour CdM 2026</Link>
+          <Link href="/cdm" className="text-gray-500 text-sm hover:text-violet-400 transition-colors">← Retour CdM 2026</Link>
           <h1 className="text-4xl font-bold mt-2 mb-1">🌍 Les 48 équipes</h1>
           <p className="text-gray-400">Profils, forces, faiblesses et joueurs clés de chaque nation</p>
         </div>
 
         {/* Filtres */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-8 space-y-4">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 mb-8 space-y-4">
           <input
             type="text"
             placeholder="🔍 Rechercher une équipe..."
             value={recherche}
             onChange={e => setRecherche(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500"
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500"
           />
           <div className="flex flex-wrap gap-2">
             {groupes.map(g => (
               <button key={g} onClick={() => setFiltreGroupe(g)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filtreGroupe === g ? 'bg-emerald-500 text-black' : 'bg-gray-800 text-gray-400 hover:border-emerald-500 border border-gray-700'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filtreGroupe === g ? 'bg-violet-500 text-black' : 'bg-gray-800 text-gray-400 hover:border-violet-500 border border-gray-700'}`}>
                 {g === 'Tous' ? 'Tous les groupes' : `Groupe ${g}`}
               </button>
             ))}
@@ -73,7 +73,7 @@ export default function EquipesPage() {
             if (teams.length === 0) return null
             return (
               <div key={groupe} className="mb-8">
-                <h2 className="text-lg font-bold text-emerald-400 mb-3">Groupe {groupe}</h2>
+                <h2 className="text-lg font-bold text-violet-400 mb-3">Groupe {groupe}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {data.teams.map(pays => {
                     const profile = getTeamProfile(pays)
@@ -81,13 +81,13 @@ export default function EquipesPage() {
                     const slug = pays2slug(pays)
                     return (
                       <Link key={pays} href={`/cdm/equipes/${slug}`}
-                        className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-emerald-500 transition-colors">
+                        className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 hover:border-violet-500 transition-colors">
                         <div className="flex items-center gap-3 mb-3">
                           <span className="text-3xl">{getTeamFlag(pays)}</span>
                           <div>
                             <h3 className="font-bold text-sm leading-tight">{pays}</h3>
                             {data.host === pays && (
-                              <span className="text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full">Pays hôte</span>
+                              <span className="text-xs bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full">Pays hôte</span>
                             )}
                           </div>
                         </div>
@@ -95,7 +95,7 @@ export default function EquipesPage() {
                           <div className="space-y-1.5 mb-3">
                             <div className="flex justify-between items-center">
                               <span className="text-xs text-gray-500">Classement FIFA</span>
-                              <span className="text-xs font-bold text-emerald-400">#{profile.classementFIFA}</span>
+                              <span className="text-xs font-bold text-violet-400">#{profile.classementFIFA}</span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-xs text-gray-500">Formation</span>
@@ -104,14 +104,14 @@ export default function EquipesPage() {
                           </div>
                         )}
                         {topPlayer && (
-                          <div className="border-t border-gray-800 pt-2 mt-2">
+                          <div className="border-t border-[#262b36] pt-2 mt-2">
                             <p className="text-xs text-gray-500">Star</p>
                             <p className="text-xs font-semibold text-white truncate">{topPlayer.nom}</p>
-                            <p className="text-xs text-emerald-400">{topPlayer.note}/10</p>
+                            <p className="text-xs text-violet-400">{topPlayer.note}/10</p>
                           </div>
                         )}
                         {!topPlayer && (
-                          <div className="border-t border-gray-800 pt-2 mt-2">
+                          <div className="border-t border-[#262b36] pt-2 mt-2">
                             <p className="text-xs text-gray-500">Profil disponible →</p>
                           </div>
                         )}
@@ -130,7 +130,7 @@ export default function EquipesPage() {
               const slug = pays2slug(pays)
               return (
                 <Link key={pays} href={`/cdm/equipes/${slug}`}
-                  className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-emerald-500 transition-colors">
+                  className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 hover:border-violet-500 transition-colors">
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-3xl">{getTeamFlag(pays)}</span>
                     <div>
@@ -142,7 +142,7 @@ export default function EquipesPage() {
                     <div className="space-y-1.5 mb-3">
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500">Classement FIFA</span>
-                        <span className="text-xs font-bold text-emerald-400">#{profile.classementFIFA}</span>
+                        <span className="text-xs font-bold text-violet-400">#{profile.classementFIFA}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500">Sélectionneur</span>
@@ -151,7 +151,7 @@ export default function EquipesPage() {
                     </div>
                   )}
                   {topPlayer && (
-                    <div className="border-t border-gray-800 pt-2 mt-2">
+                    <div className="border-t border-[#262b36] pt-2 mt-2">
                       <p className="text-xs text-gray-500">Star · <span className="text-white font-semibold">{topPlayer.nom}</span></p>
                     </div>
                   )}

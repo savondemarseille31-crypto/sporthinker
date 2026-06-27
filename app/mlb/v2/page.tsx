@@ -11,7 +11,7 @@ export const revalidate = 300
 // ── SignalCard — même modèle que /signaux ─────────────────────────────────────
 function forceConfig(force: SignalForce) {
   switch (force) {
-    case 'fort':          return { dot: 'bg-emerald-400', badge: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', label: '⚡ Fort' }
+    case 'fort':          return { dot: 'bg-violet-400', badge: 'bg-violet-500/20 text-violet-400 border border-violet-500/30', label: '⚡ Fort' }
     case 'modéré':        return { dot: 'bg-yellow-400',  badge: 'bg-yellow-500/20  text-yellow-400  border border-yellow-500/30',  label: '🔶 Modéré' }
     case 'à surveiller':  return { dot: 'bg-gray-400',    badge: 'bg-gray-700       text-gray-400    border border-gray-600',        label: '👁 À surveiller' }
   }
@@ -20,7 +20,7 @@ function forceConfig(force: SignalForce) {
 function typeColor(type: string) {
   if (type.includes('Under'))   return 'text-blue-400'
   if (type.includes('Over'))    return 'text-orange-400'
-  if (type.includes('Money'))   return 'text-emerald-400'
+  if (type.includes('Money'))   return 'text-violet-400'
   if (type.includes('First 5')) return 'text-purple-400'
   return 'text-white'
 }
@@ -28,7 +28,7 @@ function typeColor(type: string) {
 function SignalCard({ signal, accent }: { signal: Signal; accent?: string }) {
   const cfg = forceConfig(signal.force)
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4 hover:border-gray-700 transition-colors">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 flex flex-col gap-4 hover:border-gray-700 transition-colors">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
@@ -67,8 +67,8 @@ function SignalCard({ signal, accent }: { signal: Signal; accent?: string }) {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {signal.stats.map((s, i) => (
-          <div key={i} className={`text-center rounded-lg p-2 ${s.highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
-            <p className={`text-sm font-bold ${s.highlight ? 'text-emerald-400' : 'text-white'}`}>{s.val}</p>
+          <div key={i} className={`text-center rounded-lg p-2 ${s.highlight ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-gray-800'}`}>
+            <p className={`text-sm font-bold ${s.highlight ? 'text-violet-400' : 'text-white'}`}>{s.val}</p>
             <p className="text-xs text-gray-500 leading-tight mt-0.5">{s.label}</p>
           </div>
         ))}
@@ -102,7 +102,7 @@ function SignalCard({ signal, accent }: { signal: Signal; accent?: string }) {
 
 function EmptyState({ label, href, linkLabel }: { label: string; href: string; linkLabel: string }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 text-center">
       <p className="text-gray-500 text-sm mb-1">{label}</p>
       <Link href={href} className="inline-block mt-2 text-sm text-blue-400 hover:text-blue-300 transition-colors">
         {linkLabel}
@@ -163,7 +163,7 @@ export default async function MLBv2Page() {
   }).length
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-6xl mx-auto">
@@ -189,10 +189,10 @@ export default async function MLBv2Page() {
               <p className="text-xs text-gray-400">ERA lanceur partant · WHIP · RPG équipe</p>
             </div>
           </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 flex items-start gap-3">
-            <span className="text-emerald-400 mt-0.5">🧪</span>
+          <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl px-4 py-3 flex items-start gap-3">
+            <span className="text-violet-400 mt-0.5">🧪</span>
             <div>
-              <p className="text-xs font-bold text-emerald-400 mb-1">V2 — FIP + wOBA + Park Factor</p>
+              <p className="text-xs font-bold text-violet-400 mb-1">V2 — FIP + wOBA + Park Factor</p>
               <p className="text-xs text-gray-400">FIP (défense-indépendant) · wOBA offense · Park factor stade</p>
             </div>
           </div>
@@ -200,12 +200,12 @@ export default async function MLBv2Page() {
 
         {/* KPI */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 text-center">
             <p className="text-2xl font-bold text-white">{previewGames.length}</p>
             <p className="text-xs text-gray-500 mt-1">Matchs analysés</p>
           </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-400">{v2Signals.length}</p>
+          <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-4 text-center">
+            <p className="text-2xl font-bold text-violet-400">{v2Signals.length}</p>
             <p className="text-xs text-gray-500 mt-1">🧪 Signaux V2</p>
           </div>
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 text-center">
@@ -231,16 +231,16 @@ export default async function MLBv2Page() {
             {/* V2 signals */}
             <section className="mb-10">
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-xl font-bold text-emerald-300">🧪 Signaux V2 — FIP + wOBA + Park Factor</h2>
+                <h2 className="text-xl font-bold text-violet-300">🧪 Signaux V2 — FIP + wOBA + Park Factor</h2>
                 {v2Signals.length > 0
-                  ? <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">{v2Signals.length} signal{v2Signals.length > 1 ? 's' : ''}</span>
+                  ? <span className="text-xs bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full">{v2Signals.length} signal{v2Signals.length > 1 ? 's' : ''}</span>
                   : <span className="text-xs bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">Aucun signal</span>
                 }
               </div>
               {sorted(v2Signals).length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {sorted(v2Signals).map(s => (
-                    <SignalCard key={s.id} signal={s} accent="text-emerald-300" />
+                    <SignalCard key={s.id} signal={s} accent="text-violet-300" />
                   ))}
                 </div>
               ) : (
@@ -281,11 +281,11 @@ export default async function MLBv2Page() {
         {/* Nav */}
         <div className="flex gap-3">
           <Link href="/mlb"
-            className="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-sm text-gray-400 hover:text-white px-4 py-2.5 rounded-xl transition-colors">
+            className="bg-[#14171f] hover:bg-gray-800 border border-[#262b36] text-sm text-gray-400 hover:text-white px-4 py-2.5 rounded-xl transition-colors">
             ← MLB v1
           </Link>
           <Link href="/signaux"
-            className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm px-4 py-2.5 rounded-xl transition-colors">
+            className="bg-violet-500 hover:bg-violet-400 text-black font-bold text-sm px-4 py-2.5 rounded-xl transition-colors">
             Tous les signaux →
           </Link>
         </div>

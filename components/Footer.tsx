@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function Footer() {
   return (
-    <footer className="mt-auto border-t border-gray-800 bg-gray-950 text-xs text-gray-500">
+    <footer className="mt-auto border-t border-[#262b36] bg-[#0a0d14] text-xs text-gray-500">
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <p className="max-w-2xl leading-relaxed">
@@ -18,15 +18,15 @@ export default function Footer() {
 
         <p className="mt-4">
           Jeu responsable — Joueurs Info Service&nbsp;:{' '}
-          <a href="tel:0974751313" className="text-gray-400 hover:text-emerald-400">09 74 75 13 13</a>{' '}
+          <a href="tel:0974751313" className="text-gray-400 hover:text-violet-400">09 74 75 13 13</a>{' '}
           (appel non surtaxé).
         </p>
 
         <nav className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
-          <Link href="/legal/cgu" className="hover:text-emerald-400">CGU</Link>
-          <Link href="/legal/confidentialite" className="hover:text-emerald-400">Confidentialité</Link>
-          <Link href="/legal/jeu-responsable" className="hover:text-emerald-400">Jeu responsable</Link>
-          <Link href="/mentions-legales" className="hover:text-emerald-400">Mentions légales</Link>
+          <Link href="/legal/cgu" className="hover:text-violet-400">CGU</Link>
+          <Link href="/legal/confidentialite" className="hover:text-violet-400">Confidentialité</Link>
+          <Link href="/legal/jeu-responsable" className="hover:text-violet-400">Jeu responsable</Link>
+          <Link href="/mentions-legales" className="hover:text-violet-400">Mentions légales</Link>
         </nav>
 
         <p className="mt-4 text-gray-600">© {new Date().getFullYear()} Deltavyn</p>

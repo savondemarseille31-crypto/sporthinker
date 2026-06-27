@@ -36,20 +36,20 @@ export default function ComptePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
       <div className="px-6 py-10 max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">Mon compte</h1>
 
         {ready && !email && (
           <p className="text-gray-400">
-            Tu n&apos;es pas connecté. <Link href="/login" className="text-emerald-400 hover:underline">Se connecter</Link>
+            Tu n&apos;es pas connecté. <Link href="/login" className="text-violet-400 hover:underline">Se connecter</Link>
           </p>
         )}
 
         {email && (
           <>
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-6">
+            <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 mb-6">
               <p className="text-xs text-gray-500 mb-1">Connecté en tant que</p>
               <p className="font-medium">{email}</p>
             </div>

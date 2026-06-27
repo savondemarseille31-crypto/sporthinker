@@ -17,7 +17,7 @@ const STATS_LANCEURS: StatCard[] = [
     formule: '(Points mérités ÷ Manches lancées) × 9',
     description: 'La stat de référence. Mesure combien de points un lanceur accorde en moyenne sur un match complet (9 manches). Plus le chiffre est bas, meilleur est le lanceur.',
     niveaux: [
-      { val: '< 2.50', label: 'Élite — lanceur dominant', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+      { val: '< 2.50', label: 'Élite — lanceur dominant', color: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
       { val: '2.50 – 3.50', label: 'Très bon', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
       { val: '3.50 – 4.50', label: 'Correct / Moyen', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
       { val: '> 4.50', label: 'Fragile — risqué', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
@@ -30,7 +30,7 @@ const STATS_LANCEURS: StatCard[] = [
     formule: '(Buts sur balles + Coups sûrs accordés) ÷ Manches lancées',
     description: 'Mesure le contrôle du lanceur — combien de coureurs adverses il place sur les bases par manche. Un WHIP bas = peu de danger. Complète parfaitement l\'ERA car il détecte les lanceurs "chanceux" qui auraient dû accorder plus de points.',
     niveaux: [
-      { val: '< 1.00', label: 'Exceptionnel', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+      { val: '< 1.00', label: 'Exceptionnel', color: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
       { val: '1.00 – 1.15', label: 'Très bon', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
       { val: '1.15 – 1.30', label: 'Correct', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
       { val: '> 1.30', label: 'Trop de coureurs en jeu', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
@@ -43,7 +43,7 @@ const STATS_LANCEURS: StatCard[] = [
     formule: '(Retraits au bâton ÷ Manches lancées) × 9',
     description: 'Mesure le pouvoir de domination d\'un lanceur. Un lanceur qui retire beaucoup de frappeurs (strikeouts) dépend moins de sa défense derrière lui et est plus fiable pour les paris.',
     niveaux: [
-      { val: '> 10.0', label: 'Dominant — électrique', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+      { val: '> 10.0', label: 'Dominant — électrique', color: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
       { val: '8.0 – 10.0', label: 'Bon swing-and-miss', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
       { val: '6.0 – 8.0', label: 'Dans la moyenne', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
       { val: '< 6.0', label: 'Contact pitcher — risqué', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
@@ -59,7 +59,7 @@ const STATS_FRAPPEURS: StatCard[] = [
     formule: 'Coups sûrs ÷ Passages au bâton officiels',
     description: 'La stat la plus connue en baseball. Mesure la fréquence à laquelle un frappeur réussit un coup sûr. Simple mais incomplète — elle n\'inclut pas les walks ni la puissance de frappe.',
     niveaux: [
-      { val: '> .300', label: 'Frappeur d\'élite', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+      { val: '> .300', label: 'Frappeur d\'élite', color: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
       { val: '.270 – .300', label: 'Très bon', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
       { val: '.240 – .270', label: 'Dans la moyenne', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
       { val: '< .230', label: 'Frappeur en difficulté', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
@@ -72,7 +72,7 @@ const STATS_FRAPPEURS: StatCard[] = [
     formule: '(Coups sûrs + Walks + Touchés) ÷ (AB + Walks + Touchés + Sacrifices)',
     description: 'Mesure à quelle fréquence un frappeur arrive sur les bases, quelle que soit la méthode. Inclut les walks qu\'AVG ignore. Plus fiable qu\'AVG pour évaluer la contribution offensive réelle.',
     niveaux: [
-      { val: '> .380', label: 'Élite', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+      { val: '> .380', label: 'Élite', color: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
       { val: '.350 – .380', label: 'Très bon', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
       { val: '.320 – .350', label: 'Correct', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
       { val: '< .310', label: 'Faible', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
@@ -85,7 +85,7 @@ const STATS_FRAPPEURS: StatCard[] = [
     formule: 'Bases totales ÷ Passages au bâton officiels',
     description: 'Mesure la puissance de frappe. Un simple = 1 base, un double = 2, un triple = 3, un home run = 4. Plus le chiffre est élevé, plus le frappeur produit des hits de puissance.',
     niveaux: [
-      { val: '> .550', label: 'Power hitter élite', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+      { val: '> .550', label: 'Power hitter élite', color: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
       { val: '.470 – .550', label: 'Très bon', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
       { val: '.400 – .470', label: 'Correct', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
       { val: '< .380', label: 'Peu de puissance', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
@@ -98,7 +98,7 @@ const STATS_FRAPPEURS: StatCard[] = [
     formule: 'OBP + SLG',
     description: 'La stat offensive la plus complète et la plus utilisée par les analystes. Combine l\'aptitude à arriver sur les bases (OBP) et la puissance de frappe (SLG). Donne une image quasi-complète de la valeur offensive d\'un frappeur.',
     niveaux: [
-      { val: '> 1.000', label: 'MVP — frappeur d\'exception', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+      { val: '> 1.000', label: 'MVP — frappeur d\'exception', color: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
       { val: '.900 – 1.000', label: 'Excellent', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
       { val: '.750 – .900', label: 'Au-dessus de la moyenne', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
       { val: '< .700', label: 'Frappeur faible', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
@@ -144,11 +144,11 @@ const TYPES_PARIS = [
 
 export default function GuidePage() {
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-4xl mx-auto">
-        <Link href="/mlb" className="text-gray-500 text-sm hover:text-emerald-400 transition-colors">← Retour MLB</Link>
+        <Link href="/mlb" className="text-gray-500 text-sm hover:text-violet-400 transition-colors">← Retour MLB</Link>
 
         <div className="mt-4 mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -159,18 +159,18 @@ export default function GuidePage() {
         </div>
 
         {/* Intro rapide */}
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6 mb-10">
-          <h2 className="text-lg font-bold text-emerald-400 mb-3">🎯 Pourquoi le MLB est excellent pour le value betting ?</h2>
+        <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-6 mb-10">
+          <h2 className="text-lg font-bold text-violet-400 mb-3">🎯 Pourquoi le MLB est excellent pour le value betting ?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-300">
-            <div className="bg-gray-900/50 rounded-xl p-3">
+            <div className="bg-[#14171f]/50 rounded-xl p-3">
               <p className="font-bold text-white mb-1">📅 162 matchs / équipe</p>
               <p>Énorme volume de données. Les modèles statistiques sont très fiables — bien plus qu'en football (38 matchs).</p>
             </div>
-            <div className="bg-gray-900/50 rounded-xl p-3">
+            <div className="bg-[#14171f]/50 rounded-xl p-3">
               <p className="font-bold text-white mb-1">🥎 Le lanceur = tout</p>
               <p>Le lanceur partant explique ~60% du résultat d'un match. Maîtriser ERA + WHIP suffit pour identifier des value bets.</p>
             </div>
-            <div className="bg-gray-900/50 rounded-xl p-3">
+            <div className="bg-[#14171f]/50 rounded-xl p-3">
               <p className="font-bold text-white mb-1">📊 Stats publiques</p>
               <p>L'API officielle MLB est 100% gratuite. Tu as accès aux mêmes données que les professionnels.</p>
             </div>
@@ -201,10 +201,10 @@ export default function GuidePage() {
           <p className="text-gray-400 text-sm mb-6">Les 4 marchés les plus utilisés, avec les conditions idéales pour trouver de la value.</p>
           <div className="space-y-4">
             {TYPES_PARIS.map(p => (
-              <div key={p.type} className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <div key={p.type} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold text-emerald-400 w-12 text-center">{p.icon}</span>
+                    <span className="text-2xl font-bold text-violet-400 w-12 text-center">{p.icon}</span>
                     <div>
                       <h3 className="font-bold text-lg">{p.type}</h3>
                       <p className="text-gray-400 text-sm">{p.description}</p>
@@ -220,8 +220,8 @@ export default function GuidePage() {
                     <p className="text-xs text-gray-500 mb-1">Exemple</p>
                     <p className="text-sm text-gray-300">{p.exemple}</p>
                   </div>
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
-                    <p className="text-xs text-emerald-400 mb-1">Quand jouer ?</p>
+                  <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3">
+                    <p className="text-xs text-violet-400 mb-1">Quand jouer ?</p>
                     <p className="text-sm text-gray-300">{p.quand}</p>
                   </div>
                 </div>
@@ -234,7 +234,7 @@ export default function GuidePage() {
         <section className="mb-10">
           <h2 className="text-2xl font-bold mb-2">⚡ Cheat sheet — Analyse rapide d'un matchup</h2>
           <p className="text-gray-400 text-sm mb-4">Avant de miser, pose-toi ces 4 questions en 2 minutes :</p>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 space-y-4">
             {[
               {
                 q: '1. Qui lance pour chaque équipe ?',
@@ -284,8 +284,8 @@ export default function GuidePage() {
               { mot: 'Lineup', def: 'L\'ordre de passage au bâton des 9 frappeurs. Les positions 3-4-5 sont les plus puissants (cleanup hitters).' },
               { mot: 'DH (Designated Hitter)', def: 'Frappeur spécialisé qui joue à la place du lanceur en AL. La NL a adopté le DH en 2022.' },
             ].map(item => (
-              <div key={item.mot} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <p className="font-bold text-emerald-400 text-sm mb-1">{item.mot}</p>
+              <div key={item.mot} className="bg-[#14171f] border border-[#262b36] rounded-xl p-4">
+                <p className="font-bold text-violet-400 text-sm mb-1">{item.mot}</p>
                 <p className="text-sm text-gray-400">{item.def}</p>
               </div>
             ))}
@@ -293,12 +293,12 @@ export default function GuidePage() {
         </section>
 
         {/* CTA */}
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6 text-center">
+        <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-6 text-center">
           <p className="text-lg font-bold mb-2">Prêt à analyser les matchs du jour ?</p>
           <p className="text-gray-400 text-sm mb-4">Utilise ce guide + les stats en temps réel pour trouver tes value bets</p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link href="/mlb/calendrier"
-              className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-2.5 rounded-xl transition-colors text-sm">
+              className="bg-violet-500 hover:bg-violet-400 text-black font-bold px-5 py-2.5 rounded-xl transition-colors text-sm">
               📅 Matchups du jour
             </Link>
             <Link href="/mlb/joueurs"
@@ -319,11 +319,11 @@ export default function GuidePage() {
 // ---- Composant réutilisable carte stat ----
 function StatBlock({ stat, nom, formule, description, niveaux, conseil }: StatCard) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-lg">{stat}</span>
+            <span className="text-2xl font-bold text-violet-400 bg-violet-500/10 px-3 py-1 rounded-lg">{stat}</span>
             <h3 className="font-bold text-lg">{nom}</h3>
           </div>
           {formule && (

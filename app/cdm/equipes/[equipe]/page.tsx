@@ -31,7 +31,7 @@ export default async function EquipePage({ params }: { params: Promise<{ equipe:
   const meilleurPasseur = [...players].sort((a, b) => b.passes - a.passes)[0]
 
   const getFormeColor = (f: string) => {
-    if (f === 'V') return 'bg-emerald-500'
+    if (f === 'V') return 'bg-violet-500'
     if (f === 'N') return 'bg-gray-500'
     return 'bg-red-500'
   }
@@ -41,29 +41,29 @@ export default async function EquipePage({ params }: { params: Promise<{ equipe:
     .sort((a, b) => b.note - a.note)
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-4xl mx-auto">
-        <Link href="/cdm/equipes" className="text-gray-500 text-sm hover:text-emerald-400 transition-colors">← Retour équipes</Link>
+        <Link href="/cdm/equipes" className="text-gray-500 text-sm hover:text-violet-400 transition-colors">← Retour équipes</Link>
 
         {/* Hero équipe */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mt-4 mb-6">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-8 mt-4 mb-6">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <span className="text-6xl">{team.flag}</span>
               <div>
                 <h1 className="text-3xl font-bold">{team.pays}</h1>
                 <p className="text-gray-400 mt-1">Groupe {team.groupe} · {team.formation} · Coach : {team.selectionneur}</p>
-                <p className="text-emerald-400 font-semibold mt-1">Classement FIFA #{team.classementFIFA}</p>
+                <p className="text-violet-400 font-semibold mt-1">Classement FIFA #{team.classementFIFA}</p>
               </div>
             </div>
             <div className="text-center bg-gray-800 rounded-xl px-6 py-4">
-              <p className="text-3xl font-bold text-emerald-400">{avgNote}</p>
+              <p className="text-3xl font-bold text-violet-400">{avgNote}</p>
               <p className="text-xs text-gray-500 mt-1">Note moy. effectif</p>
             </div>
           </div>
-          <p className="mt-5 text-gray-300 italic text-sm border-l-2 border-emerald-500 pl-4">{team.ambitions}</p>
+          <p className="mt-5 text-gray-300 italic text-sm border-l-2 border-violet-500 pl-4">{team.ambitions}</p>
         </div>
 
         {/* Stats collectif */}
@@ -75,7 +75,7 @@ export default async function EquipePage({ params }: { params: Promise<{ equipe:
               { label: '🏆 Top buteur', val: meilleurButeur?.buts ?? '—', sub: meilleurButeur?.nom ?? '—' },
               { label: '🎯 Top passeur', val: meilleurPasseur?.passes ?? '—', sub: meilleurPasseur?.nom ?? '—' },
             ].map(s => (
-              <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+              <div key={s.label} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 text-center">
                 <p className="text-xs text-gray-500 mb-1">{s.label}</p>
                 <p className="text-2xl font-bold text-white mb-1">{s.val}</p>
                 <p className="text-xs text-gray-500 truncate">{s.sub}</p>
@@ -86,12 +86,12 @@ export default async function EquipePage({ params }: { params: Promise<{ equipe:
 
         {/* Forces / Faiblesses */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5">
-            <h2 className="text-base font-bold text-emerald-400 mb-3">💪 Points forts</h2>
+          <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-5">
+            <h2 className="text-base font-bold text-violet-400 mb-3">💪 Points forts</h2>
             <ul className="space-y-2">
               {team.pointsForts.map((p, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
-                  <span className="text-emerald-400 mt-0.5">✓</span> {p}
+                  <span className="text-violet-400 mt-0.5">✓</span> {p}
                 </li>
               ))}
             </ul>
@@ -110,8 +110,8 @@ export default async function EquipePage({ params }: { params: Promise<{ equipe:
 
         {/* Joueurs clés */}
         {sortedPlayers.length > 0 && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4 text-emerald-400">👤 Joueurs dans notre base</h2>
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-6">
+            <h2 className="text-lg font-bold mb-4 text-violet-400">👤 Joueurs dans notre base</h2>
             <div className="space-y-3">
               {sortedPlayers.map(player => (
                 <Link key={player.id} href={`/cdm/joueurs/${player.id}`}
@@ -138,7 +138,7 @@ export default async function EquipePage({ params }: { params: Promise<{ equipe:
                         </div>
                       ))}
                     </div>
-                    <p className="text-emerald-400 font-bold text-lg w-10 text-right">{player.note}</p>
+                    <p className="text-violet-400 font-bold text-lg w-10 text-right">{player.note}</p>
                   </div>
                 </Link>
               ))}
@@ -147,7 +147,7 @@ export default async function EquipePage({ params }: { params: Promise<{ equipe:
         )}
 
         {sortedPlayers.length === 0 && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6 text-center text-gray-500">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-6 text-center text-gray-500">
             <p>Aucun joueur disponible dans notre base pour cette équipe.</p>
             <p className="text-xs mt-1">Les profils détaillés seront ajoutés avec l'API avant le tournoi.</p>
           </div>
@@ -155,8 +155,8 @@ export default async function EquipePage({ params }: { params: Promise<{ equipe:
 
         {/* Matchs de groupe */}
         {matchs.length > 0 && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4 text-emerald-400">📅 Matchs de groupe</h2>
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-6">
+            <h2 className="text-lg font-bold mb-4 text-violet-400">📅 Matchs de groupe</h2>
             <div className="space-y-3">
               {matchs.map(match => {
                 const isDomicile = match.domicile === team.pays
@@ -184,8 +184,8 @@ export default async function EquipePage({ params }: { params: Promise<{ equipe:
         )}
 
         {/* Conseil paris */}
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6">
-          <h2 className="text-lg font-bold mb-3 text-emerald-400">💰 Analyse Deltavyn</h2>
+        <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-6">
+          <h2 className="text-lg font-bold mb-3 text-violet-400">💰 Analyse Deltavyn</h2>
           <div className="space-y-2 text-sm text-gray-300">
             <p>• <strong>Cote :</strong> {team.classementFIFA <= 5 ? '⭐ Grand favori — cotes basses mais très sûre en phase de groupes' : team.classementFIFA <= 15 ? '✅ Sérieux prétendant — bon rapport qualité/cote en poules' : team.classementFIFA <= 30 ? '⚠️ Compétitif — surveiller les matchs clés du groupe' : '🎲 Outsider — cotes intéressantes si l\'effectif performe'}</p>
             <p>• <strong>Buteur :</strong> {meilleurButeur ? `${meilleurButeur.nom} (${meilleurButeur.buts} buts, ${meilleurButeur.xG} xG) — référence offensive de l'équipe` : 'Aucun joueur référencé dans notre base'}</p>

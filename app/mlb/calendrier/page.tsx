@@ -30,16 +30,16 @@ export default function MLBCalendrierPage() {
   const finishedGames = games.filter(g => g.status.abstractGameState === 'Final')
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
-        <Link href="/mlb" className="text-gray-500 text-sm hover:text-emerald-400 transition-colors">← Retour MLB</Link>
+        <Link href="/mlb" className="text-gray-500 text-sm hover:text-violet-400 transition-colors">← Retour MLB</Link>
         <h1 className="text-3xl font-bold mt-2 mb-1">📅 Calendrier MLB</h1>
         <p className="text-gray-400 text-sm mb-6">Matchups du jour avec lanceurs probables — clé pour le value betting</p>
 
         {/* Navigation dates */}
-        <div className="flex items-center gap-3 mb-6 bg-gray-900 border border-gray-800 rounded-2xl p-4">
+        <div className="flex items-center gap-3 mb-6 bg-[#14171f] border border-[#262b36] rounded-2xl p-4">
           <button onClick={() => setDate(d => addDays(d, -1))}
             className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-xl transition-colors">
             ←
@@ -47,7 +47,7 @@ export default function MLBCalendrierPage() {
           <div className="flex-1 text-center">
             <p className="font-semibold capitalize">{fmtDate(date)}</p>
             {date !== today && (
-              <button onClick={() => setDate(today)} className="text-xs text-emerald-400 hover:underline mt-0.5">
+              <button onClick={() => setDate(today)} className="text-xs text-violet-400 hover:underline mt-0.5">
                 Revenir à aujourd'hui
               </button>
             )}
@@ -84,7 +84,7 @@ export default function MLBCalendrierPage() {
 
             {upcomingGames.length > 0 && (
               <section>
-                <h2 className="text-lg font-bold text-emerald-400 mb-3">
+                <h2 className="text-lg font-bold text-violet-400 mb-3">
                   🎯 À venir — Matchups lanceurs ({upcomingGames.length} matchs)
                 </h2>
                 <div className="space-y-3">
@@ -119,7 +119,7 @@ function FullGameCard({ game }: { game: MLBGame }) {
   const isPre = game.status.abstractGameState === 'Preview'
 
   return (
-    <div className={`bg-gray-900 border rounded-2xl p-5 ${isLive ? 'border-red-500/40' : 'border-gray-800'}`}>
+    <div className={`bg-[#14171f] border rounded-2xl p-5 ${isLive ? 'border-red-500/40' : 'border-[#262b36]'}`}>
       <div className="flex items-start justify-between gap-4">
         {/* Teams + score */}
         <div className="flex-1 space-y-3">
@@ -142,7 +142,7 @@ function FullGameCard({ game }: { game: MLBGame }) {
                 )}
               </div>
               {(isLive || isFinal) && (
-                <span className={`text-3xl font-bold ${data.isWinner ? 'text-emerald-400' : 'text-white'}`}>
+                <span className={`text-3xl font-bold ${data.isWinner ? 'text-violet-400' : 'text-white'}`}>
                   {data.score ?? 0}
                 </span>
               )}
@@ -171,14 +171,14 @@ function FullGameCard({ game }: { game: MLBGame }) {
 
       {/* Bouton analyse paris */}
       {isPre && (
-        <div className="mt-3 pt-3 border-t border-gray-800 flex items-center justify-between">
+        <div className="mt-3 pt-3 border-t border-[#262b36] flex items-center justify-between">
           <p className="text-xs text-gray-600">
             {away.probablePitcher && home.probablePitcher
               ? `${away.probablePitcher.fullName.split(' ').pop()} vs ${home.probablePitcher.fullName.split(' ').pop()}`
               : 'Lanceurs TBD'}
           </p>
           <Link href="/paris/calculateur"
-            className="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-lg hover:bg-emerald-500/30 transition-colors">
+            className="text-xs bg-violet-500/20 text-violet-400 px-3 py-1 rounded-lg hover:bg-violet-500/30 transition-colors">
             Analyser ce match →
           </Link>
         </div>

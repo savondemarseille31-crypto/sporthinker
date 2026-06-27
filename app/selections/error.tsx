@@ -14,7 +14,7 @@ export default function SelectionsError({
   }, [error])
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
       <div className="px-6 py-16 max-w-xl mx-auto text-center">
         <p className="text-4xl mb-4">⚠️</p>
@@ -27,7 +27,7 @@ export default function SelectionsError({
         )}
         <button
           onClick={unstable_retry}
-          className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-2 rounded-xl transition-colors"
+          className="bg-violet-500 hover:bg-violet-400 text-black font-bold px-6 py-2 rounded-xl transition-colors"
         >
           Réessayer
         </button>

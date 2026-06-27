@@ -51,7 +51,7 @@ function Unit({
     <div className="text-center min-w-[3rem]">
       <p
         className={`text-4xl font-bold tabular-nums leading-none ${
-          accent ? 'text-emerald-400' : dim ? 'text-gray-500' : 'text-white'
+          accent ? 'text-violet-400' : dim ? 'text-gray-500' : 'text-white'
         }`}
       >
         {String(value).padStart(2, '0')}
@@ -76,8 +76,8 @@ export default function CdmCountdown() {
   const { days, hours, minutes, seconds } = tick
 
   return (
-    <div className="mb-8 bg-gradient-to-r from-emerald-900/30 to-blue-900/30 border border-emerald-500/20 rounded-2xl px-6 py-5">
-      <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-1">
+    <div className="mb-8 bg-gradient-to-r from-violet-900/30 to-blue-900/30 border border-violet-500/20 rounded-2xl px-6 py-5">
+      <p className="text-xs text-violet-400 font-semibold uppercase tracking-wider mb-1">
         Prochain match
       </p>
       <p className="text-sm text-gray-400 mb-5">{tick.label}</p>

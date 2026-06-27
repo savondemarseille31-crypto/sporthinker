@@ -12,7 +12,7 @@ export const revalidate = 1800  // 30 min — programme ESPN + signaux
 
 function forceConfig(force: SignalForce) {
   switch (force) {
-    case 'fort':         return { dot: 'bg-emerald-400', badge: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', label: '⚡ Fort' }
+    case 'fort':         return { dot: 'bg-violet-400', badge: 'bg-violet-500/20 text-violet-400 border border-violet-500/30', label: '⚡ Fort' }
     case 'modéré':       return { dot: 'bg-yellow-400',  badge: 'bg-yellow-500/20  text-yellow-400  border border-yellow-500/30',  label: '🔶 Modéré' }
     case 'à surveiller': return { dot: 'bg-gray-400',    badge: 'bg-gray-700       text-gray-400    border border-gray-600',       label: '👁 À surveiller' }
   }
@@ -28,7 +28,7 @@ function levelBadge(level: string | undefined) {
 }
 
 function typeColor(type: string) {
-  if (type.includes('Vainqueur'))  return 'text-emerald-400'
+  if (type.includes('Vainqueur'))  return 'text-violet-400'
   if (type.includes('Handicap'))   return 'text-purple-400'
   if (type.includes('Under'))      return 'text-blue-400'
   if (type.includes('Over'))       return 'text-orange-400'
@@ -37,7 +37,7 @@ function typeColor(type: string) {
 
 function statusLabel(status: ESPNMatch['status']) {
   if (status === 'scheduled') return { cls: 'text-gray-400',                    label: 'À venir'  }
-  if (status === 'live')      return { cls: 'text-emerald-400 animate-pulse',   label: '● LIVE'   }
+  if (status === 'live')      return { cls: 'text-violet-400 animate-pulse',   label: '● LIVE'   }
   return                             { cls: 'text-gray-500',                    label: 'Terminé'  }
 }
 
@@ -62,7 +62,7 @@ function TournamentHeader({
 function SignalCard({ signal }: { signal: Signal }) {
   const cfg = forceConfig(signal.force)
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-3 hover:border-gray-700 transition-colors">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 flex flex-col gap-3 hover:border-gray-700 transition-colors">
       <div className="flex items-center justify-between">
         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cfg.badge}`}>
           <span className={`inline-block w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1 align-middle`} />
@@ -89,8 +89,8 @@ function SignalCard({ signal }: { signal: Signal }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {signal.stats.map((s, i) => (
-          <div key={i} className={`text-center rounded-lg p-2 ${s.highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
-            <p className={`text-sm font-bold ${s.highlight ? 'text-emerald-400' : 'text-white'}`}>{s.val}</p>
+          <div key={i} className={`text-center rounded-lg p-2 ${s.highlight ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-gray-800'}`}>
+            <p className={`text-sm font-bold ${s.highlight ? 'text-violet-400' : 'text-white'}`}>{s.val}</p>
             <p className="text-xs text-gray-500 leading-tight mt-0.5">{s.label}</p>
           </div>
         ))}
@@ -116,7 +116,7 @@ function MatchCard({ match, signals, premium }: { match: ESPNMatch; signals: Sig
   )
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-3 hover:border-gray-700 transition-colors">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 flex flex-col gap-3 hover:border-gray-700 transition-colors">
       {/* Status + heure + court */}
       <div className="flex items-center justify-between">
         <span className={`text-xs font-semibold ${st.cls}`}>{st.label}</span>
@@ -198,7 +198,7 @@ export default async function TennisPage() {
   const noData = !matches.length
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-6xl mx-auto">
@@ -210,16 +210,16 @@ export default async function TennisPage() {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 text-center">
             <p className="text-2xl font-bold text-orange-400">{matches.length || '—'}</p>
             <p className="text-xs text-gray-500 mt-1">Matchs aujourd&apos;hui</p>
           </div>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 text-center">
             <p className="text-2xl font-bold text-white">{matchesByTournament.size || '—'}</p>
             <p className="text-xs text-gray-500 mt-1">Tournois actifs</p>
           </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-400">{signals.filter(s => s.force === 'fort').length || '—'}</p>
+          <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-4 text-center">
+            <p className="text-2xl font-bold text-violet-400">{signals.filter(s => s.force === 'fort').length || '—'}</p>
             <p className="text-xs text-gray-500 mt-1">⚡ Signaux forts</p>
           </div>
           <Link href="/tennis/classements" className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-4 text-center hover:border-orange-400/60 transition-colors block">
@@ -244,8 +244,8 @@ export default async function TennisPage() {
         {signals.length > 0 && (
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-xl font-bold text-emerald-300">⚡ Signaux du jour</h2>
-              <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">
+              <h2 className="text-xl font-bold text-violet-300">⚡ Signaux du jour</h2>
+              <span className="text-xs bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full">
                 {signals.length} signal{signals.length > 1 ? 's' : ''}
               </span>
             </div>

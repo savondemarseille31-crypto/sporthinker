@@ -15,7 +15,7 @@ import {
 function SportBadge({ sport }: { sport: TrackedSignal['sport'] }) {
   const styles: Record<string, string> = {
     MLB:    'bg-blue-500/10 text-blue-300',
-    CdM:    'bg-emerald-500/10 text-emerald-300',
+    CdM:    'bg-violet-500/10 text-violet-300',
     NBA:    'bg-orange-500/10 text-orange-300',
     Tennis: 'bg-yellow-500/10 text-yellow-300',
   }
@@ -27,7 +27,7 @@ function SportBadge({ sport }: { sport: TrackedSignal['sport'] }) {
 }
 
 function ForceBadge({ force }: { force: TrackedSignal['force'] }) {
-  if (force === 'fort')    return <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">⚡ Fort</span>
+  if (force === 'fort')    return <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400">⚡ Fort</span>
   if (force === 'modéré')  return <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400">🔶 Modéré</span>
   return <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-700 text-gray-400">👁 Surveiller</span>
 }
@@ -39,17 +39,17 @@ function StatCard({
 }: {
   title: string
   stats: TrackerStats
-  color: 'emerald' | 'yellow'
+  color: 'violet' | 'yellow'
 }) {
-  const c = color === 'emerald'
-    ? { accent: 'text-emerald-400', border: 'border-emerald-500/30', chip: 'bg-emerald-500/10' }
+  const c = color === 'violet'
+    ? { accent: 'text-violet-400', border: 'border-violet-500/30', chip: 'bg-violet-500/10' }
     : { accent: 'text-yellow-400',  border: 'border-yellow-500/30',  chip: 'bg-yellow-500/10' }
 
   const roiColor  = stats.roi >= 0 ? 'text-emerald-400' : 'text-red-400'
   const gainColor = stats.totalGain >= 0 ? 'text-emerald-400' : 'text-red-400'
 
   return (
-    <div className={`bg-gray-900 border ${c.border} rounded-2xl p-5`}>
+    <div className={`bg-[#14171f] border ${c.border} rounded-2xl p-5`}>
       <h2 className={`text-lg font-bold ${c.accent} mb-4`}>{title}</h2>
 
       <div className="grid grid-cols-2 gap-3 mb-3">
@@ -70,7 +70,7 @@ function StatCard({
       <div className="grid grid-cols-3 gap-2 text-center">
         {[
           { label: 'Total',    val: stats.total,       color: 'text-white' },
-          { label: 'Gagnés',   val: stats.gagnes,      color: 'text-emerald-400' },
+          { label: 'Gagnés',   val: stats.gagnes,      color: 'text-violet-400' },
           { label: 'Perdus',   val: stats.perdus,      color: 'text-red-400' },
           { label: 'En cours', val: stats.enCours,     color: 'text-yellow-400' },
           { label: 'Réussite', val: `${stats.txReussite}%`, color: 'text-white' },
@@ -109,7 +109,7 @@ function SignalRow({ signal, onUpdate, onDelete }: {
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         {/* Info */}
         <div className="flex-1 min-w-0">
@@ -133,10 +133,10 @@ function SignalRow({ signal, onUpdate, onDelete }: {
                 value={coteInput}
                 onChange={e => setCoteInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') saveCote(); if (e.key === 'Escape') setEditingCote(false) }}
-                className="w-20 bg-gray-800 border border-gray-600 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-emerald-500"
+                className="w-20 bg-gray-800 border border-gray-600 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-violet-500"
                 autoFocus
               />
-              <button onClick={saveCote} className="text-xs bg-emerald-500 text-black px-2 py-1 rounded-lg font-bold">OK</button>
+              <button onClick={saveCote} className="text-xs bg-violet-500 text-black px-2 py-1 rounded-lg font-bold">OK</button>
               <button onClick={() => setEditingCote(false)} className="text-xs text-gray-500 hover:text-white px-1">✕</button>
             </div>
           ) : (
@@ -152,7 +152,7 @@ function SignalRow({ signal, onUpdate, onDelete }: {
           {signal.statut === 'en_cours' ? (
             <div className="flex gap-1.5">
               <button onClick={() => setStatut('gagné')}
-                className="text-xs bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-400 px-2.5 py-1 rounded-lg font-semibold transition-colors">
+                className="text-xs bg-violet-500/20 hover:bg-violet-500/40 text-violet-400 px-2.5 py-1 rounded-lg font-semibold transition-colors">
                 ✅ Gagné
               </button>
               <button onClick={() => setStatut('perdu')}
@@ -168,7 +168,7 @@ function SignalRow({ signal, onUpdate, onDelete }: {
           ) : (
             <div className="flex items-center gap-2">
               <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
-                signal.statut === 'gagné'  ? 'bg-emerald-500/20 text-emerald-400' :
+                signal.statut === 'gagné'  ? 'bg-violet-500/20 text-violet-400' :
                 signal.statut === 'perdu'  ? 'bg-red-500/20 text-red-400' :
                 'bg-gray-700 text-gray-400'
               }`}>
@@ -187,7 +187,7 @@ function SignalRow({ signal, onUpdate, onDelete }: {
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-gray-800 flex justify-end">
+      <div className="mt-3 pt-3 border-t border-[#262b36] flex justify-end">
         <button
           onClick={() => onDelete(signal.id)}
           className="text-xs text-gray-600 hover:text-red-400 transition-colors">
@@ -229,12 +229,12 @@ export default function SignauxSuiviPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
         <div className="mb-8">
-          <Link href="/signaux" className="text-gray-500 text-sm hover:text-emerald-400 transition-colors">
+          <Link href="/signaux" className="text-gray-500 text-sm hover:text-violet-400 transition-colors">
             ← Retour aux signaux
           </Link>
           <h1 className="text-4xl font-bold mt-3 mb-1">📊 Suivi algorithme</h1>
@@ -251,7 +251,7 @@ export default function SignauxSuiviPage() {
               Retourne sur la page Signaux, clique sur &quot;Enregistrer&quot; puis reviens ici pour marquer les résultats.
             </p>
             <Link href="/signaux"
-              className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-3 rounded-xl transition-colors text-sm">
+              className="bg-violet-500 hover:bg-violet-400 text-black font-bold px-6 py-3 rounded-xl transition-colors text-sm">
               Voir les signaux du jour →
             </Link>
           </div>
@@ -259,7 +259,7 @@ export default function SignauxSuiviPage() {
           <>
             {/* Stats Fort vs Modéré */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              <StatCard title="⚡ Signaux forts"   stats={fortsStats}   color="emerald" />
+              <StatCard title="⚡ Signaux forts"   stats={fortsStats}   color="violet" />
               <StatCard title="🔶 Signaux modérés" stats={moderésStats} color="yellow" />
             </div>
 

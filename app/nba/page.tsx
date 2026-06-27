@@ -64,7 +64,7 @@ export default async function NBAPage() {
   )
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
@@ -75,10 +75,10 @@ export default async function NBAPage() {
 
         {/* Matchs du jour */}
         <section className="mb-10">
-          <h2 className="text-xl font-bold text-emerald-400 mb-4">📅 Matchs du jour</h2>
+          <h2 className="text-xl font-bold text-violet-400 mb-4">📅 Matchs du jour</h2>
 
           {gamesWithSeries.length === 0 ? (
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center text-gray-500">
+            <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-8 text-center text-gray-500">
               Aucun match aujourd&apos;hui
             </div>
           ) : (
@@ -96,11 +96,11 @@ export default async function NBAPage() {
 
         {/* Raccourcis */}
         <section>
-          <h2 className="text-xl font-bold text-emerald-400 mb-4">🔗 Explorer</h2>
+          <h2 className="text-xl font-bold text-violet-400 mb-4">🔗 Explorer</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               href="/nba/joueurs"
-              className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-emerald-500 transition-colors text-center"
+              className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 hover:border-violet-500 transition-colors text-center"
             >
               <div className="text-3xl mb-3">📊</div>
               <p className="font-semibold">Stats Joueurs</p>
@@ -108,7 +108,7 @@ export default async function NBAPage() {
             </Link>
             <Link
               href="/signaux"
-              className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-emerald-500 transition-colors text-center"
+              className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 hover:border-violet-500 transition-colors text-center"
             >
               <div className="text-3xl mb-3">⚡</div>
               <p className="font-semibold">Signaux</p>
@@ -116,7 +116,7 @@ export default async function NBAPage() {
             </Link>
             <Link
               href="/nba/joueurs"
-              className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-emerald-500 transition-colors text-center"
+              className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 hover:border-violet-500 transition-colors text-center"
             >
               <div className="text-3xl mb-3">👤</div>
               <p className="font-semibold">Joueurs</p>
@@ -124,7 +124,7 @@ export default async function NBAPage() {
             </Link>
             <Link
               href="/nba/guide"
-              className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-emerald-500 transition-colors text-center"
+              className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 hover:border-violet-500 transition-colors text-center"
             >
               <div className="text-3xl mb-3">📖</div>
               <p className="font-semibold">Guide / Bracket</p>
@@ -146,7 +146,7 @@ function GameCard({ game, seriesLabel }: { game: NBAGame; seriesLabel: string })
   const isUpcoming = !isFinal && game.status.includes('T') && game.status.includes('Z')
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-gray-700 transition-colors">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 hover:border-gray-700 transition-colors">
       {/* Status */}
       <div className="flex items-center justify-between mb-3">
         {isFinal ? (
@@ -159,7 +159,7 @@ function GameCard({ game, seriesLabel }: { game: NBAGame; seriesLabel: string })
             {statusStr}
           </span>
         )}
-        <span className="text-xs text-emerald-400/80 font-medium">{seriesLabel}</span>
+        <span className="text-xs text-violet-400/80 font-medium">{seriesLabel}</span>
       </div>
 
       {/* Équipes */}
@@ -174,7 +174,7 @@ function GameCard({ game, seriesLabel }: { game: NBAGame; seriesLabel: string })
             <span className="text-xs text-gray-600">(dom.)</span>
           </div>
           {isFinal && (
-            <span className={`text-2xl font-bold ${game.home_team_score > game.visitor_team_score ? 'text-emerald-400' : 'text-white'}`}>
+            <span className={`text-2xl font-bold ${game.home_team_score > game.visitor_team_score ? 'text-violet-400' : 'text-white'}`}>
               {game.home_team_score}
             </span>
           )}
@@ -188,7 +188,7 @@ function GameCard({ game, seriesLabel }: { game: NBAGame; seriesLabel: string })
             </span>
           </div>
           {isFinal && (
-            <span className={`text-2xl font-bold ${game.visitor_team_score > game.home_team_score ? 'text-emerald-400' : 'text-white'}`}>
+            <span className={`text-2xl font-bold ${game.visitor_team_score > game.home_team_score ? 'text-violet-400' : 'text-white'}`}>
               {game.visitor_team_score}
             </span>
           )}
@@ -198,7 +198,7 @@ function GameCard({ game, seriesLabel }: { game: NBAGame; seriesLabel: string })
       {/* Lien analyse */}
       <Link
         href={`/nba/matchup/${game.id}`}
-        className="block text-center text-xs text-gray-500 hover:text-emerald-400 transition-colors border border-gray-800 hover:border-emerald-500/50 rounded-lg py-1.5"
+        className="block text-center text-xs text-gray-500 hover:text-violet-400 transition-colors border border-[#262b36] hover:border-violet-500/50 rounded-lg py-1.5"
       >
         Analyser →
       </Link>

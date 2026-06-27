@@ -40,10 +40,10 @@ function fmtDate(d: string): string {
 }
 
 const CONF_META: Record<string, { label: string; cls: string }> = {
-  'fort':         { label: '⚡ Fort',                cls: 'bg-emerald-500/15 text-emerald-400' },
+  'fort':         { label: '⚡ Fort',                cls: 'bg-violet-500/15 text-violet-400' },
   'modéré':       { label: '🔶 Modéré',             cls: 'bg-yellow-500/15 text-yellow-400' },
   'à surveiller': { label: '👁 À surveiller',        cls: 'bg-gray-700 text-gray-400' },
-  'excellent':    { label: '⚡ Excellent (>8%)',     cls: 'bg-emerald-500/15 text-emerald-400' },
+  'excellent':    { label: '⚡ Excellent (>8%)',     cls: 'bg-violet-500/15 text-violet-400' },
   'bon':          { label: '✅ Bon (5-8%)',          cls: 'bg-blue-500/15 text-blue-400' },
   'interessant':  { label: '🔍 Intéressant (3-5%)',  cls: 'bg-yellow-500/15 text-yellow-400' },
 }
@@ -58,7 +58,7 @@ function KpiCard({ label, value, color = 'text-white' }: {
   label: string; value: string; color?: string
 }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 text-center">
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
       <p className="text-xs text-gray-500 mt-1">{label}</p>
     </div>
@@ -129,7 +129,7 @@ function TrackCard({ label, badgeClass, cardClass, entries }: { label: string; b
   const stats = computeStats(entries)
   const mature = stats.n >= MIN_SAMPLE
   return (
-    <div className={`rounded-2xl border p-5 overflow-hidden ${mature ? cardClass : 'border-gray-800 bg-gray-900'}`}>
+    <div className={`rounded-2xl border p-5 overflow-hidden ${mature ? cardClass : 'border-[#262b36] bg-[#14171f]'}`}>
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badgeClass}`}>{label}</span>
         <span className="text-xs text-gray-500">{stats.n} paris soldés{mature ? ` · ${stats.winRate.toFixed(0)} % réussite` : ''}</span>
@@ -155,7 +155,7 @@ function TrackCard({ label, badgeClass, cardClass, entries }: { label: string; b
 // Répartition Signaux (opinion du modèle) vs Values (EV+ vs marché) — affichée si les 2 coexistent.
 function TierBreakdown({ entries }: { entries: TrackEntry[] }) {
   const groups = [
-    { key: 'signal', label: '⚡ Signaux', badge: 'bg-emerald-500/15 text-emerald-400', rows: entries.filter(e => e.tier !== 'value') },
+    { key: 'signal', label: '⚡ Signaux', badge: 'bg-violet-500/15 text-violet-400', rows: entries.filter(e => e.tier !== 'value') },
     { key: 'value',  label: '💰 Values',  badge: 'bg-yellow-500/15 text-yellow-400',  rows: entries.filter(e => e.tier === 'value') },
   ].filter(g => g.rows.length)
   if (groups.length < 2) return null
@@ -165,7 +165,7 @@ function TierBreakdown({ entries }: { entries: TrackEntry[] }) {
         const s = computeStats(g.rows)
         const yc = s.yield >= 0 ? 'text-emerald-400' : 'text-red-400'
         return (
-          <div key={g.key} className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+          <div key={g.key} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4">
             <div className="mb-3"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${g.badge}`}>{g.label}</span></div>
             <div className="grid grid-cols-2 gap-3 text-center">
               <div><p className="text-lg font-bold text-white">{s.n}</p><p className="text-xs text-gray-500">Paris</p></div>
@@ -203,7 +203,7 @@ function ConfidenceBreakdown({ entries }: { entries: TrackEntry[] }) {
         const s = computeStats(groups[l])
         const yc = s.yield >= 0 ? 'text-emerald-400' : 'text-red-400'
         return (
-          <div key={l} className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+          <div key={l} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4">
             <div className="mb-3"><ForceBadge c={l} /></div>
             <div className="grid grid-cols-2 gap-3 text-center">
               <div><p className="text-lg font-bold text-white">{s.n}</p><p className="text-xs text-gray-500">Paris</p></div>
@@ -224,7 +224,7 @@ function ResultsTable({ entries }: { entries: TrackEntry[] }) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-gray-500 border-b border-gray-800">
+          <tr className="text-left text-xs text-gray-500 border-b border-[#262b36]">
             <th className="px-4 py-3 font-medium">Date</th>
             <th className="px-4 py-3 font-medium">Match</th>
             <th className="px-4 py-3 font-medium">Pari</th>
@@ -235,7 +235,7 @@ function ResultsTable({ entries }: { entries: TrackEntry[] }) {
         </thead>
         <tbody>
           {rows.map(e => (
-            <tr key={e.id} className="border-b border-gray-800/60 last:border-0">
+            <tr key={e.id} className="border-b border-[#262b36]/60 last:border-0">
               <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{fmtDate(e.date)}</td>
               <td className="px-4 py-3 text-gray-300">
                 <span className="mr-1">{SPORT_ICONS[e.sport] ?? '•'}</span>{e.match}
@@ -245,7 +245,7 @@ function ResultsTable({ entries }: { entries: TrackEntry[] }) {
               <td className="px-4 py-3 text-right text-gray-300">{e.cote.toFixed(2)}</td>
               <td className="px-4 py-3 text-right">
                 {e.resultat === 'won' ? (
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">Gagné</span>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-400">Gagné</span>
                 ) : e.resultat === 'lost' ? (
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-500/10 text-red-400">Perdu</span>
                 ) : (
@@ -269,7 +269,7 @@ function BetsByConfidence({ entries }: { entries: TrackEntry[] }) {
       {levels.map(l => {
         const list = groups[l]
         return (
-          <details key={l} className="group bg-gray-900 border border-gray-800 rounded-2xl mb-3 overflow-hidden">
+          <details key={l} className="group bg-[#14171f] border border-[#262b36] rounded-2xl mb-3 overflow-hidden">
             <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between hover:bg-gray-800/40">
               <span className="flex items-center gap-2">
                 <ForceBadge c={l} />
@@ -280,7 +280,7 @@ function BetsByConfidence({ entries }: { entries: TrackEntry[] }) {
                 <span className="transition-transform group-open:rotate-180">▾</span>
               </span>
             </summary>
-            <div className="border-t border-gray-800">
+            <div className="border-t border-[#262b36]">
               <ResultsTable entries={list} />
             </div>
           </details>
@@ -310,18 +310,18 @@ export default async function PerformancePage() {
   try { propStats = await getPropStats() } catch { /* table indispo */ }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-6xl mx-auto">
         <div className="mb-6">
           <h1 className="text-4xl font-bold mb-1">📊 Performance</h1>
           <p className="text-gray-400">
-            Track record <span className="text-emerald-400 font-semibold">100 % public</span> — tous les paris analysés,
+            Track record <span className="text-violet-400 font-semibold">100 % public</span> — tous les paris analysés,
             gagnants <span className="text-gray-300">et</span> perdants. Mesuré en <span className="text-gray-300">unités</span> (mise à plat, 1 u/pari).
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            Périmètre actuel : <span className="text-emerald-400 font-medium">signaux forts MLB</span> (mai–juin 2026).
+            Périmètre actuel : <span className="text-violet-400 font-medium">signaux forts MLB</span> (mai–juin 2026).
             Les prochains signaux seront suivis et distingués par niveau de confiance (⚡ fort · 🔶 modéré · 👁 à surveiller).
           </p>
         </div>
@@ -337,11 +337,11 @@ export default async function PerformancePage() {
         </div>
 
         {/* Légende — comprendre les niveaux */}
-        <div className="mb-8 bg-gray-900 border border-gray-800 rounded-2xl p-5">
+        <div className="mb-8 bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
           <p className="font-semibold text-white mb-3">Comprendre les niveaux de signal</p>
           <ul className="space-y-2 text-sm text-gray-400">
             <li className="flex gap-2 items-start">
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 shrink-0">⚡ Fort</span>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-400 shrink-0">⚡ Fort</span>
               <span><span className="text-gray-200 font-medium">Nos meilleurs picks.</span> Écart statistique significatif (ERA/WHIP, classement Elo, xG) — c&apos;est là que se concentre l&apos;edge.</span>
             </li>
             <li className="flex gap-2 items-start">
@@ -363,20 +363,20 @@ export default async function PerformancePage() {
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-700 text-gray-300">forts uniquement</span>
           </div>
           <p className="text-sm text-gray-500 mb-4">
-            Deux tracks distincts : nos <span className="text-emerald-400 font-medium">⚡ signaux</span> (opinion du modèle) et nos <span className="text-yellow-400 font-medium">💰 values</span> (avantage EV+ vs marché).
+            Deux tracks distincts : nos <span className="text-violet-400 font-medium">⚡ signaux</span> (opinion du modèle) et nos <span className="text-yellow-400 font-medium">💰 values</span> (avantage EV+ vs marché).
             Capital cumulé en unités (mise à plat, 1&nbsp;u/pari).
           </p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <TrackCard
               label="⚡ Signaux forts"
-              badgeClass="bg-emerald-500/15 text-emerald-400"
-              cardClass="border-emerald-500/20 bg-gradient-to-b from-emerald-500/[0.07] to-gray-900"
+              badgeClass="bg-violet-500/15 text-violet-400"
+              cardClass="border-violet-500/20 bg-gradient-to-b from-violet-500/[0.07] to-[#14171f]"
               entries={signauxFort}
             />
             <TrackCard
               label="💰 Values fortes"
               badgeClass="bg-yellow-500/15 text-yellow-400"
-              cardClass="border-yellow-500/20 bg-gradient-to-b from-yellow-500/[0.07] to-gray-900"
+              cardClass="border-yellow-500/20 bg-gradient-to-b from-yellow-500/[0.07] to-[#14171f]"
               entries={valuesFort}
             />
           </div>
@@ -389,9 +389,9 @@ export default async function PerformancePage() {
               <h2 className="text-xl font-bold">Performance par mois</h2>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-700 text-gray-300">tous niveaux</span>
             </div>
-            <div className="overflow-x-auto rounded-2xl border border-gray-800">
+            <div className="overflow-x-auto rounded-2xl border border-[#262b36]">
               <table className="w-full text-sm">
-                <thead className="bg-gray-900 text-gray-400">
+                <thead className="bg-[#14171f] text-gray-400">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium">Mois</th>
                     <th className="px-4 py-3 text-right font-medium">Paris</th>
@@ -405,7 +405,7 @@ export default async function PerformancePage() {
                   {months.map(({ month, label, stats }) => {
                     const yc = stats.yield >= 0 ? 'text-emerald-400' : 'text-red-400'
                     return (
-                      <tr key={month} className="border-t border-gray-800">
+                      <tr key={month} className="border-t border-[#262b36]">
                         <td className="px-4 py-3 font-medium text-white capitalize">{label}</td>
                         <td className="px-4 py-3 text-right text-gray-300">{stats.n}</td>
                         <td className="px-4 py-3 text-right text-gray-300">{stats.winRate.toFixed(1)} %</td>
@@ -430,7 +430,7 @@ export default async function PerformancePage() {
           <section key={sport} className="mb-10">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2 flex-wrap">
               <span><span className="mr-2">{SPORT_ICONS[sport] ?? '•'}</span>{sport}</span>
-              {hasSignal && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">⚡ Signaux</span>}
+              {hasSignal && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-400">⚡ Signaux</span>}
               {hasValue  && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400">💰 Values</span>}
             </h2>
             <div className="mb-4">
@@ -454,7 +454,7 @@ export default async function PerformancePage() {
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {propStats.markets.map(m => (
-                  <div key={m.market} className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+                  <div key={m.market} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 text-center">
                     <p className="text-sm text-gray-400 mb-1">{m.label}</p>
                     <p className="text-2xl font-bold text-white">{m.winRate} %</p>
                     <p className="text-xs text-gray-500 mt-1">réussite · {m.n} pari{m.n > 1 ? 's' : ''}</p>
@@ -467,7 +467,7 @@ export default async function PerformancePage() {
               </p>
             </>
           ) : (
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+            <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6">
               <p className="text-sm text-gray-400">
                 On accumule les résultats des props joueurs (buteur, tirs cadrés, cartons, passeurs).
                 Les premiers chiffres apparaîtront ici dès que des matchs suivis seront terminés.
@@ -478,7 +478,7 @@ export default async function PerformancePage() {
 
         {tennisCount > 0 && (
           <section className="mb-10">
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold mb-1">🎾 Tennis — track record en construction 🚧</h2>
                 <p className="text-sm text-gray-400 max-w-2xl">
@@ -487,7 +487,7 @@ export default async function PerformancePage() {
                   on publiera les chiffres tennis seulement quand ils seront solides. Les <span className="text-gray-300">signaux tennis restent disponibles</span> dès aujourd&apos;hui.
                 </p>
               </div>
-              <Link href="/signaux?tab=tennis" className="shrink-0 text-sm font-semibold text-emerald-400 hover:text-emerald-300">
+              <Link href="/signaux?tab=tennis" className="shrink-0 text-sm font-semibold text-violet-400 hover:text-violet-300">
                 Voir les signaux tennis →
               </Link>
             </div>

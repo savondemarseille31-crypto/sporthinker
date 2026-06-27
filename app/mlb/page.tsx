@@ -21,7 +21,7 @@ export default async function MLBPage() {
   const finishedGames = games.filter(g => g.status.abstractGameState === 'Final')
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-6xl mx-auto">
@@ -39,7 +39,7 @@ export default async function MLBPage() {
             { href: '/mlb/guide', icon: '📖', label: 'Guide paris', sub: 'ERA, WHIP, OPS expliqués' },
           ].map(r => (
             <Link key={r.href} href={r.href}
-              className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-emerald-500 transition-colors text-center">
+              className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 hover:border-violet-500 transition-colors text-center">
               <div className="text-3xl mb-2">{r.icon}</div>
               <p className="font-semibold">{r.label}</p>
               <p className="text-xs text-gray-500 mt-1">{r.sub}</p>
@@ -50,7 +50,7 @@ export default async function MLBPage() {
         {/* Matchs en direct */}
         {liveGames.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-xl font-bold text-emerald-400 mb-3 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-violet-400 mb-3 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block" />
               En direct ({liveGames.length})
             </h2>
@@ -64,8 +64,8 @@ export default async function MLBPage() {
         {upcomingGames.length > 0 && (
           <section className="mb-8">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl font-bold text-emerald-400">📅 Matchups du jour — Lanceurs probables</h2>
-              <Link href="/mlb/calendrier" className="text-sm text-gray-500 hover:text-emerald-400 transition-colors">
+              <h2 className="text-xl font-bold text-violet-400">📅 Matchups du jour — Lanceurs probables</h2>
+              <Link href="/mlb/calendrier" className="text-sm text-gray-500 hover:text-violet-400 transition-colors">
                 Voir tout →
               </Link>
             </div>
@@ -88,8 +88,8 @@ export default async function MLBPage() {
         {/* Classements rapides */}
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-bold text-emerald-400">🏆 Leaders des divisions</h2>
-            <Link href="/mlb/classements" className="text-sm text-gray-500 hover:text-emerald-400 transition-colors">
+            <h2 className="text-xl font-bold text-violet-400">🏆 Leaders des divisions</h2>
+            <Link href="/mlb/classements" className="text-sm text-gray-500 hover:text-violet-400 transition-colors">
               Classement complet →
             </Link>
           </div>
@@ -97,8 +97,8 @@ export default async function MLBPage() {
             {leaders.map(({ div, team }) => {
               const info = MLB_TEAMS[team.team.id]
               return (
-                <div key={div} className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
-                  <p className="text-xs text-emerald-400 font-bold mb-1">{div}</p>
+                <div key={div} className="bg-[#14171f] border border-[#262b36] rounded-xl p-3 text-center">
+                  <p className="text-xs text-violet-400 font-bold mb-1">{div}</p>
                   <p className="text-xl mb-1">{info?.emoji ?? '⚾'}</p>
                   <p className="text-xs font-bold text-white">{info?.shortName ?? team.team.abbreviation}</p>
                   <p className="text-xs text-gray-400">{team.wins}-{team.losses}</p>
@@ -123,7 +123,7 @@ function GameCard({ game }: { game: MLBGame }) {
   const isPre = game.status.abstractGameState === 'Preview'
 
   return (
-    <div className={`bg-gray-900 border rounded-2xl p-5 ${isLive ? 'border-red-500/40' : 'border-gray-800'}`}>
+    <div className={`bg-[#14171f] border rounded-2xl p-5 ${isLive ? 'border-red-500/40' : 'border-[#262b36]'}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         {isLive && (
@@ -164,7 +164,7 @@ function GameCard({ game }: { game: MLBGame }) {
                 </span>
               )}
               {(isLive || isFinal) && (
-                <span className={`text-xl font-bold ${data.isWinner ? 'text-emerald-400' : 'text-white'}`}>
+                <span className={`text-xl font-bold ${data.isWinner ? 'text-violet-400' : 'text-white'}`}>
                   {data.score ?? 0}
                 </span>
               )}
@@ -175,7 +175,7 @@ function GameCard({ game }: { game: MLBGame }) {
 
       {/* Lanceurs probables */}
       {isPre && (away.probablePitcher || home.probablePitcher) && (
-        <div className="border-t border-gray-800 pt-2 mt-2">
+        <div className="border-t border-[#262b36] pt-2 mt-2">
           <p className="text-xs text-gray-600 mb-1">Lanceurs probables</p>
           <div className="flex justify-between text-xs">
             <span className="text-gray-400">{away.probablePitcher?.fullName ?? 'TBD'}</span>
@@ -188,7 +188,7 @@ function GameCard({ game }: { game: MLBGame }) {
       {/* Lien analyse */}
       <Link
         href={`/mlb/matchup/${game.gamePk}`}
-        className="mt-3 block text-center text-xs text-gray-500 hover:text-emerald-400 transition-colors border border-gray-800 hover:border-emerald-500/50 rounded-lg py-1.5"
+        className="mt-3 block text-center text-xs text-gray-500 hover:text-violet-400 transition-colors border border-[#262b36] hover:border-violet-500/50 rounded-lg py-1.5"
       >
         Analyser ce match →
       </Link>

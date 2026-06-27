@@ -95,28 +95,28 @@ function CalculateurInner() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-2xl mx-auto">
-        <Link href="/paris" className="text-gray-500 text-sm hover:text-emerald-400 transition-colors">← Retour Paris</Link>
+        <Link href="/paris" className="text-gray-500 text-sm hover:text-violet-400 transition-colors">← Retour Paris</Link>
         <h1 className="text-3xl font-bold mt-2 mb-1">🎯 Calculateur ValueBet</h1>
         <p className="text-gray-400 text-sm mb-6">Calcule l'Expected Value et la mise optimale Kelly</p>
 
         {/* Mode selector */}
         <div className="flex gap-2 mb-6">
           <button onClick={() => setMode('simple')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${mode === 'simple' ? 'bg-emerald-500 text-black' : 'bg-gray-800 text-gray-400 border border-gray-700'}`}>
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${mode === 'simple' ? 'bg-violet-500 text-black' : 'bg-gray-800 text-gray-400 border border-gray-700'}`}>
             ✏️ Probabilité manuelle
           </button>
           <button onClick={() => setMode('devig')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${mode === 'devig' ? 'bg-emerald-500 text-black' : 'bg-gray-800 text-gray-400 border border-gray-700'}`}>
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${mode === 'devig' ? 'bg-violet-500 text-black' : 'bg-gray-800 text-gray-400 border border-gray-700'}`}>
             📌 Devig Pinnacle
           </button>
         </div>
 
         {/* Inputs */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-4">
 
           {/* Cote Stake */}
           <div className="mb-5">
@@ -128,7 +128,7 @@ function CalculateurInner() {
               placeholder="ex: 1.85"
               value={coteStake}
               onChange={e => setCoteStake(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-lg font-bold focus:outline-none focus:border-emerald-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-lg font-bold focus:outline-none focus:border-violet-500"
             />
           </div>
 
@@ -143,14 +143,14 @@ function CalculateurInner() {
                 placeholder="ex: 58"
                 value={probEstimee}
                 onChange={e => setProbEstimee(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-lg font-bold focus:outline-none focus:border-emerald-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-lg font-bold focus:outline-none focus:border-violet-500"
               />
               <p className="text-xs text-gray-600 mt-1">💡 Utilise les profils joueurs et stats de l'équipe pour estimer</p>
             </div>
           ) : (
             <div className="mb-2">
               <label className="text-sm text-gray-400 mb-3 block">
-                Cotes Pinnacle — <span className="text-emerald-400">la marge sera retirée automatiquement</span>
+                Cotes Pinnacle — <span className="text-violet-400">la marge sera retirée automatiquement</span>
               </label>
               <div className="grid grid-cols-3 gap-3 mb-3">
                 {[
@@ -165,7 +165,7 @@ function CalculateurInner() {
                       placeholder="ex: 1.72"
                       value={f.val}
                       onChange={e => f.set(e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500 text-sm"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-violet-500 text-sm"
                     />
                   </div>
                 ))}
@@ -174,7 +174,7 @@ function CalculateurInner() {
               <div className="flex gap-2 mb-3">
                 {(['mult', 'power'] as DevigMethod[]).map(m => (
                   <button key={m} onClick={() => setDevigMethod(m)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${devigMethod === m ? 'bg-emerald-500/30 border border-emerald-500 text-emerald-400' : 'bg-gray-800 border border-gray-700 text-gray-400'}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${devigMethod === m ? 'bg-violet-500/30 border border-violet-500 text-violet-400' : 'bg-gray-800 border border-gray-700 text-gray-400'}`}>
                     {m === 'mult' ? 'Multiplicatif' : 'Power (buteurs)'}
                   </button>
                 ))}
@@ -186,7 +186,7 @@ function CalculateurInner() {
                   <div className="grid grid-cols-3 gap-2">
                     {['1 — Dom.', 'X — Nul', '2 — Ext.'].map((label, i) => (
                       <button key={i} onClick={() => setSelectionDevig(i as 0 | 1 | 2)}
-                        className={`rounded-lg p-2 text-center transition-colors ${selectionDevig === i ? 'bg-emerald-500/30 border border-emerald-500' : 'border border-gray-700 hover:border-gray-500'}`}>
+                        className={`rounded-lg p-2 text-center transition-colors ${selectionDevig === i ? 'bg-violet-500/30 border border-violet-500' : 'border border-gray-700 hover:border-gray-500'}`}>
                         <p className="text-xs text-gray-400">{label}</p>
                         <p className="font-bold text-white text-sm">{devigProbs[i]}%</p>
                       </button>
@@ -203,7 +203,7 @@ function CalculateurInner() {
                         placeholder="Prob. modèle %"
                         value={probModele}
                         onChange={e => setProbModele(e.target.value)}
-                        className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500"
+                        className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-violet-500"
                       />
                       <select value={typeBlend} onChange={e => setTypeBlend(e.target.value as TypePari)}
                         className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-2 py-2 text-white text-xs focus:outline-none">
@@ -214,9 +214,9 @@ function CalculateurInner() {
                       </select>
                     </div>
                     {probBlended !== null && (
-                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-2 text-center">
+                      <div className="bg-violet-500/10 border border-violet-500/30 rounded-lg p-2 text-center">
                         <p className="text-xs text-gray-400">Prob. blendée <span className="text-gray-500">({Math.round(wBlend(typeBlend)*100)}% modèle · {Math.round((1-wBlend(typeBlend))*100)}% marché)</span></p>
-                        <p className="text-lg font-bold text-emerald-400">{probBlended}%</p>
+                        <p className="text-lg font-bold text-violet-400">{probBlended}%</p>
                         <p className="text-xs text-gray-500">vs marché seul : {devigProb.toFixed(1)}%</p>
                       </div>
                     )}
@@ -225,7 +225,7 @@ function CalculateurInner() {
               )}
               <p className="text-xs text-gray-600">
                 💡 Pinnacle n'est pas encore connecté. Entre les cotes manuellement depuis
-                <a href="https://www.pinnacle.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline ml-1">pinnacle.com</a>
+                <a href="https://www.pinnacle.com" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:underline ml-1">pinnacle.com</a>
               </p>
             </div>
           )}
@@ -233,7 +233,7 @@ function CalculateurInner() {
 
         {/* Résultat */}
         {ev !== null && (
-          <div className={`rounded-2xl p-6 mb-4 border ${isValue ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-red-500/10 border-red-500/40'}`}>
+          <div className={`rounded-2xl p-6 mb-4 border ${isValue ? 'bg-violet-500/10 border-violet-500/40' : 'bg-red-500/10 border-red-500/40'}`}>
             <div className="flex items-center gap-2 mb-4">
               <span className="text-2xl">{isValue ? '✅' : '❌'}</span>
               <h2 className={`text-xl font-bold ${isValue ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -242,13 +242,13 @@ function CalculateurInner() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-gray-900/60 rounded-xl p-4 text-center">
+              <div className="bg-[#14171f]/60 rounded-xl p-4 text-center">
                 <p className="text-xs text-gray-500 mb-1">Expected Value</p>
                 <p className={`text-3xl font-bold ${isValue ? 'text-emerald-400' : 'text-red-400'}`}>
                   {ev > 0 ? '+' : ''}{(ev * 100).toFixed(2)}%
                 </p>
               </div>
-              <div className="bg-gray-900/60 rounded-xl p-4 text-center">
+              <div className="bg-[#14171f]/60 rounded-xl p-4 text-center">
                 <p className="text-xs text-gray-500 mb-1">Probabilité</p>
                 <p className="text-3xl font-bold text-white">
                   {probActive.toFixed(1)}%
@@ -258,14 +258,14 @@ function CalculateurInner() {
 
             {isValue && (
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="bg-gray-900/60 rounded-xl p-4 text-center">
+                <div className="bg-[#14171f]/60 rounded-xl p-4 text-center">
                   <p className="text-xs text-gray-500 mb-1">Kelly (¼)</p>
                   <p className="text-2xl font-bold text-white">{(kelly * 25).toFixed(2)}%</p>
                   <p className="text-xs text-gray-500">de ta bankroll</p>
                 </div>
-                <div className="bg-gray-900/60 rounded-xl p-4 text-center">
+                <div className="bg-[#14171f]/60 rounded-xl p-4 text-center">
                   <p className="text-xs text-gray-500 mb-1">Mise recommandée</p>
-                  <p className="text-2xl font-bold text-emerald-400">
+                  <p className="text-2xl font-bold text-violet-400">
                     {miseKelly}{bankroll.devise}
                   </p>
                   <p className="text-xs text-gray-500">sur {bankroll.montantInitial}{bankroll.devise}</p>
@@ -273,7 +273,7 @@ function CalculateurInner() {
               </div>
             )}
 
-            <div className={`text-sm p-3 rounded-xl ${isValue ? 'bg-emerald-500/10 text-emerald-300' : 'bg-red-500/10 text-red-300'}`}>
+            <div className={`text-sm p-3 rounded-xl ${isValue ? 'bg-violet-500/10 text-violet-300' : 'bg-red-500/10 text-red-300'}`}>
               {isValue
                 ? `Pour chaque ${bankroll.devise}100 misés sur le long terme, tu gagnes en moyenne ${(ev * 100).toFixed(1)}${bankroll.devise} de profit.`
                 : `Cette cote ne couvre pas le risque réel. La vraie valeur de ce pari est de ${((1/probActive)*100).toFixed(2)} — en dessous de la cote proposée.`
@@ -285,28 +285,28 @@ function CalculateurInner() {
         {/* Bouton enregistrer pari */}
         {isValue && !showForm && (
           <button onClick={() => setShowForm(true)}
-            className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3 rounded-xl transition-colors mb-4">
+            className="w-full bg-violet-500 hover:bg-violet-400 text-black font-bold py-3 rounded-xl transition-colors mb-4">
             📝 Enregistrer ce pari
           </button>
         )}
 
         {/* Formulaire enregistrement */}
         {showForm && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
-            <h3 className="font-bold text-emerald-400 mb-4">📝 Enregistrer le pari</h3>
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-4">
+            <h3 className="font-bold text-violet-400 mb-4">📝 Enregistrer le pari</h3>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Match *</label>
                   <input value={match} onChange={e => setMatch(e.target.value)}
                     placeholder="ex: France vs Maroc"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Compétition</label>
                   <input value={competition} onChange={e => setCompetition(e.target.value)}
                     placeholder="ex: CdM 2026"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -325,20 +325,20 @@ function CalculateurInner() {
                   <label className="text-xs text-gray-500 mb-1 block">Mise ({bankroll.devise}) *</label>
                   <input type="number" value={mise} onChange={e => setMise(e.target.value)}
                     placeholder={`Suggéré: ${miseKelly}`}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500" />
                 </div>
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Ta sélection *</label>
                 <input value={selection} onChange={e => setSelection(e.target.value)}
                   placeholder="ex: France gagne, Mbappé buteur..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Notes (optionnel)</label>
                 <input value={notes} onChange={e => setNotes(e.target.value)}
                   placeholder="Analyse, contexte..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500" />
               </div>
               <div className="flex gap-3 pt-1">
                 <button onClick={() => setShowForm(false)}
@@ -346,7 +346,7 @@ function CalculateurInner() {
                   Annuler
                 </button>
                 <button onClick={handleSave}
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2.5 rounded-xl transition-colors">
+                  className="flex-1 bg-violet-500 hover:bg-violet-400 text-black font-bold py-2.5 rounded-xl transition-colors">
                   {saved ? '✅ Enregistré !' : 'Enregistrer'}
                 </button>
               </div>
@@ -355,7 +355,7 @@ function CalculateurInner() {
         )}
 
         {/* Explication */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-sm text-gray-400 space-y-2">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 text-sm text-gray-400 space-y-2">
           <p className="font-semibold text-white">📖 Comment ça marche ?</p>
           <p>• <strong className="text-white">EV positif</strong> = la cote proposée est supérieure à la vraie probabilité → value bet</p>
           <p>• <strong className="text-white">Kelly ¼</strong> = fraction de Kelly divisée par 4 pour limiter le risque</p>

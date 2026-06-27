@@ -10,9 +10,9 @@ export const dynamic = 'force-dynamic'  // jamais prérendu — Supabase indispo
 function niveauConfig(n: NiveauEdge) {
   switch (n) {
     case 'excellent': return {
-      dot:   'bg-emerald-400',
-      badge: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
-      bar:   'bg-emerald-400',
+      dot:   'bg-violet-400',
+      badge: 'bg-violet-500/20 text-violet-300 border border-violet-500/30',
+      bar:   'bg-violet-400',
       label: '⚡ Excellent',
     }
     case 'bon': return {
@@ -40,7 +40,7 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
   const barWidth = Math.min(100, (bet.edge / 0.15) * 100).toFixed(0)
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4 hover:border-gray-700 transition-colors">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 flex flex-col gap-4 hover:border-gray-700 transition-colors">
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
@@ -64,14 +64,14 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
         <p className="text-sm font-semibold text-white mb-1">{bet.match}</p>
         <div className="mt-2 bg-gray-800 rounded-xl px-4 py-3">
           <p className="text-xs text-gray-500 mb-0.5">Sélection</p>
-          <p className="text-base font-bold text-emerald-300">{bet.pari}</p>
+          <p className="text-base font-bold text-violet-300">{bet.pari}</p>
           <p className="text-xs text-gray-500 mt-0.5">Cote de marché : {bet.coteRef.toFixed(2)}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        <div className="text-center bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
-          <p className="text-lg font-bold text-emerald-400">{pModPct}%</p>
+        <div className="text-center bg-violet-500/10 border border-violet-500/20 rounded-xl p-3">
+          <p className="text-lg font-bold text-violet-400">{pModPct}%</p>
           <p className="text-xs text-gray-500 mt-0.5">Notre modèle</p>
         </div>
         <div className="text-center bg-gray-800 rounded-xl p-3">
@@ -103,7 +103,7 @@ function ValueBetCard({ bet }: { bet: ValueBet }) {
 
 function BetsByLevel({ bets }: { bets: ValueBet[] }) {
   if (!bets.length) return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 text-center">
       <p className="text-gray-500 text-sm">Aucune sélection détectée pour ce sport actuellement.</p>
     </div>
   )
@@ -133,8 +133,8 @@ function BetsByLevel({ bets }: { bets: ValueBet[] }) {
 
   return (
     <>
-      <Section title="⚡ Avantage excellent" color="text-emerald-300"
-        badge="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" items={excellent} />
+      <Section title="⚡ Avantage excellent" color="text-violet-300"
+        badge="bg-violet-500/20 text-violet-300 border border-violet-500/30" items={excellent} />
       <Section title="✅ Bon avantage" color="text-blue-300"
         badge="bg-blue-500/20 text-blue-300 border border-blue-500/30" items={bon} />
       <Section title="🔍 Intéressant" color="text-yellow-300"
@@ -175,7 +175,7 @@ export default async function SelectionsPage() {
   const interessant = allBets.filter(b => b.niveau === 'interessant').length
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
@@ -193,8 +193,8 @@ export default async function SelectionsPage() {
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-400">{excellent}</p>
+          <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-4 text-center">
+            <p className="text-2xl font-bold text-violet-400">{excellent}</p>
             <p className="text-xs text-gray-500 mt-1">⚡ Excellent (&gt;8%)</p>
           </div>
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 text-center">

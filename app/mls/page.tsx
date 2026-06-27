@@ -17,7 +17,7 @@ export const revalidate = 600  // 10 min — programme MLS + signaux
 
 function forceConfig(force: SignalForce) {
   switch (force) {
-    case 'fort':          return { dot: 'bg-emerald-400', badge: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', label: '⚡ Fort' }
+    case 'fort':          return { dot: 'bg-violet-400', badge: 'bg-violet-500/20 text-violet-400 border border-violet-500/30', label: '⚡ Fort' }
     case 'modéré':        return { dot: 'bg-yellow-400',  badge: 'bg-yellow-500/20  text-yellow-400  border border-yellow-500/30',  label: '🔶 Modéré' }
     case 'à surveiller':  return { dot: 'bg-gray-400',    badge: 'bg-gray-700       text-gray-400    border border-gray-600',       label: '👁 À surveiller' }
   }
@@ -26,13 +26,13 @@ function forceConfig(force: SignalForce) {
 function typeColor(type: string) {
   if (type.includes('Under'))   return 'text-blue-400'
   if (type.includes('Over'))    return 'text-orange-400'
-  if (type.includes('Money'))   return 'text-emerald-400'
+  if (type.includes('Money'))   return 'text-violet-400'
   return 'text-white'
 }
 
 function statusLabel(short: string) {
   if (short === 'NS' || short === 'TBD') return { cls: 'text-gray-400',                  label: 'À venir'  }
-  if (['1H','HT','2H','ET','P'].includes(short))  return { cls: 'text-emerald-400 animate-pulse', label: '● LIVE'   }
+  if (['1H','HT','2H','ET','P'].includes(short))  return { cls: 'text-violet-400 animate-pulse', label: '● LIVE'   }
   return                                            { cls: 'text-gray-500',                  label: 'Terminé'  }
 }
 
@@ -41,7 +41,7 @@ function statusLabel(short: string) {
 function SignalCard({ signal }: { signal: Signal }) {
   const cfg = forceConfig(signal.force)
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-3 hover:border-gray-700 transition-colors">
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 flex flex-col gap-3 hover:border-gray-700 transition-colors">
       <div className="flex items-center justify-between">
         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cfg.badge}`}>
           <span className={`inline-block w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1 align-middle`} />
@@ -68,8 +68,8 @@ function SignalCard({ signal }: { signal: Signal }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {signal.stats.map((s, i) => (
-          <div key={i} className={`text-center rounded-lg p-2 ${s.highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-gray-800'}`}>
-            <p className={`text-sm font-bold ${s.highlight ? 'text-emerald-400' : 'text-white'}`}>{s.val}</p>
+          <div key={i} className={`text-center rounded-lg p-2 ${s.highlight ? 'bg-violet-500/10 border border-violet-500/20' : 'bg-gray-800'}`}>
+            <p className={`text-sm font-bold ${s.highlight ? 'text-violet-400' : 'text-white'}`}>{s.val}</p>
             <p className="text-xs text-gray-500 leading-tight mt-0.5">{s.label}</p>
           </div>
         ))}
@@ -99,7 +99,7 @@ function MatchCard({ fixture, signals, premium }: { fixture: MLSFixture; signals
   const isFinal = fixture.fixture.status.short === 'FT'
 
   return (
-    <div className={`bg-gray-900 border rounded-2xl p-4 flex flex-col gap-3 transition-colors hover:border-gray-700 ${isLive ? 'border-emerald-500/40' : 'border-gray-800'}`}>
+    <div className={`bg-[#14171f] border rounded-2xl p-4 flex flex-col gap-3 transition-colors hover:border-gray-700 ${isLive ? 'border-violet-500/40' : 'border-[#262b36]'}`}>
       {/* Status + heure */}
       <div className="flex items-center justify-between">
         <span className={`text-xs font-semibold ${st.cls}`}>{st.label}</span>
@@ -123,7 +123,7 @@ function MatchCard({ fixture, signals, premium }: { fixture: MLSFixture; signals
               <span>{team.name}</span>
             </span>
             {(isLive || isFinal) && goals != null && (
-              <span className={`text-sm font-bold ${team.winner ? 'text-emerald-400' : 'text-gray-400'}`}>
+              <span className={`text-sm font-bold ${team.winner ? 'text-violet-400' : 'text-gray-400'}`}>
                 {goals}
               </span>
             )}
@@ -172,7 +172,7 @@ export default async function MLSPage() {
   const noGames    = fixtures.length === 0
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-6xl mx-auto">
@@ -184,16 +184,16 @@ export default async function MLSPage() {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 text-center">
             <p className="text-2xl font-bold text-white">{fixtures.length || '—'}</p>
             <p className="text-xs text-gray-500 mt-1">Matchs aujourd'hui</p>
           </div>
-          <div className={`border rounded-2xl p-4 text-center ${live.length > 0 ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-gray-900 border-gray-800'}`}>
-            <p className={`text-2xl font-bold ${live.length > 0 ? 'text-emerald-400' : 'text-white'}`}>{live.length || '—'}</p>
+          <div className={`border rounded-2xl p-4 text-center ${live.length > 0 ? 'bg-violet-500/10 border-violet-500/30' : 'bg-[#14171f] border-[#262b36]'}`}>
+            <p className={`text-2xl font-bold ${live.length > 0 ? 'text-violet-400' : 'text-white'}`}>{live.length || '—'}</p>
             <p className="text-xs text-gray-500 mt-1">{live.length > 0 ? '● En cours' : 'En cours'}</p>
           </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-400">{fortsCount || '—'}</p>
+          <div className="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-4 text-center">
+            <p className="text-2xl font-bold text-violet-400">{fortsCount || '—'}</p>
             <p className="text-xs text-gray-500 mt-1">⚡ Signaux forts</p>
           </div>
           <Link href="/paris/calculateur" className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-4 text-center hover:border-orange-400/60 transition-colors block">
@@ -214,7 +214,7 @@ export default async function MLSPage() {
         </div>
 
         {noGames && (
-          <div className="mb-8 bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+          <div className="mb-8 bg-[#14171f] border border-[#262b36] rounded-2xl p-8 text-center">
             <p className="text-4xl mb-3">📅</p>
             <p className="font-semibold text-white mb-1">Pas de match MLS aujourd'hui</p>
             <p className="text-sm text-gray-500">La MLS joue principalement les mercredis et week-ends. Consulte le programme de la semaine ci-dessous.</p>
@@ -227,8 +227,8 @@ export default async function MLSPage() {
         {signals.length > 0 && (
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-xl font-bold text-emerald-300">⚡ Signaux du jour</h2>
-              <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">
+              <h2 className="text-xl font-bold text-violet-300">⚡ Signaux du jour</h2>
+              <span className="text-xs bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full">
                 {signals.length} signal{signals.length > 1 ? 's' : ''}
               </span>
             </div>
@@ -247,7 +247,7 @@ export default async function MLSPage() {
 
             {live.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-emerald-400 mb-3">● En direct</h3>
+                <h3 className="text-sm font-semibold text-violet-400 mb-3">● En direct</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {live.map(f => <MatchCard key={f.fixture.id} fixture={f} signals={signals} premium={premium} />)}
                 </div>
@@ -280,7 +280,7 @@ export default async function MLSPage() {
             <h2 className="text-xl font-bold mb-6 text-gray-200">🏆 Classements MLS 2026</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Conférence Est */}
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
                 <h3 className="text-sm font-bold text-blue-400 mb-4">Est — Top 3</h3>
                 <div className="space-y-3">
                   {eastern.map((s, i) => (
@@ -302,7 +302,7 @@ export default async function MLSPage() {
               </div>
 
               {/* Conférence Ouest */}
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
                 <h3 className="text-sm font-bold text-orange-400 mb-4">Ouest — Top 3</h3>
                 <div className="space-y-3">
                   {western.map((s, i) => (

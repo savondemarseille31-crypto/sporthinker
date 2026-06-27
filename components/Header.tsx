@@ -23,13 +23,13 @@ function NavDropdown({ label, items, isActive }: { label: string; items: Dropdow
   return (
     <div ref={ref} className="relative" onMouseEnter={() => { cancelClose(); setOpen(true) }} onMouseLeave={scheduleClose}>
       <button onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1 transition-colors ${isActive ? 'text-emerald-400 font-semibold' : 'text-gray-400 hover:text-emerald-400'}`}>
+        className={`flex items-center gap-1 transition-colors ${isActive ? 'text-violet-400 font-semibold' : 'text-gray-400 hover:text-violet-400'}`}>
         {label}
         <span className={`text-[10px] transition-transform duration-150 ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
       {open && (
         <div className="absolute top-full left-0 pt-2 z-50" onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
-          <div className="bg-gray-900 border border-gray-800 rounded-xl py-1.5 min-w-[180px] shadow-2xl">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-xl py-1.5 min-w-[180px] shadow-2xl">
             {items.map(item => (
               <Link key={item.href} href={item.href} onClick={() => setOpen(false)}
                 className="flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors rounded-lg mx-1">
@@ -89,16 +89,16 @@ export default function Header() {
   ]
 
   return (
-    <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+    <header className="border-b border-[#262b36] px-6 py-4 flex items-center justify-between">
       <Link href={loggedIn ? '/signaux' : '/'}><Logo /></Link>
 
       <div className="flex items-center gap-4 md:gap-6">
         <nav className="flex gap-4 md:gap-6 text-sm items-center">
           {loggedIn ? (
             <>
-              <Link href="/signaux" className={`transition-colors ${path === '/signaux' ? 'text-emerald-400 font-semibold' : 'text-gray-400 hover:text-emerald-400'}`}>Signaux</Link>
-              <Link href="/signaux?tab=values" className="text-gray-400 hover:text-emerald-400 transition-colors">Values</Link>
-              <Link href="/performance" className={`transition-colors ${path.startsWith('/performance') ? 'text-emerald-400 font-semibold' : 'text-gray-400 hover:text-emerald-400'}`}>Performance</Link>
+              <Link href="/signaux" className={`transition-colors ${path === '/signaux' ? 'text-violet-400 font-semibold' : 'text-gray-400 hover:text-violet-400'}`}>Signaux</Link>
+              <Link href="/signaux?tab=values" className="text-gray-400 hover:text-violet-400 transition-colors">Values</Link>
+              <Link href="/performance" className={`transition-colors ${path.startsWith('/performance') ? 'text-violet-400 font-semibold' : 'text-gray-400 hover:text-violet-400'}`}>Performance</Link>
               <NavDropdown label="Sports" isActive={sportsActive} items={[
                 { href: '/cdm', label: '🌍 CdM 2026' },
                 { href: '/mlb', label: '⚾ MLB' },
@@ -110,8 +110,8 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link href="/performance" className={`transition-colors ${path.startsWith('/performance') ? 'text-emerald-400 font-semibold' : 'text-gray-400 hover:text-emerald-400'}`}>Performance</Link>
-              <Link href="/#tarifs" className="text-gray-400 hover:text-emerald-400 transition-colors">Tarifs</Link>
+              <Link href="/performance" className={`transition-colors ${path.startsWith('/performance') ? 'text-violet-400 font-semibold' : 'text-gray-400 hover:text-violet-400'}`}>Performance</Link>
+              <Link href="/#tarifs" className="text-gray-400 hover:text-violet-400 transition-colors">Tarifs</Link>
             </>
           )}
         </nav>
@@ -119,12 +119,12 @@ export default function Header() {
         {loggedIn ? (
           <div className="flex items-center gap-3 text-sm">
             <span className="hidden md:inline max-w-[140px] truncate text-gray-400">{email}</span>
-            <button onClick={signOut} className="text-gray-400 hover:text-emerald-400 transition-colors">Déconnexion</button>
+            <button onClick={signOut} className="text-gray-400 hover:text-violet-400 transition-colors">Déconnexion</button>
           </div>
         ) : (
           <div className="flex items-center gap-3 text-sm">
-            <Link href="/login" className="text-gray-400 hover:text-emerald-400 transition-colors">Connexion</Link>
-            <Link href="/signup" className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold px-3 py-1.5 rounded-lg transition-colors">Inscription</Link>
+            <Link href="/login" className="text-gray-400 hover:text-violet-400 transition-colors">Connexion</Link>
+            <Link href="/signup" className="bg-violet-500 hover:bg-violet-400 text-black font-semibold px-3 py-1.5 rounded-lg transition-colors">Inscription</Link>
           </div>
         )}
       </div>

@@ -49,14 +49,14 @@ export default function SignauxFilter({
       {/* Top signaux forts — masqué sur l'onglet Values (ce sont des signaux, pas des values) */}
       {active !== 'values' && topForts}
 
-      <div className="flex gap-2 overflow-x-auto mb-8 bg-gray-900 border border-gray-800 rounded-2xl p-2 scrollbar-none">
+      <div className="flex gap-2 overflow-x-auto mb-8 bg-[#14171f] border border-[#262b36] rounded-2xl p-2 scrollbar-none">
         {tabs.map(t => (
           <button
             key={t.key}
             onClick={() => setActive(t.key)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-colors shrink-0 ${
               active === t.key
-                ? t.highlight ? 'bg-yellow-500 text-black' : 'bg-emerald-500 text-black'
+                ? t.highlight ? 'bg-yellow-500 text-black' : 'bg-violet-500 text-black'
                 : t.highlight
                   ? 'text-yellow-400 hover:text-yellow-300 hover:bg-gray-800 border border-yellow-500/30'
                   : 'text-gray-400 hover:text-white hover:bg-gray-800'

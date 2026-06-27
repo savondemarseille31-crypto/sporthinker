@@ -6,14 +6,14 @@ import type { Signal, SignalForce } from '@/lib/signals'
 function forceConfig(force: SignalForce, tier?: Signal['tier']) {
   if (tier === 'value') {
     const colors = {
-      fort:           'bg-emerald-500/30 text-emerald-300 border-emerald-400',
+      fort:           'bg-violet-500/30 text-violet-300 border-violet-400',
       modéré:         'bg-blue-500/20 text-blue-300 border-blue-400',
       'à surveiller': 'bg-indigo-500/20 text-indigo-300 border-indigo-500',
     }
-    return { dot: 'bg-emerald-400', badge: `${colors[force]} border`, label: '💰 Value' }
+    return { dot: 'bg-violet-400', badge: `${colors[force]} border`, label: '💰 Value' }
   }
   switch (force) {
-    case 'fort':         return { dot: 'bg-emerald-400', badge: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', label: '⚡ Fort' }
+    case 'fort':         return { dot: 'bg-violet-400', badge: 'bg-violet-500/20 text-violet-400 border border-violet-500/30', label: '⚡ Fort' }
     case 'modéré':       return { dot: 'bg-yellow-400',  badge: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',   label: '🔶 Modéré' }
     case 'à surveiller': return { dot: 'bg-gray-400',    badge: 'bg-gray-700 text-gray-400 border border-gray-600',               label: '👁 Modèle' }
   }
@@ -22,7 +22,7 @@ function forceConfig(force: SignalForce, tier?: Signal['tier']) {
 function typeColor(typePari: string) {
   if (typePari.includes('Under'))  return 'text-blue-400'
   if (typePari.includes('Over'))   return 'text-orange-400'
-  if (typePari.includes('1x2'))    return 'text-emerald-400'
+  if (typePari.includes('1x2'))    return 'text-violet-400'
   if (typePari.includes('BTTS'))   return 'text-pink-400'
   if (typePari.includes('Double')) return 'text-yellow-400'
   return 'text-gray-300'
@@ -36,7 +36,7 @@ function SignalCard({ signal }: { signal: Signal }) {
   return (
     <Link
       href={`/cdm/matchup/${matchupId}`}
-      className={`block bg-gray-900 rounded-2xl p-4 hover:border-gray-600 transition-colors border ${isValue ? 'border-emerald-500/40' : 'border-gray-800'}`}
+      className={`block bg-[#14171f] rounded-2xl p-4 hover:border-gray-600 transition-colors border ${isValue ? 'border-violet-500/40' : 'border-[#262b36]'}`}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -81,8 +81,8 @@ export default function ConseillsMatchClient({ signaux, values }: Props) {
           onClick={() => setTab('signaux')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
             tab === 'signaux'
-              ? 'bg-emerald-500 text-black'
-              : 'bg-gray-900 border border-gray-700 text-gray-400 hover:border-emerald-500'
+              ? 'bg-violet-500 text-black'
+              : 'bg-[#14171f] border border-gray-700 text-gray-400 hover:border-violet-500'
           }`}
         >
           📊 Signaux
@@ -94,8 +94,8 @@ export default function ConseillsMatchClient({ signaux, values }: Props) {
           onClick={() => setTab('values')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
             tab === 'values'
-              ? 'bg-emerald-500 text-black'
-              : 'bg-gray-900 border border-gray-700 text-gray-400 hover:border-emerald-500'
+              ? 'bg-violet-500 text-black'
+              : 'bg-[#14171f] border border-gray-700 text-gray-400 hover:border-violet-500'
           }`}
         >
           💰 Values
@@ -107,12 +107,12 @@ export default function ConseillsMatchClient({ signaux, values }: Props) {
 
       {/* Contenu */}
       {tab === 'values' && !hasValues ? (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-8 text-center">
           <p className="text-gray-500 text-sm mb-1">Aucune value détectée pour l'instant</p>
           <p className="text-gray-600 text-xs">Les values apparaissent quand l'EV du modèle dépasse +3% vs les cotes du marché.</p>
         </div>
       ) : activeSignals.length === 0 ? (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+        <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-8 text-center">
           <p className="text-gray-500 text-sm">Aucun signal pour les 3 prochains jours.</p>
         </div>
       ) : (

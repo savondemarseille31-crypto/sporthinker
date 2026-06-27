@@ -2,7 +2,7 @@ import Header from '@/components/Header'
 
 export default function AdminPage() {
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#0a0d14] text-white">
       <Header />
 
       <div className="px-6 py-8 max-w-3xl mx-auto">
@@ -15,7 +15,7 @@ export default function AdminPage() {
 
         <div className="space-y-4">
           {/* Stake */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-3">
               <span className="text-2xl">🎰</span>
               <div className="flex-1">
@@ -32,7 +32,7 @@ export default function AdminPage() {
           </div>
 
           {/* Infos session */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-5">
+          <div className="bg-[#14171f]/50 border border-[#262b36] rounded-2xl p-5">
             <p className="text-xs text-gray-600">
               Accès réservé aux comptes administrateurs · session gérée par Supabase (déconnexion via le menu en haut à droite).
             </p>
