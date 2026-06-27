@@ -122,6 +122,34 @@ function EquityCurve({ points }: { points: { date: string; cumUnits: number }[] 
   )
 }
 
+// Répartition Signaux (opinion du modèle) vs Values (EV+ vs marché) — affichée si les 2 coexistent.
+function TierBreakdown({ entries }: { entries: TrackEntry[] }) {
+  const groups = [
+    { key: 'signal', label: '⚡ Signaux', badge: 'bg-emerald-500/15 text-emerald-400', rows: entries.filter(e => e.tier !== 'value') },
+    { key: 'value',  label: '💰 Values',  badge: 'bg-yellow-500/15 text-yellow-400',  rows: entries.filter(e => e.tier === 'value') },
+  ].filter(g => g.rows.length)
+  if (groups.length < 2) return null
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+      {groups.map(g => {
+        const s = computeStats(g.rows)
+        const yc = s.yield >= 0 ? 'text-emerald-400' : 'text-red-400'
+        return (
+          <div key={g.key} className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+            <div className="mb-3"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${g.badge}`}>{g.label}</span></div>
+            <div className="grid grid-cols-2 gap-3 text-center">
+              <div><p className="text-lg font-bold text-white">{s.n}</p><p className="text-xs text-gray-500">Paris</p></div>
+              <div><p className="text-lg font-bold text-white">{s.winRate.toFixed(0)} %</p><p className="text-xs text-gray-500">Réussite</p></div>
+              <div><p className={`text-lg font-bold ${yc}`}>{fmtPct(s.yield)}</p><p className="text-xs text-gray-500">Yield</p></div>
+              <div><p className={`text-lg font-bold ${yc}`}>{fmtUnits(s.profitUnits)}</p><p className="text-xs text-gray-500">Profit</p></div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function StatsGrid({ stats }: { stats: TrackStats }) {
   const yieldColor = stats.yield >= 0 ? 'text-emerald-400' : 'text-red-400'
   return (
@@ -371,16 +399,19 @@ export default async function PerformancePage() {
 
         {/* Par sport */}
         {Object.entries(sports).map(([sport, entries]) => {
-          const levels = [...new Set(entries.map(e => e.confiance).filter(Boolean))] as NonNullable<TrackEntry['confiance']>[]
+          const hasSignal = entries.some(e => e.tier !== 'value')
+          const hasValue  = entries.some(e => e.tier === 'value')
           return (
           <section key={sport} className="mb-10">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2 flex-wrap">
               <span><span className="mr-2">{SPORT_ICONS[sport] ?? '•'}</span>{sport}</span>
-              {levels.map(l => <ForceBadge key={l} c={l} />)}
+              {hasSignal && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">⚡ Signaux</span>}
+              {hasValue  && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400">💰 Values</span>}
             </h2>
             <div className="mb-4">
               <StatsGrid stats={computeStats(entries)} />
             </div>
+            <TierBreakdown entries={entries} />
             <h3 className="text-sm font-semibold text-gray-400 mb-3">Par niveau de confiance</h3>
             <ConfidenceBreakdown entries={entries} />
             <BetsByConfidence entries={entries} />
