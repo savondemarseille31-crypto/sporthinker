@@ -94,6 +94,41 @@ function PlayerRow({ signal }: { signal: PlayerSignal }) {
   )
 }
 
+// Extrait un % depuis les stats d'un signal (val type "83%").
+function pctFromStats(stats: { label: string; val: string }[], pred: (l: string) => boolean): number | null {
+  const s = stats.find(x => pred(x.label.toLowerCase()))
+  if (!s) return null
+  const n = parseFloat(s.val.replace('%', '').replace(',', '.'))
+  return Number.isFinite(n) ? n : null
+}
+
+// Barre de probabilité 1x2 (dom / nul / ext) — viz sportive façon "win probability".
+function ProbabilityBar({ signal, home, away }: { signal: Signal; home: string; away: string }) {
+  const h = pctFromStats(signal.stats, l => l.includes(home.toLowerCase()))
+  const d = pctFromStats(signal.stats, l => /nul|draw/.test(l))
+  const a = pctFromStats(signal.stats, l => l.includes(away.toLowerCase()))
+  if (h == null || d == null || a == null) return null
+  const total = h + d + a || 1
+  return (
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4 mb-4">
+      <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-gray-500 mb-2">
+        <span>📊 Probabilité du modèle</span>
+        <span>Dixon-Coles</span>
+      </div>
+      <div className="flex h-3.5 rounded-full overflow-hidden bg-[#0a0d14] mb-2.5">
+        <div style={{ width: `${(h / total) * 100}%` }} className="bg-violet-500" />
+        <div style={{ width: `${(d / total) * 100}%` }} className="bg-gray-600" />
+        <div style={{ width: `${(a / total) * 100}%` }} className="bg-sky-500" />
+      </div>
+      <div className="flex items-end justify-between gap-2">
+        <span className="min-w-0"><span className="text-2xl font-extrabold text-violet-400 tabular-nums">{h}%</span> <span className="text-sm text-gray-400 truncate">{home}</span></span>
+        <span className="text-sm text-gray-500 shrink-0">{d}% nul</span>
+        <span className="text-right min-w-0"><span className="text-sm text-gray-400 truncate">{away}</span> <span className="text-2xl font-extrabold text-sky-400 tabular-nums">{a}%</span></span>
+      </div>
+    </div>
+  )
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function CdmMatchupPage({ params }: { params: Promise<{ id: string }> }) {
@@ -178,6 +213,10 @@ export default async function CdmMatchupPage({ params }: { params: Promise<{ id:
         {/* Signaux match */}
         <section className="mb-8">
           <h2 className="text-xl font-bold text-violet-400 mb-4">⚡ Signal match</h2>
+          {(() => {
+            const probSig = matchSignals.find(s => s.stats?.some(x => /nul|draw/.test(x.label.toLowerCase())))
+            return probSig ? <ProbabilityBar signal={probSig} home={match.domicile} away={match.exterieur} /> : null
+          })()}
           {matchSignals.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {matchSignals.map(s => <MatchSignalCard key={s.id} signal={s} />)}
