@@ -1703,8 +1703,18 @@ export const CDM_PLAYERS: Player[] = [
   { id: 1409, nom: 'Yaimar Medina', pays: 'Ecuador', flag: '🇪🇨', groupe: 'E', poste: 'Attaquant', club: 'Genk', age: 23, buts: 12, passes: 5, xG: 10.2, xA: 4.2, matchsJoues: 26, minutesJouees: 2080, tirs: 64, tirsCadres: 22, cartonsJaunes: 2, passesClés: 16, note: 7.1, forme: ['V','V','N','P','V'], description: 'Jeune attaquant en pleine éclosion à Genk en Belgique, buteur régulier dans l\'une des meilleures formations pour les talents en développement, futur titulaire de la Tri.' },
 ]
 
-// Alias pour compatibilité avec les pages existantes
-export const ALL_CDM_PLAYERS: Player[] = CDM_PLAYERS
+// Alias pour compatibilité avec les pages existantes.
+// Déduplication par nom+pays (le dataset contient des fiches en double) → on garde la
+// meilleure (note la plus élevée). Évite qu'un joueur apparaisse plusieurs fois.
+export const ALL_CDM_PLAYERS: Player[] = (() => {
+  const byKey = new Map<string, Player>()
+  for (const p of CDM_PLAYERS) {
+    const k = `${p.nom}|${p.pays}`
+    const prev = byKey.get(k)
+    if (!prev || (p.note ?? 0) > (prev.note ?? 0)) byKey.set(k, p)
+  }
+  return [...byKey.values()]
+})()
 
 export function getPlayersByPays(pays: string) {
   return ALL_CDM_PLAYERS.filter(p => p.pays === pays)
