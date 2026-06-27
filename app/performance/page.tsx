@@ -122,6 +122,36 @@ function EquityCurve({ points }: { points: { date: string; cumUnits: number }[] 
   )
 }
 
+// Track « hero » d'un type de pari (Signaux ou Values) : profit + yield + courbe de capital.
+// En dessous d'un seuil d'échantillon → mode « en construction » (pas de chiffre trompeur).
+const MIN_SAMPLE = 20
+function TrackCard({ label, badgeClass, cardClass, entries }: { label: string; badgeClass: string; cardClass: string; entries: TrackEntry[] }) {
+  const stats = computeStats(entries)
+  const mature = stats.n >= MIN_SAMPLE
+  return (
+    <div className={`rounded-2xl border p-5 overflow-hidden ${mature ? cardClass : 'border-gray-800 bg-gray-900'}`}>
+      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badgeClass}`}>{label}</span>
+        <span className="text-xs text-gray-500">{stats.n} paris soldés{mature ? ` · ${stats.winRate.toFixed(0)} % réussite` : ''}</span>
+      </div>
+      {mature ? (
+        <>
+          <div className="flex items-end justify-between gap-3 mb-2">
+            <p className={`text-3xl sm:text-4xl font-extrabold tabular-nums ${stats.profitUnits >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{fmtUnits(stats.profitUnits)}</p>
+            <p className={`text-lg font-bold tabular-nums ${stats.yield >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{fmtPct(stats.yield)} <span className="text-xs text-gray-500 font-normal">yield</span></p>
+          </div>
+          <EquityCurve points={equityCurve(entries)} />
+        </>
+      ) : (
+        <p className="text-sm text-gray-400 py-2">
+          🚧 <span className="text-gray-300 font-medium">Échantillon en construction</span> ({stats.n} pari{stats.n > 1 ? 's' : ''}).
+          On publiera le rendement quand il sera représentatif — pas de chiffre trompeur sur un petit échantillon.
+        </p>
+      )}
+    </div>
+  )
+}
+
 // Répartition Signaux (opinion du modèle) vs Values (EV+ vs marché) — affichée si les 2 coexistent.
 function TierBreakdown({ entries }: { entries: TrackEntry[] }) {
   const groups = [
@@ -271,11 +301,9 @@ export default async function PerformancePage() {
   // « en construction » à la place. Les signaux tennis restent dispo dans /signaux.
   const published = all.filter(e => e.sport !== 'Tennis')
   const tennisCount = all.length - published.length
-  // Global = signaux FORTS uniquement (nos meilleurs picks). Inclure modéré / à surveiller
-  // tirerait les stats vers le bas ; ces niveaux sont suivis séparément par sport ci-dessous.
-  const fort = published.filter(e => e.confiance === 'fort')
-  const global = computeStats(fort)
-  const equity = equityCurve(fort)
+  // Deux tracks distincts, forts uniquement : Signaux (opinion modèle) vs Values (EV+ vs marché).
+  const signauxFort = published.filter(e => e.tier !== 'value' && e.confiance === 'fort')
+  const valuesFort  = published.filter(e => e.tier === 'value'  && e.confiance === 'fort')
   const sports = bySport(published)
   const months = statsByMonth(published).filter(m => m.stats.n > 0) // tous niveaux, mois avec ≥1 pari soldé
   let propStats: Awaited<ReturnType<typeof getPropStats>> = { markets: [], total: 0 }
@@ -328,33 +356,30 @@ export default async function PerformancePage() {
           <p className="text-xs text-gray-600 mt-3">Chaque niveau est suivi <span className="text-gray-400">séparément</span> ci-dessous, par sport, pour une transparence totale.</p>
         </div>
 
-        {/* Stats globales — signaux forts uniquement */}
+        {/* Performance globale — deux tracks : Signaux vs Values (forts) */}
         <section className="mb-10">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <h2 className="text-xl font-bold">Global</h2>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">⚡ Signaux forts uniquement</span>
+            <h2 className="text-xl font-bold">Performance globale</h2>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-700 text-gray-300">forts uniquement</span>
           </div>
           <p className="text-sm text-gray-500 mb-4">
-            Ces chiffres ne comptent que les signaux <span className="text-emerald-400 font-medium">forts</span> (nos meilleurs picks).
-            Les niveaux <span className="text-yellow-400">modéré</span> et <span className="text-gray-400">à surveiller</span> sont suivis séparément, par sport, ci-dessous.
+            Deux tracks distincts : nos <span className="text-emerald-400 font-medium">⚡ signaux</span> (opinion du modèle) et nos <span className="text-yellow-400 font-medium">💰 values</span> (avantage EV+ vs marché).
+            Capital cumulé en unités (mise à plat, 1&nbsp;u/pari).
           </p>
-
-          {equity.length >= 2 && (
-            <div className="mb-5 rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/[0.07] to-gray-900 p-5 overflow-hidden">
-              <div className="mb-3">
-                <p className="text-[11px] uppercase tracking-wider text-gray-500 mb-0.5">📈 Capital cumulé · signaux forts</p>
-                <p className={`text-3xl sm:text-4xl font-extrabold tabular-nums ${global.profitUnits >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {fmtUnits(global.profitUnits)} <span className="text-base font-semibold text-gray-500">au total</span>
-                </p>
-                <p className="text-xs text-gray-500">
-                  Profit cumulé en <span className="text-gray-400 font-medium">unités</span> (mise à plat, 1&nbsp;u/pari) sur {global.n} paris soldés — pas le ROI.
-                </p>
-              </div>
-              <EquityCurve points={equity} />
-            </div>
-          )}
-
-          <StatsGrid stats={global} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <TrackCard
+              label="⚡ Signaux forts"
+              badgeClass="bg-emerald-500/15 text-emerald-400"
+              cardClass="border-emerald-500/20 bg-gradient-to-b from-emerald-500/[0.07] to-gray-900"
+              entries={signauxFort}
+            />
+            <TrackCard
+              label="💰 Values fortes"
+              badgeClass="bg-yellow-500/15 text-yellow-400"
+              cardClass="border-yellow-500/20 bg-gradient-to-b from-yellow-500/[0.07] to-gray-900"
+              entries={valuesFort}
+            />
+          </div>
         </section>
 
         {/* Performance par mois — tous niveaux confondus */}
