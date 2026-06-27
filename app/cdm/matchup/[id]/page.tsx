@@ -129,6 +129,55 @@ function ProbabilityBar({ signal, home, away }: { signal: Signal; home: string; 
   )
 }
 
+// Ligne de comparaison à barres opposées (valeur dom vs ext).
+function CompareRow({ label, h, a, fmt = (v: number) => v.toFixed(2) }: { label: string; h: number; a: number; fmt?: (v: number) => string }) {
+  const total = (h + a) || 1
+  return (
+    <div className="py-2.5 border-t border-[#262b36] first:border-t-0">
+      <p className="text-center text-[11px] uppercase tracking-wider text-gray-500 mb-1.5">{label}</p>
+      <div className="flex items-center gap-2">
+        <span className="w-12 text-right text-sm font-bold text-violet-400 tabular-nums">{fmt(h)}</span>
+        <div className="flex-1 flex h-2 rounded-full overflow-hidden bg-[#0a0d14]">
+          <div className="bg-violet-500" style={{ width: `${(h / total) * 100}%` }} />
+          <div className="bg-sky-500" style={{ width: `${(a / total) * 100}%` }} />
+        </div>
+        <span className="w-12 text-sm font-bold text-sky-400 tabular-nums">{fmt(a)}</span>
+      </div>
+    </div>
+  )
+}
+
+// Panneau "Face à face" — comble la colonne de droite du signal avec un comparatif visuel.
+function MatchupCompare({ home, away, homeRank, awayRank, homeForm, awayForm, lambdaH, lambdaA }: {
+  home: string; away: string
+  homeRank?: number; awayRank?: number
+  homeForm?: string; awayForm?: string
+  lambdaH: number | null; lambdaA: number | null
+}) {
+  return (
+    <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-4">
+      <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-gray-500 mb-3">
+        <span className="text-violet-400 font-semibold">{home}</span>
+        <span>Face à face</span>
+        <span className="text-sky-400 font-semibold">{away}</span>
+      </div>
+      {lambdaH != null && lambdaA != null && (
+        <CompareRow label="Buts attendus (λ)" h={lambdaH} a={lambdaA} />
+      )}
+      <div className="py-2.5 border-t border-[#262b36] grid grid-cols-3 items-center text-sm">
+        <span className="font-bold text-white text-left">#{homeRank ?? '—'}</span>
+        <span className="text-center text-[11px] uppercase tracking-wider text-gray-500">FIFA</span>
+        <span className="font-bold text-white text-right">#{awayRank ?? '—'}</span>
+      </div>
+      <div className="py-2.5 border-t border-[#262b36] grid grid-cols-3 items-center text-sm">
+        <span className="font-bold text-white text-left">{homeForm ?? '—'}</span>
+        <span className="text-center text-[11px] uppercase tracking-wider text-gray-500">Formation</span>
+        <span className="font-bold text-white text-right">{awayForm ?? '—'}</span>
+      </div>
+    </div>
+  )
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function CdmMatchupPage({ params }: { params: Promise<{ id: string }> }) {
@@ -213,15 +262,26 @@ export default async function CdmMatchupPage({ params }: { params: Promise<{ id:
         {/* Signaux match */}
         <section className="mb-8">
           <h2 className="text-xl font-bold text-violet-400 mb-4">⚡ Signal match</h2>
-          {(() => {
+          {matchSignals.length > 0 ? (() => {
             const probSig = matchSignals.find(s => s.stats?.some(x => /nul|draw/.test(x.label.toLowerCase())))
-            return probSig ? <ProbabilityBar signal={probSig} home={match.domicile} away={match.exterieur} /> : null
-          })()}
-          {matchSignals.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {matchSignals.map(s => <MatchSignalCard key={s.id} signal={s} />)}
-            </div>
-          ) : (
+            const lam = probSig?.stats.find(x => x.label.includes('λ'))?.val.split('/').map(v => parseFloat(v))
+            const lambdaH = lam && Number.isFinite(lam[0]) ? lam[0] : null
+            const lambdaA = lam && Number.isFinite(lam[1]) ? lam[1] : null
+            return (
+              <>
+                {probSig && <ProbabilityBar signal={probSig} home={match.domicile} away={match.exterieur} />}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {matchSignals.map(s => <MatchSignalCard key={s.id} signal={s} />)}
+                  <MatchupCompare
+                    home={match.domicile} away={match.exterieur}
+                    homeRank={homeProfile?.classementFIFA} awayRank={awayProfile?.classementFIFA}
+                    homeForm={homeProfile?.formation} awayForm={awayProfile?.formation}
+                    lambdaH={lambdaH} lambdaA={lambdaA}
+                  />
+                </div>
+              </>
+            )
+          })() : (
             <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 text-center">
               <p className="text-gray-500 text-sm">Aucun signal match détecté — les deux équipes sont trop proches en termes de valeurs xG estimées.</p>
             </div>
