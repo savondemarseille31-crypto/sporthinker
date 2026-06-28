@@ -94,6 +94,11 @@ function evalTennis(bet: { match: string; selection: string }, results: ESPNTenn
   const sel1 = nameMatch(bet.selection, res.player1), sel2 = nameMatch(bet.selection, res.player2)
   if (sel1 === sel2) return null // ambigu
   const won = nameMatch(bet.selection, res.winnerName)
+  // Handicap sets (-1.5 / -2.5) : le score par sets n'est pas dispo via ESPN, on ne peut donc
+  // pas vérifier la marge. On ne solde que la perte certaine (favori battu = handicap perdu) ;
+  // si le favori gagne, on laisse en_cours plutôt que de risquer un faux « gagné ».
+  const isHandicap = /sets?\b/i.test(bet.selection) || /-\s?[12][.,]5/.test(bet.selection)
+  if (isHandicap) return won ? null : { statut: 'perdu' }
   return { statut: won ? 'gagné' : 'perdu' }
 }
 
