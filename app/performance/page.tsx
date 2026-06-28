@@ -24,7 +24,7 @@ export const metadata = {
 }
 
 const SPORT_ICONS: Record<string, string> = {
-  MLB: '⚾', CdM: '🌍', NBA: '🏀', Tennis: '🎾', MLS: '⚽',
+  MLB: '⚾', 'MLB v2': '⚾', CdM: '🌍', NBA: '🏀', Tennis: '🎾', MLS: '⚽',
 }
 
 function fmtUnits(u: number): string {

@@ -246,7 +246,7 @@ export async function settleSignalHistory(): Promise<{ settled: number }> {
     settled++
   }
 
-  const mlb = rows.filter(r => r.sport === 'MLB' && r.match_date)
+  const mlb = rows.filter(r => (r.sport === 'MLB' || r.sport === 'MLB v2') && r.match_date)
   for (const date of [...new Set(mlb.map(r => r.match_date!))]) {
     let games: MLBGame[] = []
     try { games = await getSchedule(date) } catch { continue }
