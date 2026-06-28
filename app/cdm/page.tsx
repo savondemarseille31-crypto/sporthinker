@@ -3,10 +3,27 @@ import Header from '@/components/Header'
 import { CDM_FIXTURES } from '@/lib/cdm-fixtures'
 import { CDM_GROUPS } from '@/lib/cdm-groups'
 import CdmCountdown from '@/components/CdmCountdown'
+import { getWcResults } from '@/lib/api-football'
 
-export default function CdmPage() {
-  const today = new Date().toISOString().slice(0, 10)
-  const prochainMatchs = CDM_FIXTURES.filter(m => m.date >= today).slice(0, 6)
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const ALIAS: Record<string, string> = { turkiye: 'turkey', cotedivoire: 'ivorycoast', korearepublic: 'southkorea', korea: 'southkorea', unitedstates: 'usa', czechrepublic: 'czechia', bosniaandherzegovina: 'bosniaherzegovina', congodr: 'drcongo', capeverdeislands: 'capeverde' }
+function normTeam(s: string): string { let n = (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, ''); n = n.replace(/^republicof/, '').replace(/republic$/, ''); return ALIAS[n] ?? n }
+const CANON: Record<string, string> = {}; const FLAG: Record<string, string> = {}
+for (const f of CDM_FIXTURES) { CANON[normTeam(f.domicile)] = f.domicile; FLAG[normTeam(f.domicile)] = f.flagD; CANON[normTeam(f.exterieur)] = f.exterieur; FLAG[normTeam(f.exterieur)] = f.flagE }
+const canonTeam = (n: string) => CANON[normTeam(n)] ?? n
+const flagOf = (n: string) => FLAG[normTeam(n)] ?? '🏳️'
+const ROUND_LABEL: Record<string, string> = { 'Round of 32': '16es de finale', 'Round of 16': '8es de finale', 'Quarter-finals': 'Quarts', 'Semi-finals': 'Demi-finales', '3rd Place Final': '3e place', 'Final': 'Finale' }
+const roundLabel = (r: string) => /group stage/i.test(r) ? r.replace(/Group Stage - (\d)/, 'Poule · J$1') : (ROUND_LABEL[r] ?? r)
+
+export const revalidate = 600
+
+export default async function CdmPage() {
+  const api = await getWcResults().catch(() => [] as any[])
+  const now = Date.now()
+  const prochainMatchs = (api as any[])
+    .filter(f => new Date(f.fixture.date).getTime() > now)
+    .sort((a, b) => String(a.fixture.date).localeCompare(String(b.fixture.date)))
+    .slice(0, 6)
 
   return (
     <main className="min-h-screen bg-[#0a0d14] text-white">
@@ -60,29 +77,36 @@ export default function CdmPage() {
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-violet-400">Prochains matchs</h2>
-            <Link href="/cdm/calendrier" className="text-sm text-gray-500 hover:text-violet-400 transition-colors">Voir tout →</Link>
+            <Link href="/cdm/phases-finales" className="text-sm text-gray-500 hover:text-violet-400 transition-colors">Voir tout →</Link>
           </div>
+          {prochainMatchs.length === 0 ? (
+            <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 text-center text-gray-400">Aucun match à venir pour le moment.</div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {prochainMatchs.map((match) => (
-              <Link key={match.id} href={`/cdm/matchup/${match.id}`} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 hover:border-violet-500 transition-colors block">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full">Groupe {match.groupe}</span>
-                  <span className="text-xs text-gray-500">{new Date(`${match.date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {match.heure}</span>
-                </div>
-                <div className="grid grid-cols-[1fr_40px_1fr] items-center">
-                  <div className="text-center">
-                    <p className="text-2xl mb-1">{match.flagD}</p>
-                    <p className="text-sm font-semibold">{match.domicile}</p>
+            {prochainMatchs.map((m: any) => {
+              const dt = new Date(m.fixture.date)
+              return (
+                <div key={m.fixture.id} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full">{roundLabel(m.league.round)}</span>
+                    <span className="text-xs text-gray-500">{dt.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', timeZone: 'Europe/Paris' })} · {dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' })}</span>
                   </div>
-                  <div className="text-violet-400 font-bold text-center">VS</div>
-                  <div className="text-center">
-                    <p className="text-2xl mb-1">{match.flagE}</p>
-                    <p className="text-sm font-semibold">{match.exterieur}</p>
+                  <div className="grid grid-cols-[1fr_40px_1fr] items-center">
+                    <div className="text-center">
+                      <p className="text-2xl mb-1">{flagOf(m.teams.home.name)}</p>
+                      <p className="text-sm font-semibold">{canonTeam(m.teams.home.name)}</p>
+                    </div>
+                    <div className="text-violet-400 font-bold text-center">VS</div>
+                    <div className="text-center">
+                      <p className="text-2xl mb-1">{flagOf(m.teams.away.name)}</p>
+                      <p className="text-sm font-semibold">{canonTeam(m.teams.away.name)}</p>
+                    </div>
                   </div>
                 </div>
-              </Link>
-            ))}
+              )
+            })}
           </div>
+          )}
         </section>
 
         {/* Groupes aperçu */}
