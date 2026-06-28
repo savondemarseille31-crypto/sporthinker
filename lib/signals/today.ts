@@ -10,6 +10,7 @@ import { generateFootballSignalsForToday, generateCdMSignalsForMatch } from '@/l
 import { LEAGUES } from '@/lib/api-football'
 import { generateTennisSignalsForToday } from '@/lib/tennis-signals'
 import { generateMLSSignalsForToday } from '@/lib/mls-signals'
+import { getKnockoutCdMSignals } from '@/lib/signals/cdm-knockout'
 import {
   getMLBOdds, getCdMOdds, getNBAOdds, getTennisOdds, getMLSOdds,
   findEvent, extractRealOdds, devigFromEvent, type OddsEvent,
@@ -134,7 +135,9 @@ export async function getTodaySignals(): Promise<TodaySignals> {
     })
   })
   const staticCdmSignals = rawCdMSignals.map(s => enrichSignalWithOdds(s, espnCdMOdds))
-  const cdmSignals = addCoteRef([...liveFootballSignals, ...staticCdmSignals], oddsMap)
+  // Phase finale (16es, quarts…) : matchups dynamiques API-Football → signaux Dixon-Coles.
+  const knockoutSignals = await getKnockoutCdMSignals(cdmOdds)
+  const cdmSignals = addCoteRef([...liveFootballSignals, ...staticCdmSignals, ...knockoutSignals], oddsMap)
 
   // Tri par force
   const forceOrder: Record<SignalForce, number> = { fort: 0, modéré: 1, 'à surveiller': 2 }
