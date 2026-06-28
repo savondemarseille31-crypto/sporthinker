@@ -39,6 +39,11 @@ export default function CdmPage() {
             <p className="font-semibold">Calendrier</p>
             <p className="text-xs text-gray-500 mt-1">72 matchs · Phase de groupes</p>
           </Link>
+          <Link href="/cdm/phases-finales" className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 hover:border-violet-500 transition-colors text-center">
+            <div className="text-3xl mb-2">🏆</div>
+            <p className="font-semibold">Phases finales</p>
+            <p className="text-xs text-gray-500 mt-1">Tableau à élimination directe</p>
+          </Link>
           <Link href="/cdm/joueurs" className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5 hover:border-violet-500 transition-colors text-center">
             <div className="text-3xl mb-2">👤</div>
             <p className="font-semibold">Joueurs</p>
