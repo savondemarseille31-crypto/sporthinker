@@ -65,7 +65,7 @@ export default async function PhasesFinalesPage() {
                   const done = ['FT', 'AET', 'PEN'].includes(m.fixture.status.short)
                   const hasScore = m.goals.home != null && m.goals.away != null
                   return (
-                    <div key={m.fixture.id} className="bg-[#14171f] border border-[#262b36] rounded-xl px-5 py-4">
+                    <Link key={m.fixture.id} href={`/cdm/matchup/${m.fixture.id}`} className="block bg-[#14171f] border border-[#262b36] rounded-xl px-5 py-4 hover:border-violet-500 transition-colors">
                       <div className="flex items-center gap-2 mb-3 text-xs text-gray-500">
                         <span className="capitalize">{new Date(m.fixture.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
                         <span className="text-gray-600">·</span>
@@ -92,7 +92,7 @@ export default async function PhasesFinalesPage() {
                           <span className="text-xl shrink-0">{flagOf(a)}</span>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   )
                 })}
               </div>

@@ -8,11 +8,39 @@ import { CDM_TEAM_PROFILES } from '@/lib/cdm-teams'
 import { getTopPlayerSignals, type PlayerSignal } from '@/lib/cdm-player-signals'
 import { generateCdMSignalsForMatch } from '@/lib/football-signals'
 import { getCdMOdds, findEvent, devigFromEvent } from '@/lib/odds-api'
+import { getWcResults } from '@/lib/api-football'
 import type { Signal, SignalForce } from '@/lib/signals'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export async function generateStaticParams() {
   return CDM_FIXTURES.map(f => ({ id: String(f.id) }))
 }
+
+// ── Normalisation noms/drapeaux pour les matchs de phase finale (API-Football) ──
+const ALIAS: Record<string, string> = {
+  turkiye: 'turkey', cotedivoire: 'ivorycoast', korearepublic: 'southkorea', korea: 'southkorea',
+  unitedstates: 'usa', czechrepublic: 'czechia', bosniaandherzegovina: 'bosniaherzegovina',
+  congodr: 'drcongo', capeverdeislands: 'capeverde',
+}
+function normTeam(s: string): string {
+  let n = (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '')
+  n = n.replace(/^republicof/, '').replace(/republic$/, '')
+  return ALIAS[n] ?? n
+}
+const CANON: Record<string, string> = {}
+const FLAG: Record<string, string> = {}
+for (const f of CDM_FIXTURES) {
+  CANON[normTeam(f.domicile)] = f.domicile; FLAG[normTeam(f.domicile)] = f.flagD
+  CANON[normTeam(f.exterieur)] = f.exterieur; FLAG[normTeam(f.exterieur)] = f.flagE
+}
+const canonTeam = (n: string) => CANON[normTeam(n)] ?? n
+const flagOf = (n: string) => FLAG[normTeam(n)] ?? '🏳️'
+const ROUND_LABEL: Record<string, string> = {
+  'Round of 32': '16es de finale', 'Round of 16': '8es de finale', 'Quarter-finals': 'Quarts de finale',
+  'Semi-finals': 'Demi-finales', '3rd Place Final': 'Match pour la 3e place', 'Final': 'Finale',
+}
+const roundLabel = (r: string) => ROUND_LABEL[r] ?? r
 
 // ── Helpers visuels ──────────────────────────────────────────────────────────
 
@@ -184,8 +212,39 @@ export default async function CdmMatchupPage({ params }: { params: Promise<{ id:
   const { premium } = await getEntitlement()
   if (!premium) return <PaywallPage title="Analyse du match réservée aux abonnés" />
   const { id } = await params
-  const match = CDM_FIXTURES.find(f => f.id === Number(id))
-  if (!match) notFound()
+  const fixtureId = Number(id)
+  const groupFixture = CDM_FIXTURES.find(f => f.id === fixtureId)
+  const isKnockout = !groupFixture
+
+  // Vue match unifiée : soit une fixture de poule (statique), soit un matchup de phase
+  // finale (dynamique API-Football, id = id de la fixture API).
+  let match: {
+    id: number; date: string; heure: string
+    domicile: string; exterieur: string
+    flagD: string; flagE: string
+    label: string; stade: string
+  }
+  if (groupFixture) {
+    match = {
+      id: groupFixture.id, date: groupFixture.date, heure: groupFixture.heure,
+      domicile: groupFixture.domicile, exterieur: groupFixture.exterieur,
+      flagD: groupFixture.flagD, flagE: groupFixture.flagE,
+      label: `Groupe ${groupFixture.groupe}`, stade: groupFixture.stade,
+    }
+  } else {
+    const api = await getWcResults().catch(() => [] as any[])
+    const af = (api as any[]).find(f => f.fixture?.id === fixtureId)
+    if (!af) notFound()
+    const dt = new Date(af.fixture.date)
+    match = {
+      id: fixtureId,
+      date: dt.toLocaleDateString('en-CA', { timeZone: 'Europe/Paris' }),
+      heure: dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }),
+      domicile: canonTeam(af.teams.home.name), exterieur: canonTeam(af.teams.away.name),
+      flagD: flagOf(af.teams.home.name), flagE: flagOf(af.teams.away.name),
+      label: roundLabel(af.league.round), stade: af.fixture.venue?.name ?? '',
+    }
+  }
 
   const homeProfile = CDM_TEAM_PROFILES.find(t => t.pays === match.domicile)
   const awayProfile = CDM_TEAM_PROFILES.find(t => t.pays === match.exterieur)
@@ -219,7 +278,9 @@ export default async function CdmMatchupPage({ params }: { params: Promise<{ id:
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <Link href="/cdm" className="hover:text-violet-400 transition-colors">CdM 2026</Link>
           <span>›</span>
-          <Link href="/cdm/calendrier" className="hover:text-violet-400 transition-colors">Calendrier</Link>
+          {isKnockout
+            ? <Link href="/cdm/phases-finales" className="hover:text-violet-400 transition-colors">Phases finales</Link>
+            : <Link href="/cdm/calendrier" className="hover:text-violet-400 transition-colors">Calendrier</Link>}
           <span>›</span>
           <span className="text-gray-300">{match.domicile} vs {match.exterieur}</span>
         </div>
@@ -228,7 +289,7 @@ export default async function CdmMatchupPage({ params }: { params: Promise<{ id:
         <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 mb-8">
           <div className="flex flex-wrap items-center gap-3 mb-5">
             <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full font-medium">
-              Groupe {match.groupe}
+              {match.label}
             </span>
             <span className="text-xs text-gray-400 capitalize">{dateStr}</span>
             <span className="text-xs text-gray-500">· {match.heure} (Paris)</span>

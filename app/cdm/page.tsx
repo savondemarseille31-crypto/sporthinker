@@ -86,7 +86,7 @@ export default async function CdmPage() {
             {prochainMatchs.map((m: any) => {
               const dt = new Date(m.fixture.date)
               return (
-                <div key={m.fixture.id} className="bg-[#14171f] border border-[#262b36] rounded-2xl p-5">
+                <Link key={m.fixture.id} href={`/cdm/matchup/${m.fixture.id}`} className="block bg-[#14171f] border border-[#262b36] rounded-2xl p-5 hover:border-violet-500 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full">{roundLabel(m.league.round)}</span>
                     <span className="text-xs text-gray-500">{dt.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', timeZone: 'Europe/Paris' })} · {dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' })}</span>
@@ -102,7 +102,8 @@ export default async function CdmPage() {
                       <p className="text-sm font-semibold">{canonTeam(m.teams.away.name)}</p>
                     </div>
                   </div>
-                </div>
+                  <p className="text-center text-xs text-violet-400 mt-3">Voir l&apos;analyse →</p>
+                </Link>
               )
             })}
           </div>
