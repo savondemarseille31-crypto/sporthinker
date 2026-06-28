@@ -14,6 +14,7 @@ import {
 import { getSelectionsTrackEntries } from '@/lib/track-record/selections'
 import { getSignalHistoryTrackEntries } from '@/lib/track-record/signal-history'
 import { getPropStats } from '@/lib/track-record/prop-history'
+import { getCurrentRole } from '@/lib/supabase/user'
 
 export const dynamic = 'force-dynamic' // lit Supabase (sélections) — jamais prérendu au build
 
@@ -299,8 +300,10 @@ export default async function PerformancePage() {
   // Tennis : échantillon encore trop court / variance trop élevée pour publier un yield
   // représentatif (cf. audit). On l'exclut des chiffres publics, on affiche un message
   // « en construction » à la place. Les signaux tennis restent dispo dans /signaux.
-  const published = all.filter(e => e.sport !== 'Tennis')
-  const tennisCount = all.length - published.length
+  // MLB v2 = en test, réservé à l'admin (caché du track record public tant qu'il n'est pas validé).
+  const isAdmin = (await getCurrentRole()) === 'admin'
+  const published = all.filter(e => e.sport !== 'Tennis' && (isAdmin || e.sport !== 'MLB v2'))
+  const tennisCount = all.filter(e => e.sport === 'Tennis').length
   // Deux tracks distincts, forts uniquement : Signaux (opinion modèle) vs Values (EV+ vs marché).
   const signauxFort = published.filter(e => e.tier !== 'value' && e.confiance === 'fort')
   const valuesFort  = published.filter(e => e.tier === 'value'  && e.confiance === 'fort')

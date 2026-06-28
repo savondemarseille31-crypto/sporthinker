@@ -1,4 +1,5 @@
 import Header from '@/components/Header'
+import Link from 'next/link'
 
 export default function AdminPage() {
   return (
@@ -14,6 +15,18 @@ export default function AdminPage() {
         </div>
 
         <div className="space-y-4">
+          {/* Signaux MLB v2 — privé, en test */}
+          <Link href="/mlb/v2" className="block bg-[#14171f] border border-[#262b36] rounded-2xl p-6 hover:border-violet-500 transition-colors">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⚾</span>
+              <div className="flex-1">
+                <h2 className="font-bold text-lg flex items-center gap-2 flex-wrap">Signaux MLB v2 <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full">privé · en test</span></h2>
+                <p className="text-sm text-gray-400">Modèle Pythagoricien + Kelly. Mesuré séparément du v1 — la perf « MLB v2 » apparaît sur /performance (admin uniquement).</p>
+              </div>
+              <span className="text-violet-400 shrink-0">→</span>
+            </div>
+          </Link>
+
           {/* Stake */}
           <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-3">
