@@ -18,7 +18,11 @@ export async function captureTodayMlbV2(): Promise<{ captured: number }> {
   const seen = new Set<string>()
   const rows = analyses
     .map(a => a?.signal)
-    .filter((s): s is Signal => !!s && !!s.id && !seen.has(s.id) && seen.add(s.id))
+    .filter((s): s is Signal => {
+      if (!s || !s.id || seen.has(s.id)) return false
+      seen.add(s.id)
+      return true
+    })
     .map(s => ({
       id:         `mlbv2-${s.id}`,
       date_match: s.date,
