@@ -30,6 +30,17 @@ export default async function MLBPage() {
           <p className="text-gray-400">Matchups du jour · Classements · Stats pour le value betting</p>
         </div>
 
+        {/* Signaux v2 — accès en évidence */}
+        <Link href="/mlb/v2" className="block mb-4 bg-gradient-to-r from-violet-500/10 to-transparent border border-violet-500/30 rounded-2xl p-5 hover:border-violet-500 transition-colors">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-bold text-white flex items-center gap-2 flex-wrap">⚡ Signaux MLB <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full">modèle v2</span></p>
+              <p className="text-sm text-gray-400 mt-0.5">Probabilité Pythagoricienne + mise Kelly sur les Moneyline du jour.</p>
+            </div>
+            <span className="text-violet-400 font-semibold shrink-0">Voir →</span>
+          </div>
+        </Link>
+
         {/* Raccourcis */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
