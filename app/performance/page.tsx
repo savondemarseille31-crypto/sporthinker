@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import Header from '@/components/Header'
 import {
   getTrackRecord,
@@ -297,13 +296,10 @@ export default async function PerformancePage() {
   let signalHistory: TrackEntry[] = []
   try { signalHistory = await getSignalHistoryTrackEntries() } catch { /* idem */ }
   const all = [...getTrackRecord(), ...selections, ...signalHistory]
-  // Tennis : échantillon encore trop court / variance trop élevée pour publier un yield
-  // représentatif (cf. audit). On l'exclut des chiffres publics, on affiche un message
-  // « en construction » à la place. Les signaux tennis restent dispo dans /signaux.
   // MLB v2 = en test, réservé à l'admin (caché du track record public tant qu'il n'est pas validé).
+  // Tennis : désormais publié comme les autres sports (suivi auto via signal_history).
   const isAdmin = (await getCurrentRole()) === 'admin'
-  const published = all.filter(e => e.sport !== 'Tennis' && (isAdmin || e.sport !== 'MLB v2'))
-  const tennisCount = all.filter(e => e.sport === 'Tennis').length
+  const published = all.filter(e => isAdmin || e.sport !== 'MLB v2')
   // Deux tracks distincts, forts uniquement : Signaux (opinion modèle) vs Values (EV+ vs marché).
   const signauxFort = published.filter(e => e.tier !== 'value' && e.confiance === 'fort')
   const valuesFort  = published.filter(e => e.tier === 'value'  && e.confiance === 'fort')
@@ -421,7 +417,7 @@ export default async function PerformancePage() {
                 </tbody>
               </table>
             </div>
-            <p className="text-xs text-gray-600 mt-2">Tous niveaux de confiance confondus (fort · modéré · à surveiller), hors Tennis.</p>
+            <p className="text-xs text-gray-600 mt-2">Tous niveaux de confiance confondus (fort · modéré · à surveiller).</p>
           </section>
         )}
 
@@ -479,23 +475,6 @@ export default async function PerformancePage() {
           )}
         </section>
 
-        {tennisCount > 0 && (
-          <section className="mb-10">
-            <div className="bg-[#14171f] border border-[#262b36] rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold mb-1">🎾 Tennis — track record en construction 🚧</h2>
-                <p className="text-sm text-gray-400 max-w-2xl">
-                  On accumule actuellement les données sur le tennis ({tennisCount} paris suivis). L&apos;échantillon est encore
-                  trop court — et à variance élevée — pour communiquer un rendement représentatif. Par souci de transparence,
-                  on publiera les chiffres tennis seulement quand ils seront solides. Les <span className="text-gray-300">signaux tennis restent disponibles</span> dès aujourd&apos;hui.
-                </p>
-              </div>
-              <Link href="/signaux?tab=tennis" className="shrink-0 text-sm font-semibold text-violet-400 hover:text-violet-300">
-                Voir les signaux tennis →
-              </Link>
-            </div>
-          </section>
-        )}
       </div>
     </main>
   )
